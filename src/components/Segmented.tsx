@@ -22,7 +22,7 @@ interface SegmentedProps<T extends string> {
 /** Tier picker and mode toggle. The ember indicator slides between segments on the spring curve. */
 export function Segmented<T extends string>({ id, label, options, value, onChange, disabled }: SegmentedProps<T>) {
   return (
-    <div role="radiogroup" aria-label={label} className="flex w-full border border-iron">
+    <div role="radiogroup" aria-label={label} className="flex w-full overflow-hidden rounded-control border border-iron">
       {options.map((opt, i) => {
         const active = opt.value === value;
         return (

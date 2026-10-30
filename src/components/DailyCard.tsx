@@ -23,10 +23,11 @@ export function DailyCard() {
     <section
       id="daily"
       aria-labelledby="daily-title"
-      className="grid gap-8 rounded-card border border-iron border-l-2 border-l-ember bg-graphite p-6 md:grid-cols-[1fr_1.2fr] md:p-8"
+      className="grid gap-8 rounded-card border border-iron bg-graphite p-6 md:grid-cols-[1fr_1.2fr] md:p-8"
     >
       <div className="flex flex-col gap-4">
-        <p className="text-caption uppercase tracking-wide text-steel">
+        <p className="flex items-center gap-2 text-caption uppercase tracking-wide text-steel">
+          <span aria-hidden className="h-3 w-[2px] rounded-full bg-ember" />
           today · {today ? formatDay(today) : " "}
         </p>
         <h2 id="daily-title" className="text-display font-bold">
@@ -38,11 +39,11 @@ export function DailyCard() {
         <div className="mt-auto flex items-end gap-6 pt-4">
           <div>
             <p className="text-caption uppercase text-steel">difficulty</p>
-            <p className="text-heading-lg">{tier ?? " "}</p>
+            <p className="font-mono text-heading-lg">{tier ?? " "}</p>
           </div>
           <div>
             <p className="text-caption uppercase text-steel">resets</p>
-            <p className="text-heading-lg">00:00 utc</p>
+            <p className="font-mono text-heading-lg">00:00 utc</p>
           </div>
         </div>
       </div>
@@ -58,11 +59,11 @@ export function DailyCard() {
           >
             <Link
               href={today ? `/play/${game.id}?m=daily` : `/play/${game.id}`}
-              className="group flex h-12 items-center gap-3 px-1 transition-colors duration-[var(--dur-fast)] hover:bg-carbon"
+              className="group flex h-12 items-center gap-3 rounded-control px-2 transition-colors duration-[var(--dur-fast)] hover:bg-carbon"
             >
               <span className="w-5 text-caption text-steel">{String(i + 1).padStart(2, "0")}</span>
               <GameIcon id={game.id} size={24} />
-              <span className="flex-1">{game.name}</span>
+              <span className="flex-1 font-mono">{game.name}</span>
               <span className="text-caption uppercase text-steel" aria-label="not played">
                 ○
               </span>

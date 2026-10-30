@@ -1,6 +1,6 @@
 # Mind Bend: Design System
 
-> A terminal at midnight that plays like a toy. Flat black, monospaced, one orange accent, and motion with weight.
+> A terminal at midnight that plays like a toy. Flat black, soft cards, mono headlines, one orange accent, and motion with weight.
 
 This is the single source of truth for every visual and motion decision. The base comes from the Axiom style reference (`docs/reference/axiom-style-reference.md`). The motion language is studied from Dialed. Where the two disagree, or where a game needs something the reference never covered, the call is made here and logged in `docs/DECISIONS.md`.
 
@@ -8,7 +8,7 @@ This is the single source of truth for every visual and motion decision. The bas
 
 1. **The card is the stage.** Every game lives inside one card with fixed proportions. The page around it stays quiet.
 2. **Flat, layered darkness.** Elevation comes from stepping neutrals (`#000` → `#111` → `#191919` → `#202020`), never from shadows or gradients.
-3. **One voice.** A single monospaced family for everything. Hierarchy comes from size and weight, not from typeface changes.
+3. **Two voices, one family.** Geist Mono speaks (headings, labels, numbers, buttons). Geist Sans explains (everything you read). Nothing else.
 4. **Ember is a tool.** Orange marks the primary action and progress. It is never decoration.
 5. **Color belongs to the board.** Chrome is monochrome. Color appears only inside a game board, where it carries game meaning.
 6. **Motion has mass.** Things overshoot slightly and settle, like they were thrown. Nothing slides linearly.
@@ -36,10 +36,10 @@ This is the single source of truth for every visual and motion decision. The bas
 
 | Token | Value | Role |
 |-------|-------|------|
-| `--color-ember` | `#da5c2c` | Primary action fill, progress, active state, the 2px left mark on featured cards |
+| `--color-ember` | `#da5c2c` | Primary action fill, progress, active state, the daily card tick |
 | `--color-ember-hover` | `#e46a3a` | Primary action hover |
 
-Ember rules: primary buttons, progress bars, the active tier in the difficulty picker, the path line in Path, the 2px left border on the daily card. Never on body text, never as a large background outside a board.
+Ember rules: primary buttons, progress bars, the active tier in the difficulty picker, the path line in Path, the small tick beside the daily card label, the wordmark cursor. Never on body text, never as a large background outside a board.
 
 ### Board palette (games only)
 
@@ -57,9 +57,12 @@ Correct, wrong and hint states use symbols and borders, not green or red fills: 
 
 ## 3. Typography
 
-**Family:** JetBrains Mono (400, 700) everywhere. It replaces BerkeleyMono, which is a paid licence. Loaded through `next/font` for zero layout shift.
+**Geist Mono** (`--font-mono`): headings, captions and tags, numbers, buttons, the wordmark, game names.
+**Geist Sans** (`--font-sans`): body copy, descriptions, rules, helper text, navigation links.
 
-**Fallback:** `ui-monospace, SFMono-Regular, Menlo, monospace`. No proportional fonts in UI.
+Both self-hosted through the `geist` package (SIL OFL 1.1), no runtime font requests. Headings, `.text-caption` and the `.text-number*` sizes switch to mono automatically in `globals.css`; anything else that needs mono uses the `font-mono` utility.
+
+**Fallbacks:** `ui-monospace, SFMono-Regular, Menlo, monospace` and `ui-sans-serif, system-ui, sans-serif`.
 
 ### Scale
 
@@ -82,7 +85,16 @@ The reference scale stops at 32px. Mind Bend adds three larger steps for numbers
 ## 4. Space, shape, layout
 
 - **Base unit:** 8px. Tokens `--spacing-8` through `--spacing-96`.
-- **Radius:** 2px on cards, buttons, inputs and board cells. 9999px only on pills and icon badges under 32px. No soft corners.
+- **Radius:** soft, Dialed-style.
+
+| Token | Value | Use |
+|-------|-------|-----|
+| `--radius-card` | 24px | Game card, game tiles, daily card |
+| `--radius-control` | 14px | Segmented controls, list row hovers, inputs |
+| `--radius-cell` | 8px | Board cells, small tiles |
+| full | 9999px | Buttons (pill), icon badges, the close button |
+
+Nested radii step down (card 24 → control 14 → cell 8) so inner corners never look sharper than the shell around them.
 - **Shadow:** none, except `--shadow-subtle` on buttons.
 - **Page max width:** 1200px. Section gap 40px. Card padding 32px (24px on mobile).
 
@@ -95,7 +107,7 @@ The reference scale stops at 32px. Mind Bend adds three larger steps for numbers
 
 ### Home grid
 
-- Featured daily card spanning the full row, with a 2px ember left border.
+- Featured daily card spanning the full row, with a small ember tick beside its label.
 - Below it, a grid of game tiles: 1 column on mobile, 2 on tablet, 3 on desktop.
 - Each tile: `--color-graphite` surface, icon badge, game name, one-line description, the skill it trains as an uppercase tag, a ghost "play →" link.
 
@@ -103,8 +115,8 @@ The reference scale stops at 32px. Mind Bend adds three larger steps for numbers
 
 | Component | Spec |
 |-----------|------|
-| Primary button | Ember fill, `--color-void` text (5.6:1, paper on ember fails at 3.3:1), 16px weight 700, 2px radius, 10px 16px padding, trailing `→`. Hover: `--color-ember-hover`. Press: scale 0.97. |
-| Ghost button | Transparent, 1px `--color-slate` border, 16px weight 400. Hover: border `--color-fog`. |
+| Primary button | Ember fill, `--color-void` text (5.6:1, paper on ember fails at 3.3:1), Geist Mono 15px weight 700, pill radius, 48px tall, 24px horizontal padding, trailing `→`. Hover: `--color-ember-hover`. Press: scale 0.97. |
+| Ghost button | Transparent, 1px `--color-slate` border, Geist Mono 15px weight 400, pill radius. Hover: border `--color-fog`. |
 | Tier picker | Four segments in a row, 1px iron dividers. Active segment ember underline and paper text, inactive steel text. Selection indicator slides between segments with the spring curve. |
 | Mode toggle | Daily / Practice segmented control, same mechanics as the tier picker. |
 | Tag | 12px uppercase `--color-steel`, no fill, no border. |
@@ -155,6 +167,7 @@ Motion is the part that should feel like Dialed: physical, slightly springy, qui
 Short, dry, a little cheeky. Every score band gets a line, the way Dialed does it. Lines live in each game's spec, three to five per band, picked at random.
 
 - Lowercase game names in UI (`path`, `balance`).
+- Game titles on the start card are `--text-display` (32px). Big numbers belong to timers and scores, not titles.
 - Labels in uppercase captions (`TIME`, `STREAK`).
 - No exclamation marks except on a perfect score.
 - Instructions fit in two sentences.

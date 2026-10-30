@@ -1,16 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import localFont from "next/font/local";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 
-// Self-hosted JetBrains Mono (SIL OFL 1.1, see src/fonts/OFL.txt). No runtime request to Google Fonts.
-const jetbrains = localFont({
-  variable: "--font-jetbrains",
-  display: "swap",
-  src: [
-    { path: "../fonts/jetbrains-mono-latin-400-normal.woff2", weight: "400", style: "normal" },
-    { path: "../fonts/jetbrains-mono-latin-700-normal.woff2", weight: "700", style: "normal" },
-  ],
-});
+// Geist Sans (body) and Geist Mono (headings, numbers, labels), self-hosted via the `geist` package (SIL OFL 1.1).
 
 export const metadata: Metadata = {
   title: { default: "Mind Bend", template: "%s · Mind Bend" },
@@ -27,7 +20,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${jetbrains.variable} h-full antialiased`}>
+    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">{children}</body>
     </html>
   );

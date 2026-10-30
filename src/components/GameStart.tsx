@@ -71,7 +71,7 @@ export function GameStart({ game }: { game: GameMeta }) {
       >
         <header className="flex h-12 shrink-0 items-center justify-between border-b border-iron px-4 text-caption text-steel">
           <span>~/play/{game.id}</span>
-          <Link href="/" aria-label="Close" className="flex h-8 w-8 items-center justify-center text-fog hover:text-paper">
+          <Link href="/" aria-label="Close" className="flex h-8 w-8 items-center justify-center rounded-full text-fog transition-colors duration-[var(--dur-fast)] hover:bg-iron hover:text-paper">
             ×
           </Link>
         </header>
@@ -93,7 +93,7 @@ export function GameStart({ game }: { game: GameMeta }) {
                   <GameIcon id={game.id} />
                   <span className="text-caption uppercase tracking-wide text-steel">{game.skill}</span>
                 </div>
-                <h1 className="text-number-lg font-bold">
+                <h1 className="text-display font-bold">
                   <TitleReveal text={game.name} />
                 </h1>
                 <p className="text-heading-sm text-fog">{game.rules}</p>
@@ -136,7 +136,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-1">
       <dt className="truncate text-caption uppercase text-steel">{label}</dt>
-      <dd className="text-heading-lg">{value}</dd>
+      <dd className="font-mono text-heading-lg">{value}</dd>
     </div>
   );
 }
@@ -187,7 +187,7 @@ function BoardPlaceholder({ board, onBack }: { board: BoardKey; onBack: () => vo
               initial={{ opacity: 0, scale: 0.6 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: dur.base, ease: ease.spring, delay: (row + col) * 0.016 }}
-              className={`aspect-square rounded-sm ${filled ? "bg-ember" : "bg-graphite"}`}
+              className={`aspect-square rounded-cell ${filled ? "bg-ember" : "bg-graphite"}`}
             />
           );
         })}

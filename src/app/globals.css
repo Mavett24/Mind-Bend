@@ -23,8 +23,8 @@
   --color-ember-hover: #e46a3a;
 
   /* Type */
-  --font-sans: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, monospace;
-  --font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
 
   --text-caption: 12px;
   --text-caption--line-height: 1.5;
@@ -50,9 +50,10 @@
   --text-number-xl--line-height: 0.9;
   --text-number-xl--letter-spacing: -0.06em;
 
-  /* Shape */
-  --radius-sm: 2px;
-  --radius-card: 2px;
+  /* Shape: soft, Dialed-style corners */
+  --radius-cell: 8px;
+  --radius-control: 14px;
+  --radius-card: 24px;
   --shadow-subtle: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
 
   /* Motion */
@@ -83,11 +84,23 @@ html {
 body {
   background: var(--color-void);
   color: var(--color-paper);
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);
   font-variant-numeric: tabular-nums;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Geist Mono carries headings, labels and numbers; Geist Sans carries everything you read. */
+h1,
+h2,
+h3,
+h4,
+.text-caption,
+.text-number,
+.text-number-lg,
+.text-number-xl {
+  font-family: var(--font-mono);
 }
 
 ::selection {

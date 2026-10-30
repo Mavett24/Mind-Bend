@@ -10,7 +10,7 @@ export default function Home() {
       <main className="mx-auto flex w-full max-w-[1200px] flex-1 flex-col gap-10 px-4 pb-16 pt-10 md:gap-16 md:pt-16">
         <section className="flex flex-col gap-4">
           <p className="text-caption text-steel">~/mind-bend $ train</p>
-          <h1 className="max-w-3xl text-display font-bold md:text-[48px] md:leading-[1.1] md:tracking-[-0.03em]">
+          <h1 className="max-w-3xl text-heading-lg font-bold md:text-display">
             Train the way you think.
             <br />
             <span className="text-ash">Never the same board twice.</span>
