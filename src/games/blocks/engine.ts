@@ -215,10 +215,14 @@ function colourRects(rects: Rect[], size: number, rng: Rng): number[] {
     }
   }
   const colours = new Array(rects.length).fill(-1);
-  const palette = rng.shuffle(Array.from({ length: PALETTE_SIZE }, (_, i) => i));
+  const uses = new Array(PALETTE_SIZE).fill(0);
   for (let i = 0; i < rects.length; i++) {
-    const used = new Set([...neighbours[i]].map((n) => colours[n]));
-    colours[i] = palette.find((p) => !used.has(p)) ?? palette[i % PALETTE_SIZE];
+    const blocked = new Set([...neighbours[i]].map((n) => colours[n]));
+    // Least-used allowed colour, random tie-break, so boards use the whole palette instead of 3 or 4 hues.
+    const allowed = rng.shuffle(Array.from({ length: PALETTE_SIZE }, (_, k) => k).filter((k) => !blocked.has(k)));
+    const pick = allowed.length ? allowed.reduce((best, k) => (uses[k] < uses[best] ? k : best)) : i % PALETTE_SIZE;
+    colours[i] = pick;
+    uses[pick]++;
   }
   return colours;
 }
@@ -298,4 +302,38 @@ export function isSolved(puzzle: BlocksPuzzle, placed: readonly Placed[]): boole
     }
   }
   return covered.every(Boolean) && new Set(placed.map((p) => p.clue)).size === puzzle.clues.length;
+}
+
+// ---------------------------------------------------------------- gestures (shared with the board UI)
+
+const overlapsRect = (a: Rect, b: Rect) => a.r < b.r + b.h && b.r < a.r + a.h && a.c < b.c + b.w && b.c < a.c + a.w;
+
+export interface GestureResult {
+  placed: Placed[];
+  /** Rectangles removed by this gesture (counted as redraws). */
+  removed: number;
+}
+
+/**
+ * What one press-drag-release does to the board.
+ * - A tap (no movement) on a placed rectangle removes it.
+ * - A tap on an empty cell does nothing: no clue has area 1, so a 1×1 is never what the player meant.
+ * - A drag places the rectangle between the two corners, replacing anything it overlaps.
+ */
+export function applyGesture(puzzle: BlocksPuzzle, placed: readonly Placed[], anchor: number, current: number, moved: boolean): GestureResult {
+  const { size } = puzzle;
+  if (!moved || anchor === current) {
+    const hit = placed.find((p) => rectContains(p.rect, size, anchor));
+    return hit ? { placed: placed.filter((p) => p !== hit), removed: 1 } : { placed: placed.slice(), removed: 0 };
+  }
+  const rect = rectFromCorners(size, anchor, current);
+  const kept = placed.filter((p) => !overlapsRect(p.rect, rect));
+  return { placed: [...kept, { rect, clue: matchClue(rect, puzzle) }], removed: placed.length - kept.length };
+}
+
+/** Cell under a point in board units, clamped to the edge so a drag past the board stretches to it. */
+export function clampedCell(size: number, x: number, y: number): number {
+  const c = Math.min(size - 1, Math.max(0, Math.floor(x)));
+  const r = Math.min(size - 1, Math.max(0, Math.floor(y)));
+  return r * size + c;
 }

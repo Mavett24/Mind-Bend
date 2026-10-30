@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { TIERS } from "@/engine/difficulty";
 import {
+  applyGesture,
+  clampedCell,
   generateBlocks,
   isSolved,
   matchClue,
@@ -96,5 +98,57 @@ describe("blocks player rules", () => {
     if (shrunk.w * shrunk.h !== p.clues[0].area && rectCells(shrunk, p.size).includes(p.clues[0].cell)) {
       expect(matchClue(shrunk, p)).toBe(-1);
     }
+  });
+});
+
+describe("blocks gestures", () => {
+  const p = generateBlocks({ gameId: "blocks", tier: "easy", seed: "gestures" });
+  const cellsOf = (i: number) => rectCells(p.solution[i], p.size);
+
+  it("ignores a tap on an empty cell", () => {
+    const r = applyGesture(p, [], 0, 0, false);
+    expect(r.placed).toHaveLength(0);
+    expect(r.removed).toBe(0);
+  });
+
+  it("places a dragged rectangle and removes it with a tap", () => {
+    const cells = cellsOf(0);
+    const drawn = applyGesture(p, [], cells[cells.length - 1], cells[0], true);
+    expect(drawn.placed).toHaveLength(1);
+    expect(drawn.placed[0].clue).toBe(0);
+    const tapped = applyGesture(p, drawn.placed, cells[0], cells[0], false);
+    expect(tapped.placed).toHaveLength(0);
+    expect(tapped.removed).toBe(1);
+  });
+
+  it("treats a drag that returns to its start cell as a tap", () => {
+    const cells = cellsOf(0);
+    const drawn = applyGesture(p, [], cells[0], cells[cells.length - 1], true);
+    expect(applyGesture(p, drawn.placed, cells[0], cells[0], true).placed).toHaveLength(0);
+  });
+
+  it("replaces overlapped rectangles when drawing over them", () => {
+    const a = cellsOf(0);
+    const placed = applyGesture(p, [], a[0], a[a.length - 1], true).placed;
+    const whole = applyGesture(p, placed, 0, p.size * p.size - 1, true);
+    expect(whole.placed).toHaveLength(1);
+    expect(whole.removed).toBe(1);
+    expect(whole.placed[0].clue).toBe(-1);
+  });
+
+  it("clamps points outside the board to its edge", () => {
+    expect(clampedCell(5, -2, -3)).toBe(0);
+    expect(clampedCell(5, 9, 9)).toBe(24);
+    expect(clampedCell(5, 2.5, 7)).toBe(22);
+  });
+
+  it("solves when every solution rectangle is drawn, in any order or direction", () => {
+    let placed: ReturnType<typeof applyGesture>["placed"] = [];
+    [...p.solution.keys()].reverse().forEach((i) => {
+      const cells = cellsOf(i);
+      if (cells.length === 1) return;
+      placed = applyGesture(p, placed, cells[cells.length - 1], cells[0], true).placed;
+    });
+    expect(isSolved(p, placed)).toBe(true);
   });
 });

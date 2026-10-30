@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.1 · 2026-10-30 · Blocks fixes
+
+- Fix: tapping an empty cell no longer leaves a dashed 1×1 rectangle (D-025).
+- Fix: dragging past the board edge stretches the rectangle to the edge instead of collapsing it.
+- No preview flash on a plain tap.
+- "Any shape" clues show a dashed square glyph instead of nothing.
+- Rejected rectangles show their area, so you can see what you drew.
+- Two-digit clues stack on 7×7 and 8×8 boards so they fit on small phones.
+- Colouring spreads across the whole palette instead of reusing three or four hues.
+- Gesture rules extracted to a pure `applyGesture` with 6 new tests.
+
 ## 0.3.0 · 2026-10-30 · Spatial and memory
 
 - **blocks** is playable: drag to draw rectangles with a live area preview, tap to remove, keyboard support. Exact-cover solver proves every board unique (400 seeds tested). Colour-blind-safe palette with shape glyphs; touching rectangles never share a colour (D-024).

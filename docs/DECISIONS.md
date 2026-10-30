@@ -129,3 +129,8 @@ The picker uses three OKLCH sliders. Scoring uses ΔE00 on the colours actually 
 **2026-10-30**
 Rectangles use eight colour-blind-safe hues, all at least 5.9:1 against the cell colour, and each clue also shows its shape glyph.
 **Why:** colour carries meaning here, so it can't be the only signal. Touching rectangles never share a colour (tested).
+
+### D-025 · Blocks taps never place a rectangle
+**2026-10-30**
+A press without movement removes the rectangle under it, or does nothing. Drags clamp to the board edge.
+**Why:** playtesting found that every stray tap left a dashed 1×1 box, and drags that slid off the board collapsed into one. No clue has area 1, so a 1×1 is never intended. The rules moved into a pure, tested `applyGesture`.

@@ -4,16 +4,18 @@
 
 ## Rules
 
-Split the grid into rectangles. Each rectangle contains exactly one clue. A clue tells you the rectangle's area, and may also tell you its shape: square, wide (wider than tall), tall (taller than wide). A clue with no shape glyph can be any shape.
+Split the grid into rectangles. Each rectangle contains exactly one clue. A clue tells you the rectangle's area and its shape: square, wide (wider than tall), tall (taller than wide), or any shape (dashed square glyph).
 
 Instruction copy: "Draw a rectangle around every clue. Match its size and shape."
 
 ## Interaction
 
-- Drag from any cell to any cell to draw a rectangle. A dashed preview shows its area while you drag. Release to place it.
+- Drag from any cell to any cell to draw a rectangle. A dashed preview shows its area while you drag. Release to place it. Dragging past the board edge stretches the rectangle to the edge.
 - Drawing over placed rectangles replaces them.
-- Tap a placed rectangle to remove it.
-- A rectangle that matches exactly one clue fills with that clue's colour (22% fill, 2px border). Anything else gets a dashed fog border.
+- Tap a placed rectangle to remove it. A tap on an empty cell does nothing (no clue has area 1).
+- A rectangle that matches exactly one clue fills with that clue's colour (22% fill, 2px border). Anything else gets a dashed fog border with its area in the corner, so you can see what you drew.
+- Gesture rules live in `applyGesture` in the engine and are unit tested.
+- On 7×7 and 8×8, two-digit clues stack the number over the glyph so they fit the cell.
 - Keyboard: arrows move a cursor, Enter starts a rectangle and Enter again places it, Delete removes the one under the cursor, Escape cancels.
 
 ## Generation
@@ -22,7 +24,7 @@ Instruction copy: "Draw a rectangle around every clue. Match its size and shape.
 2. Place one clue at a random cell inside each rectangle, with its area and true shape.
 3. Run the solver. If a second solution exists, re-roll the clue positions in the rectangles that solution changes. Retry up to 30 times, then start over with a fresh tiling.
 4. Hide shape hints (set to "any") one at a time in random order while the board stays unique, up to the tier's share.
-5. Colour the rectangles greedily so no two touching rectangles share a colour.
+5. Colour the rectangles so no two touching rectangles share a colour, picking the least-used allowed colour each time so a board uses the whole palette.
 
 Solver (`solveBlocks`): for each clue, list every rectangle of the right area and shape that contains it and no other clue. Then exact cover: always branch on the uncovered cell with the fewest options (Algorithm X's heuristic). Counts solutions up to 2.
 

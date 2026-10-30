@@ -5,10 +5,9 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import type { BoardProps } from "@/games/types";
 import { dur, ease } from "@/lib/motion";
 import {
+  applyGesture,
+  clampedCell,
   isSolved,
-  matchClue,
-  rectCells,
-  rectContains,
   rectFromCorners,
   type BlocksPuzzle,
   type Placed,
@@ -17,17 +16,28 @@ import {
 } from "./engine";
 import { BLOCKS_PALETTE } from "./palette";
 
-const overlaps = (a: Rect, b: Rect) => a.r < b.r + b.h && b.r < a.r + a.h && a.c < b.c + b.w && b.c < a.c + a.w;
-
+/** Shape hint beside a clue's area. "any" is a dashed square, so a missing hint never looks like a missing glyph. */
 function ShapeGlyph({ shape }: { shape: Shape }) {
-  if (shape === "any") return null;
-  const dims = { square: [7, 7], wide: [10, 5], tall: [5, 10] }[shape];
+  const dims = { square: [7, 7], wide: [10, 5], tall: [5, 10], any: [8, 8] }[shape];
   return (
-    <svg viewBox="0 0 12 12" className="h-[38%] w-[38%]" aria-hidden>
-      <rect x={(12 - dims[0]) / 2} y={(12 - dims[1]) / 2} width={dims[0]} height={dims[1]} rx={1} fill="none" stroke="currentColor" strokeWidth={1.6} />
+    <svg viewBox="0 0 12 12" className="h-[0.95em] w-[0.95em] shrink-0" aria-hidden>
+      <rect
+        x={(12 - dims[0]) / 2}
+        y={(12 - dims[1]) / 2}
+        width={dims[0]}
+        height={dims[1]}
+        rx={1}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={1.6}
+        strokeDasharray={shape === "any" ? "2 1.6" : undefined}
+        opacity={shape === "any" ? 0.7 : 1}
+      />
     </svg>
   );
 }
+
+const SHAPE_WORD: Record<Shape, string> = { square: "square", wide: "wide", tall: "tall", any: "any shape" };
 
 export function BlocksBoard({ puzzle, onSolved }: BoardProps<BlocksPuzzle>) {
   const { size, clues } = puzzle;
@@ -49,35 +59,27 @@ export function BlocksBoard({ puzzle, onSolved }: BoardProps<BlocksPuzzle>) {
     }
   }, [onSolved, placed, puzzle, solved]);
 
-  const place = (rect: Rect) => {
-    setPlaced((prev) => {
-      const kept = prev.filter((p) => !overlaps(p.rect, rect));
-      redraws.current += prev.length - kept.length;
-      return [...kept, { rect, clue: matchClue(rect, puzzle) }];
-    });
+  /** Every press-drag-release goes through the tested rules in engine.ts (applyGesture). */
+  const commit = (anchor: number, current: number, didMove: boolean) => {
+    const result = applyGesture(puzzle, placed, anchor, current, didMove);
+    if (result.placed.length === placed.length && result.removed === 0) return; // a tap on empty space
+    redraws.current += result.removed;
+    setPlaced(result.placed);
     if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate?.(8);
   };
 
-  const removeAt = (cell: number): boolean => {
-    const hit = placed.find((p) => rectContains(p.rect, size, cell));
-    if (!hit) return false;
-    redraws.current++;
-    setPlaced((prev) => prev.filter((p) => p !== hit));
-    return true;
-  };
-
-  const cellAt = (e: React.PointerEvent): number | null => {
+  const pointToCell = (e: React.PointerEvent, clamp: boolean): number | null => {
     const rect = gridRef.current?.getBoundingClientRect();
     if (!rect) return null;
-    const c = Math.floor(((e.clientX - rect.left) / rect.width) * size);
-    const r = Math.floor(((e.clientY - rect.top) / rect.height) * size);
-    if (c < 0 || r < 0 || c >= size || r >= size) return null;
-    return r * size + c;
+    const x = ((e.clientX - rect.left) / rect.width) * size;
+    const y = ((e.clientY - rect.top) / rect.height) * size;
+    if (!clamp && (x < 0 || y < 0 || x >= size || y >= size)) return null;
+    return clampedCell(size, x, y);
   };
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (solved) return;
-    const cell = cellAt(e);
+    const cell = pointToCell(e, false);
     if (cell === null) return;
     e.currentTarget.setPointerCapture(e.pointerId);
     moved.current = false;
@@ -85,15 +87,15 @@ export function BlocksBoard({ puzzle, onSolved }: BoardProps<BlocksPuzzle>) {
   };
   const onPointerMove = (e: React.PointerEvent) => {
     if (!drag) return;
-    const cell = cellAt(e);
+    // Clamped: sliding past the edge keeps stretching the rectangle to the edge.
+    const cell = pointToCell(e, true);
     if (cell === null || cell === drag.current) return;
     moved.current = true;
     setDrag({ ...drag, current: cell });
   };
   const onPointerUp = () => {
     if (!drag) return;
-    // A tap on a placed rectangle removes it; anything else places what was drawn.
-    if (!(moved.current === false && removeAt(drag.anchor))) place(rectFromCorners(size, drag.anchor, drag.current));
+    commit(drag.anchor, drag.current, moved.current);
     setDrag(null);
   };
 
@@ -115,16 +117,22 @@ export function BlocksBoard({ puzzle, onSolved }: BoardProps<BlocksPuzzle>) {
       e.preventDefault();
       if (keyAnchor === null) setKeyAnchor(cursor);
       else {
-        place(rectFromCorners(size, keyAnchor, cursor));
+        commit(keyAnchor, cursor, keyAnchor !== cursor);
         setKeyAnchor(null);
       }
     } else if (e.key === "Backspace" || e.key === "Delete") {
       e.preventDefault();
-      removeAt(cursor);
+      commit(cursor, cursor, false);
     } else if (e.key === "Escape") setKeyAnchor(null);
   };
 
-  const preview = drag ? rectFromCorners(size, drag.anchor, drag.current) : keyAnchor !== null ? rectFromCorners(size, keyAnchor, cursor) : null;
+  // No preview for a plain press, so taps don't flash a 1×1 box.
+  const preview =
+    drag && drag.anchor !== drag.current
+      ? rectFromCorners(size, drag.anchor, drag.current)
+      : keyAnchor !== null
+        ? rectFromCorners(size, keyAnchor, cursor)
+        : null;
   const pct = (n: number) => `${(n / size) * 100}%`;
   const clueIndexAt = new Map(clues.map((clue, i) => [clue.cell, i]));
   const lastPlaced = placed[placed.length - 1]?.rect;
@@ -159,8 +167,11 @@ export function BlocksBoard({ puzzle, onSolved }: BoardProps<BlocksPuzzle>) {
               >
                 {clue && (
                   <span
-                    className="relative z-10 flex items-center justify-center gap-[2px] font-mono text-[clamp(11px,3.4vw,16px)] font-bold"
-                    style={{ color: BLOCKS_PALETTE[clue.color] }}
+                    aria-label={`clue ${clue.area}, ${SHAPE_WORD[clue.shape]}`}
+                    className={`relative z-10 flex items-center justify-center font-mono font-bold leading-none ${
+                      clue.area >= 10 && size >= 7 ? "flex-col gap-[1px]" : "gap-[2px]"
+                    }`}
+                    style={{ color: BLOCKS_PALETTE[clue.color], fontSize: `clamp(10px, ${26 / size}vw, 16px)` }}
                   >
                     {clue.area}
                     <ShapeGlyph shape={clue.shape} />
@@ -191,7 +202,13 @@ export function BlocksBoard({ puzzle, onSolved }: BoardProps<BlocksPuzzle>) {
                   height: `calc(${pct(p.rect.h)} - 6px)`,
                   ...(colour ? { borderColor: colour, backgroundColor: `${colour}38` } : {}),
                 }}
-              />
+              >
+                {!colour && (
+                  <span className="absolute left-1 top-1 rounded-full bg-carbon px-1.5 font-mono text-[11px] leading-[18px] text-fog">
+                    {p.rect.h * p.rect.w}
+                  </span>
+                )}
+              </motion.div>
             );
           })}
         </AnimatePresence>
@@ -215,7 +232,7 @@ export function BlocksBoard({ puzzle, onSolved }: BoardProps<BlocksPuzzle>) {
       <p className="sr-only" aria-live="polite">
         {solved
           ? "Solved."
-          : `${placed.filter((p) => p.clue >= 0).length} of ${clues.length} rectangles placed. ${rectCells({ r: 0, c: 0, h: size, w: size }, size).length - placed.reduce((n, p) => n + p.rect.h * p.rect.w, 0)} cells left.`}
+          : `${placed.filter((p) => p.clue >= 0).length} of ${clues.length} rectangles placed. ${size * size - placed.reduce((n, p) => n + p.rect.h * p.rect.w, 0)} cells left.`}
       </p>
     </div>
   );
