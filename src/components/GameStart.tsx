@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import type { GameMeta } from "@/games/registry";
+import { GAMES, type GameMeta } from "@/games/registry";
+import { MODULES } from "@/games/modules";
 import { isTier, suggestTier, TIERS, TIER_LABEL, type Tier } from "@/engine/difficulty";
 import { boardSeed, challengeQuery, dailyBoard, isValidSeed, randomSeed, type BoardKey, type Mode } from "@/engine/seed";
 import { createRng } from "@/engine/rng";
@@ -12,15 +13,11 @@ import { dailyStreak, emptyStats, loadStats, type GameStats } from "@/engine/sta
 import { useToday } from "@/lib/useToday";
 import { dur, ease } from "@/lib/motion";
 import { Button } from "./Button";
+import { PlaySession } from "./PlaySession";
+import { TimeDisplay } from "./TimeDisplay";
 import { GameIcon } from "./GameIcon";
 import { Segmented } from "./Segmented";
 import { TitleReveal } from "./TitleReveal";
-
-function formatMs(ms?: number): string {
-  if (!ms) return "--";
-  const s = Math.round(ms / 1000);
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
-}
 
 export function GameStart({ game }: { game: GameMeta }) {
   const params = useSearchParams();
@@ -48,6 +45,22 @@ export function GameStart({ game }: { game: GameMeta }) {
   const daily = today ? dailyBoard(game.id, today) : null;
   const effectiveTier = mode === "daily" ? (daily?.tier ?? tier) : mode === "challenge" ? challenge!.tier : tier;
   const streak = today ? dailyStreak(stats.dailyDone, today.toISOString().slice(0, 10)) : 0;
+
+  const gameModule = MODULES[game.id];
+  const nextDaily = GAMES.slice(GAMES.findIndex((g) => g.id === game.id) + 1).find((g) => MODULES[g.id]);
+  const nextDailyHref = nextDaily ? `/play/${nextDaily.id}?m=daily` : "/";
+
+  function backToMenu() {
+    setBoard(null);
+    setStats(loadStats(game.id));
+  }
+
+  function nextBoard() {
+    const nextTier = board?.tier ?? tier;
+    setMode("practice");
+    setTier(nextTier);
+    setBoard({ gameId: game.id, tier: nextTier, seed: randomSeed() });
+  }
 
   function start() {
     if (mode === "daily" && daily) setBoard(daily);
@@ -77,8 +90,19 @@ export function GameStart({ game }: { game: GameMeta }) {
         </header>
 
         <AnimatePresence mode="wait" initial={false}>
-          {board ? (
-            <BoardPlaceholder key={boardSeed(board)} board={board} onBack={() => setBoard(null)} />
+          {board && gameModule ? (
+            <PlaySession
+              key={boardSeed(board)}
+              game={game}
+              module={gameModule}
+              board={board}
+              mode={mode}
+              nextDailyHref={nextDailyHref}
+              onExit={backToMenu}
+              onNext={nextBoard}
+            />
+          ) : board ? (
+            <BoardPlaceholder key={boardSeed(board)} board={board} onBack={backToMenu} />
           ) : (
             <motion.div
               key="start"
@@ -101,7 +125,7 @@ export function GameStart({ game }: { game: GameMeta }) {
 
               <dl className="grid grid-cols-3 gap-4 border-y border-iron py-4">
                 <Stat label="rating" value={String(stats.rating)} />
-                <Stat label="best" value={formatMs(stats.bestMs[effectiveTier])} />
+                <Stat label="best" value={stats.bestMs[effectiveTier] ? <TimeDisplay ms={stats.bestMs[effectiveTier]!} /> : "--"} />
                 <Stat label="streak" value={String(streak)} />
               </dl>
 
@@ -132,7 +156,7 @@ export function GameStart({ game }: { game: GameMeta }) {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1">
       <dt className="truncate text-caption uppercase text-steel">{label}</dt>

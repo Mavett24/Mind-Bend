@@ -18,15 +18,15 @@ export const GAMES: readonly GameMeta[] = [
     skill: "route planning",
     tagline: "One line through every cell, numbers in order.",
     rules: "Connect the numbers in order. Fill every cell.",
-    status: "building",
+    status: "live",
   },
   {
     id: "balance",
     name: "balance",
     skill: "deduction",
     tagline: "Dots and rings, perfectly even.",
-    rules: "Equal dots and rings in every line. Never three in a row.",
-    status: "building",
+    rules: "Equal dots and rings per line, never three in a row. = joins matches, × joins opposites.",
+    status: "live",
   },
   {
     id: "blocks",

@@ -1,4 +1,5 @@
-import { START_RATING } from "./rating";
+import { outcomeScore, START_RATING, updateRating } from "./rating";
+import type { Mode } from "./seed";
 import { TIERS, type Tier } from "./difficulty";
 import { readJson, writeJson } from "./storage";
 
@@ -51,4 +52,56 @@ export function dailyStreak(dailyDone: readonly string[], todayKey: string): num
     day.setUTCDate(day.getUTCDate() - 1);
   }
   return streak;
+}
+
+// ---------------------------------------------------------------- recording a finished game
+
+export interface GameResult {
+  tier: Tier;
+  mode: Mode;
+  timeMs: number;
+  solved: boolean;
+  /** UTC date key, required for daily results. */
+  dateKey?: string;
+}
+
+export interface ResultSummary {
+  stats: GameStats;
+  ratingDelta: number;
+  newBest: boolean;
+  /** Time relative to par: fast (at or under par), average (up to 2x), slow. */
+  band: "fast" | "average" | "slow";
+}
+
+export function scoreBand(timeMs: number, parMs: number): ResultSummary["band"] {
+  if (timeMs <= parMs) return "fast";
+  if (timeMs <= parMs * 2) return "average";
+  return "slow";
+}
+
+/**
+ * Pure: returns the updated stats. Daily boards count towards streak and bests
+ * but not rating, so everyone's shared board can't be farmed for points.
+ */
+export function applyResult(prev: GameStats, result: GameResult, parMs: number): ResultSummary {
+  const stats: GameStats = { ...prev, bestMs: { ...prev.bestMs }, dailyDone: prev.dailyDone.slice() };
+  stats.played++;
+  let newBest = false;
+  if (result.solved) {
+    stats.solved++;
+    const best = stats.bestMs[result.tier];
+    if (best === undefined || result.timeMs < best) {
+      newBest = best !== undefined;
+      stats.bestMs[result.tier] = result.timeMs;
+    }
+  }
+  let ratingDelta = 0;
+  if (result.mode !== "daily") {
+    const next = updateRating(stats.rating, result.tier, outcomeScore(result.solved, result.timeMs, parMs));
+    ratingDelta = next - stats.rating;
+    stats.rating = next;
+  } else if (result.solved && result.dateKey && !stats.dailyDone.includes(result.dateKey)) {
+    stats.dailyDone = [...stats.dailyDone, result.dateKey].slice(-60);
+  }
+  return { stats, ratingDelta, newBest, band: scoreBand(result.timeMs, parMs) };
 }

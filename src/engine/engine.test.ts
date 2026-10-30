@@ -3,7 +3,7 @@ import { createRng, hashString } from "./rng";
 import { boardSeed, dailyBoard, isValidSeed, randomSeed, utcDateKey, utcIsoWeekday } from "./seed";
 import { dailyTier, suggestTier, TIERS } from "./difficulty";
 import { outcomeScore, START_RATING, updateRating } from "./rating";
-import { dailyStreak } from "./stats";
+import { applyResult, dailyStreak, emptyStats, scoreBand } from "./stats";
 
 describe("rng", () => {
   it("is deterministic for the same seed", () => {
@@ -128,5 +128,38 @@ describe("daily streak", () => {
     expect(dailyStreak(done, "2026-10-30")).toBe(3);
     expect(dailyStreak(done, "2026-10-31")).toBe(0);
     expect(dailyStreak([...done, "2026-10-30"], "2026-10-30")).toBe(4);
+  });
+});
+
+describe("recording results", () => {
+  it("updates rating and bests for practice", () => {
+    const first = applyResult(emptyStats(), { tier: "medium", mode: "practice", timeMs: 50_000, solved: true }, 60_000);
+    expect(first.stats.played).toBe(1);
+    expect(first.stats.bestMs.medium).toBe(50_000);
+    expect(first.newBest).toBe(false); // the first time is a baseline, not a "new best"
+    expect(first.ratingDelta).toBeGreaterThan(0);
+    expect(first.band).toBe("fast");
+
+    const second = applyResult(first.stats, { tier: "medium", mode: "practice", timeMs: 40_000, solved: true }, 60_000);
+    expect(second.newBest).toBe(true);
+    expect(second.stats.bestMs.medium).toBe(40_000);
+  });
+
+  it("counts daily boards for the streak but not the rating", () => {
+    const r = applyResult(
+      emptyStats(),
+      { tier: "hard", mode: "daily", timeMs: 90_000, solved: true, dateKey: "2026-10-30" },
+      120_000,
+    );
+    expect(r.ratingDelta).toBe(0);
+    expect(r.stats.dailyDone).toEqual(["2026-10-30"]);
+    const again = applyResult(r.stats, { tier: "hard", mode: "daily", timeMs: 80_000, solved: true, dateKey: "2026-10-30" }, 120_000);
+    expect(again.stats.dailyDone).toEqual(["2026-10-30"]);
+  });
+
+  it("bands times against par", () => {
+    expect(scoreBand(60_000, 60_000)).toBe("fast");
+    expect(scoreBand(100_000, 60_000)).toBe("average");
+    expect(scoreBand(130_000, 60_000)).toBe("slow");
   });
 });

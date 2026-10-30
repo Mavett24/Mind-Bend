@@ -85,3 +85,30 @@ Cards use a 24px radius, controls 14px, board cells 8px, buttons are pills. Surf
 **2026-10-30**
 The game title on the start card dropped from 88px to 32px, and the home headline from 48px to 32px.
 **Why:** at 88px the title dominated the card and competed with the controls. Oversized type is reserved for timers and scores, the moments it is meant to celebrate.
+
+### D-017 · Unique paths by ruling out alternatives
+**2026-10-30**
+When the path solver finds a second solution, the generator rules it out at the first step where it leaves the true path: either a wall on that step, or two checkpoints whose order the alternative cannot respect.
+**Why:** both fixes are guaranteed to kill that alternative, so generation converges quickly. Random extra checkpoints might not.
+**Gave up:** some control over exact checkpoint counts per tier. Counts are measured and documented instead.
+
+### D-018 · Balance boards must be solvable without guessing
+**2026-10-30**
+A balance board is accepted only if a deduction solver finishes it: rules only on Easy to Hard, one step of lookahead on Expert.
+**Why:** principle 2 (every puzzle is fair). It also proves uniqueness for free, and tests confirm it with brute force.
+**Gave up:** the very hardest boards that need deep trial and error. Those feel like guessing, not reasoning.
+
+### D-019 · Daily boards don't move your rating
+**2026-10-30**
+Daily results update streak and best times. Rating only moves on practice and challenge boards.
+**Why:** the daily board is the same for everyone and can be replayed, so it would be easy to farm. Practice is where your rating should come from.
+
+### D-020 · In-game clock at 24px
+**2026-10-30**
+The running clock uses `--text-heading-lg`, not `--text-number` as first specified.
+**Why:** after the start card title felt too loud (D-016), a 56px clock above the board would compete with the puzzle. The big number stays on the result screen.
+
+### D-021 · Generation runs on the main thread for now
+**2026-10-30**
+Boards are generated synchronously when a game starts, while the start card animates out.
+**Why:** measured generation is fast (Expert path ~55ms median on a server CPU, under 300ms worst case). A Web Worker adds complexity for no visible gain yet. Revisit if a low-end phone shows a stall.

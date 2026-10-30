@@ -38,6 +38,7 @@ This is the single source of truth for every visual and motion decision. The bas
 |-------|-------|------|
 | `--color-ember` | `#da5c2c` | Primary action fill, progress, active state, the daily card tick |
 | `--color-ember-hover` | `#e46a3a` | Primary action hover |
+| `--color-ember-wash` | `#2a1810` | Ember at about 15% over void. Fill for board cells covered by the player (path) |
 
 Ember rules: primary buttons, progress bars, the active tier in the difficulty picker, the path line in Path, the small tick beside the daily card label, the wordmark cursor. Never on body text, never as a large background outside a board.
 
@@ -50,6 +51,10 @@ Inside a game board, color is information: regions in Blocks, symbols in Balance
 - never leak outside the board onto chrome
 
 Recall is the one game where the whole card becomes the stimulus color. That is the game, so it is allowed.
+
+### In-game clock
+
+The running clock in a game uses `--text-heading-lg` (24px), not a number size. During play the board is the focus; the big number belongs to the result screen.
 
 ### State without color
 
@@ -76,7 +81,7 @@ The reference scale stops at 32px. Mind Bend adds three larger steps for numbers
 | `--text-heading` | 20px | 1.4 | 0 | Section titles |
 | `--text-heading-lg` | 24px | 1.33 | -0.01em | Game titles on cards |
 | `--text-display` | 32px | 1.25 | -0.02em | Page titles |
-| `--text-number` | 56px | 1 | -0.04em | In-game timer, move counters |
+| `--text-number` | 56px | 1 | -0.04em | Reserved for large counters (not used in v0.2) |
 | `--text-number-lg` | 88px | 0.95 | -0.05em | Result score |
 | `--text-number-xl` | 128px | 0.9 | -0.06em | Result score on desktop |
 

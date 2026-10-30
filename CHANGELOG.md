@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0 · 2026-10-30 · First two games
+
+- **path** is playable: drag to draw, drag back or tap to cut the line, keyboard support. Generator builds a random Hamiltonian path and rules out every alternative solution (D-017). 240 seeds tested unique.
+- **balance** is playable: tap to cycle, keyboard support, rule breaks shown after a short pause, = / × links. Every board is solvable without guessing (D-018). 400 seeds tested unique by brute force.
+- Shared play flow: in-game clock, solve ripple, result screen with count-up time, score line, best, rating change or streak, next board, share link.
+- Results saved per game: bests per tier, rating (practice and challenge only, D-019), daily completions and streak.
+- Daily set on the home screen ticks off finished games and marks upcoming ones as soon. "Next daily game" moves through the set.
+
 ## 0.1.1 · 2026-10-30 · Softer, more readable
 
 - Soft corners throughout: 24px cards, 14px controls, 8px cells, pill buttons (D-014).

@@ -21,6 +21,7 @@
   /* Accent */
   --color-ember: #da5c2c;
   --color-ember-hover: #e46a3a;
+  --color-ember-wash: #2a1810; /* ember at ~15% over void, for cells the path has covered */
 
   /* Type */
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;

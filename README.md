@@ -10,8 +10,8 @@ Every board is generated from a seed and checked for a single solution, so you n
 
 | Game | Skill | Status |
 |------|-------|--------|
-| path | Route planning | planned |
-| balance | Binary deduction | planned |
+| path | Route planning | live |
+| balance | Binary deduction | live |
 | blocks | Spatial partitioning | planned |
 | weave | Word finding | planned |
 | recall | Visual working memory | planned |

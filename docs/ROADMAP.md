@@ -8,9 +8,9 @@
 - [x] First deploy on Vercel: https://mind-bend.vercel.app
 
 ## Phase 2 · Engine and first two games
-- [ ] Shared game flow: start card, play, result screen, share link, stats
-- [ ] path: generator, solver, uniqueness tests, board UI
-- [ ] balance: generator, solver, uniqueness tests, board UI
+- [x] Shared game flow: start card, play, result screen, share link, stats
+- [x] path: generator, solver, uniqueness tests, board UI
+- [x] balance: generator, solver, uniqueness tests, board UI
 
 ## Phase 3 · Spatial and memory
 - [ ] blocks

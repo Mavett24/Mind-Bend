@@ -1,6 +1,6 @@
 # path
 
-**Skill:** route planning · **Inspired by:** LinkedIn Zip · **Status:** planned
+**Skill:** route planning · **Inspired by:** LinkedIn Zip · **Status:** live (v0.2)
 
 ## Rules
 
@@ -13,25 +13,27 @@ Instruction copy: "Connect the numbers in order. Fill every cell."
 - Press on cell 1 (or the current line end) and drag through neighbouring cells. Moving back over the previous cell undoes it.
 - Tap any cell already on the line to cut the line back to that cell.
 - Keyboard: arrows extend the line, Backspace undoes.
-- The line is drawn in ember, 40% of cell width, rounded joins. Numbered cells are paper on graphite circles.
+- The line is drawn in ember, 36% of cell width, rounded joins. Covered cells fill with `--color-ember-wash`. Numbered cells are chalk circles that turn paper once reached. Walls are paper strokes on the cell edge.
 
 ## Generation
 
-1. Build a random Hamiltonian path on the N×N grid with the seeded RNG (random walk with Warnsdorff tie-breaking, then backbite moves to randomise).
-2. Place checkpoints along the path: always at the start and end, then at random intervals.
-3. Run the solver. If more than one solution exists, add a checkpoint or a wall at the first point where two solutions diverge. Repeat until unique.
-4. For harder tiers, try removing checkpoints one at a time and keep each removal that leaves the solution unique.
+1. Build a random Hamiltonian path on the N×N grid: start from a serpentine and apply 30×N² random backbite moves with the seeded RNG.
+2. Place checkpoints along the path: always at the start and end, then at a jittered spacing per tier. Hard and Expert also get a few random walls between cells that are not consecutive on the path.
+3. Run the solver. If a second solution exists, find the first step where it leaves the true path. Rule it out either with a wall on that step (Hard and Expert, up to the wall limit) or with two checkpoints: the cell the true path visits and the cell the alternative visits instead. The true path reaches them in one order, the alternative in the other, so the alternative becomes impossible. Repeat until unique.
+4. For Medium and up, try removing checkpoints one at a time and keep each removal that leaves the solution unique.
 
-Solver: depth-first search from 1, pruning when the next checkpoint becomes unreachable, when an unvisited region is cut off, or when a dead-end cell appears that is not the final checkpoint. Count solutions up to 2 and stop.
+Solver (`solvePath`): depth-first search from 1 that counts solutions up to 2. Prunes when an unvisited cell is left with too few exits (checked only around the head, since nothing else changes) and when the unvisited cells stop being connected to the head. A node budget guards the search: if it runs out, the board is treated as not proven unique and tightened.
 
 ## Difficulty
 
-| Tier | Grid | Checkpoints | Walls |
-|------|------|-------------|-------|
-| Easy | 5×5 | ~1 per 3 cells | none |
-| Medium | 6×6 | ~1 per 5 cells | none |
-| Hard | 7×7 | minimal unique set | 0 to 4 |
-| Expert | 8×8 | minimal unique set | 2 to 8 |
+| Tier | Grid | Checkpoints (avg) | Walls (avg) | Par |
+|------|------|-------------------|-------------|-----|
+| Easy | 5×5 | ~10 | none | 30s |
+| Medium | 6×6 | ~9 | none | 60s |
+| Hard | 7×7 | ~9 | ~3 | 2 min |
+| Expert | 8×8 | ~11 | ~5 | 3 min |
+
+Measured over 100 seeds per tier. Generation time (server CPU): Easy and Medium under 3ms median, Hard ~10ms, Expert ~55ms median and under 300ms worst case.
 
 ## Scoring
 

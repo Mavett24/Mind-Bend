@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { motion } from "motion/react";
 import { GAMES } from "@/games/registry";
-import { dailyBoard } from "@/engine/seed";
+import { dailyBoard, utcDateKey } from "@/engine/seed";
+import { loadStats } from "@/engine/stats";
+import { MODULES } from "@/games/modules";
 import { useToday } from "@/lib/useToday";
 import { dur, ease } from "@/lib/motion";
 import { GameIcon } from "./GameIcon";
@@ -18,6 +20,9 @@ function formatDay(date: Date): string {
 export function DailyCard() {
   const today = useToday();
   const tier = today ? dailyBoard("path", today).tier : null;
+  const todayKey = today ? utcDateKey(today) : null;
+  // Read only after mount (today is null on the server), so storage never affects hydration.
+  const done = new Set(todayKey ? GAMES.filter((g) => loadStats(g.id).dailyDone.includes(todayKey)).map((g) => g.id) : []);
 
   return (
     <section
@@ -64,9 +69,17 @@ export function DailyCard() {
               <span className="w-5 text-caption text-steel">{String(i + 1).padStart(2, "0")}</span>
               <GameIcon id={game.id} size={24} />
               <span className="flex-1 font-mono">{game.name}</span>
-              <span className="text-caption uppercase text-steel" aria-label="not played">
-                ○
-              </span>
+              {!MODULES[game.id] ? (
+                <span className="text-caption uppercase text-steel">soon</span>
+              ) : done.has(game.id) ? (
+                <span className="font-mono text-paper" aria-label="done today">
+                  ✓
+                </span>
+              ) : (
+                <span className="text-caption text-steel" aria-label="not played">
+                  ○
+                </span>
+              )}
               <span
                 aria-hidden
                 className="text-fog transition-transform duration-[var(--dur-base)] ease-[var(--ease-spring)] group-hover:translate-x-1"
