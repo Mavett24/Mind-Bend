@@ -43,12 +43,12 @@ Every game has four tiers (easy to expert), a skippable how-to-play screen and h
 
 ```mermaid
 flowchart LR
-    S[seed: date,<br>random or URL] --> G[generator]
-    G --> V{solver:<br>exactly one<br>solution?}
+    S["seed: date,<br>random or URL"] --> G[generator]
+    G --> V{"solver: exactly<br>one solution?"}
     V -- no --> G
     V -- yes --> B[board UI]
-    B --> R[(game record<br>in localStorage)]
-    R --> D[ratings · bests ·<br>streaks · suggestions]
+    B --> R[("game record<br>in localStorage")]
+    R --> D["ratings, bests,<br>streaks, suggestions"]
     D -. suggested tier .-> B
 ```
 
