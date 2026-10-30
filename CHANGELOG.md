@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.0 · 2026-10-30 · Words and knowledge: all six games live
+
+- **weave** is playable: trace hidden words through touching letters including diagonals, near-centre hit areas for clean diagonals, "a word, but not hidden here" feedback, hints, keyboard play. Generator tiles the grid exactly with non-crossing word paths (400 seeds tested). Strands-style matching (D-026).
+- **trivia** is playable: higher or lower (population, GDP, area, cities, with sources) and categories (nine plus mixed), ten timed questions, speed-weighted points (D-027).
+- Content pipeline: `scripts/build-data.mjs` builds word lists and trivia data from openly licensed sources (`scripts/DATA_SOURCES.md`, D-028).
+- Boards can load content before starting, with a "building board" state and the clock starting when ready (D-029).
+- Fix: weave length planning could loop forever on some grid sizes; it now only picks lengths that leave a fillable remainder (tested).
+- Fix: weave paths could cross their own diagonals.
+- Fix: the trivia time bar froze late instead of where you answered.
+
 ## 0.3.1 · 2026-10-30 · Blocks fixes
 
 - Fix: tapping an empty cell no longer leaves a dashed 1×1 rectangle (D-025).

@@ -1,45 +1,55 @@
 # trivia
 
-**Skill:** knowledge and estimation · **Inspired by:** Lessgames · **Status:** planned
+**Skill:** knowledge and estimation · **Inspired by:** Lessgames · **Status:** live (v0.4)
 
-Two modes under one game.
+Two modes under one game. Both are ten questions against the clock, scored out of 10 (D-027).
+
+## Choosing a mode
+
+After pressing play, the board offers higher or lower, or categories with a category chip (mixed, general, science, geography, history, film, music, sport, nature, arts & books). Daily and challenge boards use the same seed whichever mode is picked.
 
 ## Mode A: higher or lower
 
-Two items share a measurable attribute (population, height, release year, length, calories). Pick the one with the higher value. Keep going until you miss. Score is the streak.
+Two items share a measurable value. Pick the one with the higher value.
 
-- After each pick, both values count up into view, then the right card slides left and a new card enters.
-- Difficulty comes from the gap between values: Easy pairs differ by 3× or more, Expert pairs within 15%.
-- Daily: a fixed seeded sequence of 20 pairs, same for everyone.
-
-**Data:** built from public datasets with open licences (country data from the World Bank, CC BY 4.0; landmarks, films and other items from Wikidata, CC0). Compiled at build time into static JSON with source and date per value. Every value shows its unit and source on reveal.
+- Ten pairs, cycling through four sets: country population, country GDP, country area, city population.
+- After a pick, both values appear in readable form ("36.2 million people", "$27.4 trillion"). The right card gets a paper border and ✓, a wrong pick gets an ember border, × and a shake.
+- The source is shown under every pair.
+- Difficulty comes from how close the two values are (table below).
+- No name repeats within a game.
 
 ## Mode B: categories
 
-Multiple choice, four options, ten questions per game, 15 seconds each.
+Ten multiple-choice questions from one category, or mixed.
 
-- Pick a category (general knowledge, science, geography, history, film, music, sport, art) or "mixed".
-- Correct answers fill the option with a paper outline and `✓`. Wrong ones shake, mark `×` and reveal the right answer.
-- Score: correct answers plus a small speed bonus.
+- Options are shuffled per question. Easy drops one wrong option, so three remain.
+- Correct answers get a paper border and ✓. A wrong pick shakes, marks × and the right answer is shown.
 
-**Data:** a local question bank seeded from Open Trivia DB (CC BY-SA 4.0, attributed in the footer and an about page), deduplicated, checked, and stored as static JSON. Questions keep their source difficulty, which maps to our tiers. Anything ambiguous or outdated is removed during import.
+## Scoring
+
+Each answer is worth 0 if wrong or out of time, otherwise 0.7 plus up to 0.3 for speed. Ten instant correct answers make 10.00. The running total shows top right, and each answer shows its points.
+
+A time bar runs under the header and freezes where it was when you answer.
 
 ## Difficulty
 
-| Tier | Higher or lower gap | Categories questions |
-|------|---------------------|----------------------|
-| Easy | 3× or more | easy |
-| Medium | 1.5× to 3× | easy and medium |
-| Hard | 1.15× to 1.5× | medium and hard |
-| Expert | under 1.15× | hard, 10s timer |
+| Tier | Seconds per question | Options | Higher or lower: ratio between values |
+|------|----------------------|---------|---------------------------------------|
+| Easy | 20 | 3 | 3× or more |
+| Medium | 15 | 4 | 1.5× to 3× |
+| Hard | 12 | 4 | 1.15× to 1.5× |
+| Expert | 8 | 4 | 1.02× to 1.15× |
 
-## No repeats
+## Data
 
-Practice tracks seen question and pair ids in localStorage and avoids them until the pool for that tier runs low.
+Built by `scripts/build-data.mjs`. Sources and licences are in `scripts/DATA_SOURCES.md`.
 
-## Score lines (draft)
+- Questions: OpenTriviaQA (CC BY-SA 4.0), filtered for length, four distinct options, nothing time-sensitive or politically contested, no image references, offensive words removed, deduplicated, up to 900 per category. One file per category so a game loads only what it needs (about 110 to 150 KB each).
+- Higher or lower: World Bank population and GDP, mledoze/countries area, GeoNames city populations. Independent UN member states only. 169 to 344 items per set.
+- Known limitation: OpenTriviaQA is uneven. Some questions have typos (often missing apostrophes) or are obscure. A hand-curation pass is on the roadmap (D-028).
 
-- Higher or lower, streak 15+: "Calibrated."
-- Streak 5 to 15: "Good instincts."
-- Under 5: "Numbers are hard. Respectfully."
-- Categories, 10/10: "Flawless!" (the only exclamation mark in the app)
+## Score lines
+
+- High (8+): "Calibrated." / "A walking almanac." / "Quick and right. Rare combination."
+- Mid (5+): "Good instincts." / "More right than wrong, which is the point." / "Respectable range."
+- Low: "Numbers are hard. Respectfully." / "Trivia is mostly trivia." / "Next round's on you."

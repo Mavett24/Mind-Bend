@@ -134,3 +134,25 @@ Rectangles use eight colour-blind-safe hues, all at least 5.9:1 against the cell
 **2026-10-30**
 A press without movement removes the rectangle under it, or does nothing. Drags clamp to the board edge.
 **Why:** playtesting found that every stray tap left a dashed 1×1 box, and drags that slid off the board collapsed into one. No clue has area 1, so a 1×1 is never intended. The rules moved into a pure, tested `applyGesture`.
+
+### D-026 · Weave asks for the grid's hidden words
+**2026-10-30**
+A word counts only when it matches one of the hidden words over exactly its cells. Other real words are acknowledged ("a word, but not hidden here") without penalty.
+**Why:** the first spec accepted any valid cover of the grid, which needs an expensive solver to tell players when a found word blocks a finish. Matching the hidden words, as Strands does, gives a clear goal and makes hints meaningful.
+**Gave up:** credit for clever alternative covers.
+
+### D-027 · Trivia is ten timed questions, scored out of 10
+**2026-10-30**
+Both modes have ten questions with a per-question timer. A right answer is worth 0.7 plus up to 0.3 for speed.
+**Why:** the first spec had higher or lower as an endless streak, which doesn't fit the shared scored flow, daily boards or bests per tier. Ten questions keeps games short and comparable, and the speed bonus separates "knew it" from "guessed it".
+**Gave up:** the open-ended streak format.
+
+### D-028 · Trivia questions from OpenTriviaQA, filtered by script
+**2026-10-30**
+Open Trivia DB's API isn't reachable from the build environment, so questions come from OpenTriviaQA (CC BY-SA 4.0) on GitHub, filtered automatically. TV was dropped as too niche. The question set has no difficulty labels, so tiers change time and options instead.
+**Known limitation:** uneven quality and small typos. A curation pass, or swapping in Open Trivia DB through a build step with network access, is on the roadmap.
+
+### D-029 · Boards can load content before they start
+**2026-10-30**
+A game's `generate` may be async. The play session shows "building board" and starts the clock only once the board is ready. Weave loads its word list this way; trivia loads its question file once a mode is picked.
+**Why:** word lists and question banks are hundreds of KB. Loading them up front would slow the home screen for everyone.

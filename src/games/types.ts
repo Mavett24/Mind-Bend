@@ -22,7 +22,8 @@ export interface ScoreLines {
 
 /** Everything the shared play flow needs from a game. */
 export interface GameModule<P> {
-  generate: (key: BoardKey) => P;
+  /** Pure given its data. May be async when the game loads content first (weave fetches its word list). */
+  generate: (key: BoardKey) => P | Promise<P>;
   parMs: Record<Tier, number>;
   Board: ComponentType<BoardProps<P>>;
   lines: ScoreLines;

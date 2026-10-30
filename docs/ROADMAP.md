@@ -17,8 +17,9 @@
 - [x] recall
 
 ## Phase 4 · Words and knowledge
-- [ ] weave with curated dictionary
-- [ ] trivia: higher or lower dataset, categories question bank
+- [x] weave with curated dictionary
+- [x] trivia: higher or lower dataset, categories question bank
+- [ ] Hand-curate trivia questions (typos, obscure items), or build from Open Trivia DB (D-028)
 
 ## Phase 5 · Polish
 - [ ] Motion pass on every signature moment (see DESIGN.md §6)

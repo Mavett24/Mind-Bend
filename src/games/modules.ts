@@ -8,6 +8,10 @@ import { BLOCKS_PAR_MS, generateBlocks } from "./blocks/engine";
 import { BlocksBoard } from "./blocks/Board";
 import { generateRecall, RECALL_PAR_MS } from "./recall/engine";
 import { RecallBoard } from "./recall/Board";
+import { generateWeave, WEAVE_PAR_MS } from "./weave/engine";
+import { WeaveBoard } from "./weave/Board";
+import { generateTrivia, TRIVIA_PAR_MS } from "./trivia/engine";
+import { TriviaBoard } from "./trivia/Board";
 
 /** Score lines come from each game's spec in docs/games/. */
 const path: GameModule<ReturnType<typeof generatePath>> = {
@@ -55,10 +59,35 @@ const recall: GameModule<ReturnType<typeof generateRecall>> = {
   },
 };
 
+const weave: GameModule<Awaited<ReturnType<typeof generateWeave>>> = {
+  generate: generateWeave,
+  parMs: WEAVE_PAR_MS,
+  Board: WeaveBoard,
+  lines: {
+    high: ["Fluent.", "You read the grid like a sentence.", "Untangled in record time."],
+    mid: ["Untangled.", "Every letter found its word.", "Woven back together."],
+    low: ["Knots undone, one by one.", "The words were in there somewhere. You found them.", "Slow and thorough. Still counts."],
+  },
+};
+
+const trivia: GameModule<ReturnType<typeof generateTrivia>> = {
+  generate: generateTrivia,
+  parMs: TRIVIA_PAR_MS,
+  Board: TriviaBoard,
+  scoring: "points",
+  lines: {
+    high: ["Calibrated.", "A walking almanac.", "Quick and right. Rare combination."],
+    mid: ["Good instincts.", "More right than wrong, which is the point.", "Respectable range."],
+    low: ["Numbers are hard. Respectfully.", "Trivia is mostly trivia.", "Next round's on you."],
+  },
+};
+
 // Each module has its own puzzle type; the shared flow only passes puzzles back to the board that made them.
 export const MODULES: Partial<Record<GameId, GameModule<unknown>>> = {
   path: path as GameModule<unknown>,
   balance: balance as GameModule<unknown>,
   blocks: blocks as GameModule<unknown>,
   recall: recall as GameModule<unknown>,
+  weave: weave as GameModule<unknown>,
+  trivia: trivia as GameModule<unknown>,
 };

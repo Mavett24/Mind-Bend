@@ -41,8 +41,8 @@ export const GAMES: readonly GameMeta[] = [
     name: "weave",
     skill: "words",
     tagline: "A grid made entirely of hidden words.",
-    rules: "Every letter belongs to one word. Use them all.",
-    status: "building",
+    rules: "Trace words through touching letters, diagonals too. Every letter belongs to one hidden word.",
+    status: "live",
   },
   {
     id: "recall",
@@ -57,8 +57,8 @@ export const GAMES: readonly GameMeta[] = [
     name: "trivia",
     skill: "knowledge",
     tagline: "Higher or lower, and categories.",
-    rules: "Pick the bigger number, or the right answer. Keep the streak alive.",
-    status: "building",
+    rules: "Ten questions, against the clock. Pick the bigger number, or the right answer.",
+    status: "live",
   },
 ];
 

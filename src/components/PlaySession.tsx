@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import type { GameMeta } from "@/games/registry";
 import type { GameModule, SolveDetail } from "@/games/types";
@@ -31,8 +31,25 @@ interface Finished {
 }
 
 export function PlaySession<P>({ game, module, board, mode, nextDailyHref, onExit, onNext }: PlaySessionProps<P>) {
-  const puzzle = useMemo(() => module.generate(board), [module, board]);
-  const [startedAt] = useState(() => performance.now());
+  const [puzzle, setPuzzle] = useState<P | null>(null);
+  const [loadError, setLoadError] = useState(false);
+  const [startedAt, setStartedAt] = useState(() => performance.now());
+
+  // Boards may load content first; the clock starts when the board is ready.
+  useEffect(() => {
+    let live = true;
+    Promise.resolve()
+      .then(() => module.generate(board))
+      .then((p) => {
+        if (!live) return;
+        setPuzzle(p);
+        setStartedAt(performance.now());
+      })
+      .catch(() => live && setLoadError(true));
+    return () => {
+      live = false;
+    };
+  }, [module, board]);
   const [stoppedAt, setStoppedAt] = useState<number | null>(null);
   const [finished, setFinished] = useState<Finished | null>(null);
   const [showResult, setShowResult] = useState(false);
@@ -89,10 +106,21 @@ export function PlaySession<P>({ game, module, board, mode, nextDailyHref, onExi
               </span>
               <span className="text-caption text-steel">seed {board.seed}</span>
             </div>
-            {module.scoring !== "points" && <GameClock startedAt={startedAt} stoppedAt={stoppedAt} />}
+            {module.scoring !== "points" && puzzle && <GameClock startedAt={startedAt} stoppedAt={stoppedAt} />}
           </div>
           <div className="flex flex-1 items-center justify-center">
-            <Board puzzle={puzzle} onSolved={handleSolved} />
+            {puzzle ? (
+              <Board puzzle={puzzle} onSolved={handleSolved} />
+            ) : loadError ? (
+              <div className="flex flex-col items-center gap-3 text-center text-fog">
+                <p>The board couldn&apos;t load. Check your connection.</p>
+                <Button variant="ghost" arrow={false} onClick={onExit}>
+                  ← menu
+                </Button>
+              </div>
+            ) : (
+              <p className="animate-pulse font-mono text-caption uppercase tracking-wide text-steel">building board</p>
+            )}
           </div>
           {module.scoring !== "points" && <p className="text-center text-fog">{game.rules}</p>}
         </motion.div>

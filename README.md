@@ -13,9 +13,9 @@ Every board is generated from a seed and checked for a single solution, so you n
 | path | Route planning | live |
 | balance | Binary deduction | live |
 | blocks | Spatial partitioning | live |
-| weave | Word finding | planned |
+| weave | Word finding | live |
 | recall | Visual working memory | live |
-| trivia | Knowledge and estimation | planned |
+| trivia | Knowledge and estimation | live |
 
 ## Docs
 
@@ -51,6 +51,10 @@ npm test          # engine and generator tests
 npm run build     # production build
 ```
 
+## Content
+
+Word lists and trivia data are built by `scripts/build-data.mjs` into `public/data/`. Sources and licences: [`scripts/DATA_SOURCES.md`](scripts/DATA_SOURCES.md). In short: SCOWL word lists, OpenTriviaQA questions (CC BY-SA 4.0, so the question files are shared under the same licence), World Bank data (CC BY 4.0), mledoze/countries (ODbL), GeoNames (CC BY 4.0), LDNOOBW offensive-word list (CC BY 4.0).
+
 ## Credits
 
-Game mechanics inspired by LinkedIn Games (Zip, Tango, Patches, Wend), Dialed and Lessgames. All names, visuals, puzzles and code here are original.
+Game mechanics inspired by LinkedIn Games (Zip, Tango, Patches, Wend), Dialed and Lessgames. All names, visuals, puzzles and code here are original. Content credits above.
