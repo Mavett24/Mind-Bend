@@ -21,13 +21,22 @@
 - [x] trivia: higher or lower dataset, categories question bank
 - [ ] Hand-curate trivia questions (typos, obscure items), or build from Open Trivia DB (D-028)
 
-## Phase 5 · Polish
+## Phase 4.5 · Playtest fixes
+- [x] How-to-play screen and plain-language difficulty for every game
+- [x] Hints with cooldown: path, balance (with explanations), weave
+- [x] weave matches Wend: no diagonals, empty tiles, length slots
+- [x] recall UI rework
+
+## Phase 5 · Score tracking and reuse
+- [ ] Proper history of every game played, progress over time, per-game and overall stats (next prompt)
+
+## Phase 6 · Polish
 - [ ] Motion pass on every signature moment (see DESIGN.md §6)
 - [ ] Sound and haptics
 - [ ] Accessibility audit, keyboard play for every board
 - [ ] Performance pass on low-end phones
 
-## Phase 6 · Case study
+## Phase 7 · Case study
 - [ ] Screen recordings of each game and signature moment
 - [ ] Metrics: generator speed, uniqueness test counts, Lighthouse scores
 - [ ] Write-up from DECISIONS.md

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { TIERS } from "@/engine/difficulty";
 import {
+  balanceHint,
   countSolutions,
   DOT,
   EMPTY,
@@ -71,5 +72,34 @@ describe("balance rules", () => {
   it("does not flag an empty or partial valid grid", () => {
     const v = findViolations(6, new Array(36).fill(EMPTY), []);
     expect(v.lines.size + v.links.size).toBe(0);
+  });
+});
+
+describe("balance hints", () => {
+  for (const tier of TIERS) {
+    it(`${tier}: hints alone solve every board, always with a real rule (40 seeds)`, () => {
+      for (let i = 0; i < 40; i++) {
+        const p = generateBalance({ gameId: "balance", tier, seed: `hint-${i}` });
+        const grid = p.givens.slice() as Cell[];
+        for (let h = balanceHint(p, grid); h; h = balanceHint(p, grid)) {
+          expect(h.kind).toBe("deduce");
+          expect(h.value).toBe(p.solution[h.cell]);
+          expect(grid[h.cell]).toBe(EMPTY);
+          expect(h.reason).not.toMatch(/^Only a/);
+          grid[h.cell] = h.value!;
+        }
+        expect(grid).toEqual(p.solution);
+      }
+    }, 120_000);
+  }
+
+  it("points out a wrong cell before anything else", () => {
+    const p = generateBalance({ gameId: "balance", tier: "medium", seed: "hint-wrong" });
+    const grid = p.givens.slice() as Cell[];
+    const cell = grid.indexOf(EMPTY);
+    grid[cell] = p.solution[cell] === DOT ? RING : DOT;
+    const h = balanceHint(p, grid)!;
+    expect(h.kind).toBe("wrong");
+    expect(h.cell).toBe(cell);
   });
 });

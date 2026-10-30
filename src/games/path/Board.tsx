@@ -4,7 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import type { BoardProps } from "@/games/types";
 import { dur, ease } from "@/lib/motion";
-import { adjacency, canExtend, isSolved, type PathPuzzle } from "./engine";
+import { HintButton } from "@/components/HintButton";
+import { adjacency, canExtend, isSolved, pathHint, type PathPuzzle } from "./engine";
 
 const PAD = 0.06; // gap around each cell, in cell units
 
@@ -14,6 +15,9 @@ export function PathBoard({ puzzle, onSolved }: BoardProps<PathPuzzle>) {
   const startCell = useMemo(() => numbers.indexOf(1), [numbers]);
   const [line, setLine] = useState<number[]>([startCell]);
   const [solved, setSolved] = useState(false);
+  const [hintCell, setHintCell] = useState<number | null>(null);
+  const [hintNote, setHintNote] = useState<string | null>(null);
+  const [hintsUsed, setHintsUsed] = useState(0);
   const backtracks = useRef(0);
   const svgRef = useRef<SVGSVGElement>(null);
   const dragging = useRef(false);
@@ -46,18 +50,34 @@ export function PathBoard({ puzzle, onSolved }: BoardProps<PathPuzzle>) {
       if (next) {
         lineRef.current = next;
         setLine(next);
+        // A hint stays until the player reaches the highlighted cell or changes course.
+        setHintCell((h) => (h !== null && next[next.length - 1] === h ? null : h));
+        setHintNote(null);
       }
     },
     [adj, puzzle, solved],
   );
 
+  const giveHint = () => {
+    const h = pathHint(puzzle, lineRef.current);
+    if (!h) return;
+    if (h.trimmed) {
+      lineRef.current = h.line;
+      setLine(h.line);
+    }
+    setHintCell(h.next);
+    setHintNote(h.trimmed ? "Your line went off track, so it was cut back. Go to the highlighted cell next." : "Go to the highlighted cell next.");
+    setHintsUsed((n) => n + 1);
+  };
+
   useEffect(() => {
     if (!solved && isSolved(puzzle, line)) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- solving is derived from the line the player drew
       setSolved(true);
-      onSolved({ extra: { label: "backtracks", value: backtracks.current } });
+      setHintCell(null);
+      onSolved({ extra: { label: "hints", value: hintsUsed } });
     }
-  }, [line, onSolved, puzzle, solved]);
+  }, [hintsUsed, line, onSolved, puzzle, solved]);
 
   const toGrid = (e: React.PointerEvent): { x: number; y: number } | null => {
     const rect = svgRef.current?.getBoundingClientRect();
@@ -192,6 +212,23 @@ export function PathBoard({ puzzle, onSolved }: BoardProps<PathPuzzle>) {
           strokeLinejoin="round"
         />
 
+        {hintCell !== null && !solved && (
+          <motion.rect
+            key={`hint-${hintCell}`}
+            x={center(hintCell).x - 0.5 + PAD}
+            y={center(hintCell).y - 0.5 + PAD}
+            width={1 - PAD * 2}
+            height={1 - PAD * 2}
+            rx={0.16}
+            fill="none"
+            className="stroke-paper"
+            strokeWidth={0.07}
+            initial={{ opacity: 0 }}
+            animate={reduced ? { opacity: 1 } : { opacity: [1, 0.35, 1] }}
+            transition={reduced ? { duration: dur.base } : { duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
+          />
+        )}
+
         {!solved && (
           <motion.circle
             key={lastCell}
@@ -226,6 +263,12 @@ export function PathBoard({ puzzle, onSolved }: BoardProps<PathPuzzle>) {
         })}
 
       </svg>
+      <div className="mt-4 flex min-h-10 items-center justify-between gap-3">
+        <p className="text-body text-fog" aria-live="polite">
+          {hintNote ?? "\u00a0"}
+        </p>
+        <HintButton onHint={giveHint} count={hintsUsed} disabled={solved} />
+      </div>
       <p className="sr-only" aria-live="polite">
         {solved
           ? "Solved."

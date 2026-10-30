@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { TIERS } from "@/engine/difficulty";
-import { adjacency, canExtend, generatePath, isSolved, randomHamiltonianPath, solvePath, type PathPuzzle } from "./engine";
+import { adjacency, canExtend, generatePath, isSolved, pathHint, randomHamiltonianPath, solvePath, type PathPuzzle } from "./engine";
 import { createRng } from "@/engine/rng";
 
 const SEEDS_PER_TIER = 60;
@@ -75,5 +75,36 @@ describe("path move rules", () => {
     const lastNumberCell = p.numbers.indexOf(Math.max(...p.numbers));
     if (adj[p.solution[1]].includes(lastNumberCell)) expect(canExtend(p, line, lastNumberCell, adj)).toBe(false);
     expect(isSolved(p, line)).toBe(false);
+  });
+});
+
+describe("path hints", () => {
+  it("leads from an empty line to the solution, one cell per hint", () => {
+    for (const tier of TIERS) {
+      const p = generatePath({ gameId: "path", tier, seed: `hint-${tier}` });
+      let line = [p.solution[0]];
+      let hints = 0;
+      for (let h = pathHint(p, line); h; h = pathHint(p, line)) {
+        expect(h.trimmed).toBe(false);
+        line = [...h.line, h.next];
+        hints++;
+      }
+      expect(line).toEqual(p.solution);
+      expect(hints).toBe(p.solution.length - 1);
+      expect(isSolved(p, line)).toBe(true);
+    }
+  });
+
+  it("cuts a wrong line back to its last correct cell", () => {
+    const p = generatePath({ gameId: "path", tier: "medium", seed: "hint-wrong" });
+    const adj = adjacency(p.size, p.walls);
+    // Follow the solution for 4 cells, then wander off it.
+    const line = p.solution.slice(0, 4);
+    const wrong = adj[line[3]].find((n) => !line.includes(n) && n !== p.solution[4]);
+    if (wrong === undefined) return;
+    const h = pathHint(p, [...line, wrong])!;
+    expect(h.trimmed).toBe(true);
+    expect(h.line).toEqual(line);
+    expect(h.next).toBe(p.solution[4]);
   });
 });

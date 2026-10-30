@@ -127,6 +127,8 @@ Nested radii step down (card 24 → control 14 → cell 8) so inner corners neve
 | Tag | 12px uppercase `--color-steel`, no fill, no border. |
 | Icon badge | 32px circle, `--color-iron` fill, paper glyph. |
 | Stat block | Uppercase caption label above a 24px number. Used for time, moves, streak, rating. |
+| Hint button | Ghost pill, 40px tall. After use it locks for 5s: an iron fill sweeps out with scaleX and the label counts down ("hint · 4s"). |
+| How-to-play screen | Example illustration on a void panel, numbered steps (iron number badges), a graphite tier box, controls in 13px steel, skip checkbox, back + start. |
 | Toast | Bottom centre, `--color-graphite`, 1px iron border, 14px text, slides up with spring, auto-dismiss 2.4s. |
 
 ## 6. Motion

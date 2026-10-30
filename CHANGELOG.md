@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.0 · 2026-10-30 · Hints, how to play, Wend-style weave, clearer recall
+
+- **How to play** before every board: illustrated example, three steps, what the chosen difficulty means, controls, "skip next time" per game. "How to play" link on the start card (D-030).
+- Every difficulty described in plain words under the tier picker (D-031).
+- **path hints:** highlight the next correct cell, cutting the line back first if it went wrong. 5s cooldown (D-032).
+- **balance hints:** outline the next forced cell and explain the rule in one sentence, or point out a wrong cell. Tested to solve every board on their own (D-033).
+- **weave** now matches Wend: up/down/left/right only, scattered empty tiles, word-length slots that fill as you find words, hint reveals letters in the slots (D-034).
+- **recall** reworked: a ready step per round, rounded gapped tiles, countdown in a readable pill, dashed outlines for hidden tiles, plain slider names (hue, vividness, brightness), round progress dots, clearer reveal with "/10" and what the difference means. Fixed the reveal split rendering black.
+- Rules line under boards removed (the how-to-play screen covers it). Result screens show hints used.
+
 ## 0.4.0 · 2026-10-30 · Words and knowledge: all six games live
 
 - **weave** is playable: trace hidden words through touching letters including diagonals, near-centre hit areas for clean diagonals, "a word, but not hidden here" feedback, hints, keyboard play. Generator tiles the grid exactly with non-crossing word paths (400 seeds tested). Strands-style matching (D-026).

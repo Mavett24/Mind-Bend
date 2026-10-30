@@ -43,6 +43,20 @@ Because every step is a forced deduction from the rules, a board the solver fini
 
 Generation: under 1ms median for 6×6, ~6ms median for Expert.
 
+## Hints
+
+The hint button explains the next move. It outlines the cell, softly marks the cells that justify it, and says why in one sentence. It doesn't fill the cell: the point is to learn the rule. Hints have a 5 second cooldown and are counted on the result screen.
+
+Order of hints (`balanceHint`):
+1. A wrong cell, if the player placed one: "This can't be a dot: the board can't be finished with it."
+2. A link: "= means these two cells match, so this one is a ring."
+3. A pair: "Two dots side by side, so the next cell must be a ring."
+4. A gap: "A ring on both sides, so the middle must be a dot."
+5. A full line: "Row 3 already has 3 dots, so the rest are rings."
+6. One step of "what if": "Try a dot here and follow the rules: a row or column breaks. So it has to be a ring."
+
+Tested: starting from the givens, following hints alone solves 160 boards across all tiers, every hint gives the right symbol, and none falls back to "only this works".
+
 ## Scoring
 
 Time to solve. Mistakes shown, not penalised.

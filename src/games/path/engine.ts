@@ -317,3 +317,26 @@ export function isSolved(puzzle: PathPuzzle, line: readonly number[]): boolean {
   const max = Math.max(...puzzle.numbers);
   return puzzle.numbers[line[line.length - 1]] === max;
 }
+
+// ---------------------------------------------------------------- hints
+
+export interface PathHint {
+  /** The line, cut back to its last correct cell. */
+  line: number[];
+  /** The next cell on the solution, to highlight. */
+  next: number;
+  /** True when part of the player's line was wrong and got removed. */
+  trimmed: boolean;
+}
+
+/**
+ * The board is unique, so the solution is the only way to finish. The correct part of the
+ * player's line is its longest prefix that follows the solution; everything after that is wrong.
+ */
+export function pathHint(puzzle: PathPuzzle, line: readonly number[]): PathHint | null {
+  let keep = 0;
+  while (keep < line.length && line[keep] === puzzle.solution[keep]) keep++;
+  keep = Math.max(1, keep);
+  if (keep >= puzzle.solution.length) return null;
+  return { line: puzzle.solution.slice(0, keep), next: puzzle.solution[keep], trimmed: keep < line.length };
+}

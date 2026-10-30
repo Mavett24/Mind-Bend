@@ -90,9 +90,9 @@ const targets = (list, min, max) => [...new Set(list)].filter((w) => w.length >=
 out("weave/words.json", {
   // Hidden words by tier. Easy to hard use the most common words, expert less common ones.
   targets: {
-    easy: targets(l10, 4, 4),
+    easy: targets(l10, 3, 5),
     medium: targets([...l10, ...l20], 4, 6),
-    hard: targets([...l10, ...l20], 5, 7),
+    hard: targets([...l10, ...l20], 4, 8),
     expert: targets(l35, 5, 8),
   },
   // Every word a player can find, 3 to 8 letters.

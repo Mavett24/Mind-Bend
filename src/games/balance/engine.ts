@@ -269,3 +269,109 @@ export function generateBalance(key: BoardKey): BalancePuzzle {
 
   return { size, givens, links, solution };
 }
+
+// ---------------------------------------------------------------- hints
+
+export interface BalanceHint {
+  kind: "wrong" | "deduce";
+  cell: number;
+  /** What the cell must be (deduce), or null (wrong: clear it). */
+  value: Cell | null;
+  /** One or two plain sentences. */
+  reason: string;
+  /** Cells that justify the hint, shown softly. */
+  related: number[];
+}
+
+const NAME: Record<1 | 2, string> = { 1: "dot", 2: "ring" };
+const PLURAL: Record<1 | 2, string> = { 1: "dots", 2: "rings" };
+const name = (v: Cell) => NAME[v as 1 | 2];
+
+/**
+ * The simplest next move with the rule that forces it.
+ * Order: wrong cells first, then links, pairs, gaps, full lines, then one step of "what if".
+ * Every board is solvable by these rules (D-018), so a deduction always exists while cells are empty.
+ */
+export function balanceHint(puzzle: BalancePuzzle, grid: readonly Cell[]): BalanceHint | null {
+  const { size, givens, links, solution } = puzzle;
+  const half = size / 2;
+  const allLines = lines(size);
+  const lineName = (li: number) => (li < size ? `row ${li + 1}` : `column ${li - size + 1}`);
+
+  for (let c = 0; c < grid.length; c++) {
+    if (grid[c] !== EMPTY && givens[c] === EMPTY && grid[c] !== solution[c]) {
+      return {
+        kind: "wrong",
+        cell: c,
+        value: null,
+        reason: `This can't be a ${name(grid[c])}: the board can't be finished with it. Clear it and look again.`,
+        related: [],
+      };
+    }
+  }
+  if (!grid.includes(EMPTY)) return null;
+
+  const deduce = (cell: number, value: Cell, reason: string, related: number[]): BalanceHint => ({ kind: "deduce", cell, value, reason, related });
+
+  // Links
+  for (const { a, b, type } of links) {
+    const [va, vb] = [grid[a], grid[b]];
+    if ((va === EMPTY) === (vb === EMPTY)) continue;
+    const [known, empty, kv] = va !== EMPTY ? [a, b, va] : [b, a, vb];
+    const value = type === "eq" ? kv : opposite(kv);
+    const why = type === "eq" ? "= means these two cells match" : "× means these two cells are opposite";
+    return deduce(empty, value, `${why}, so this one is a ${name(value)}.`, [known]);
+  }
+
+  // Pairs and gaps
+  for (const line of allLines) {
+    for (let i = 0; i + 2 < line.length; i++) {
+      const [x, y, z] = [line[i], line[i + 1], line[i + 2]];
+      const [vx, vy, vz] = [grid[x], grid[y], grid[z]];
+      if (vx !== EMPTY && vx === vy && vz === EMPTY)
+        return deduce(z, opposite(vx), `Two ${PLURAL[vx as 1 | 2]} side by side, so the next cell must be a ${name(opposite(vx))}.`, [x, y]);
+      if (vy !== EMPTY && vy === vz && vx === EMPTY)
+        return deduce(x, opposite(vy), `Two ${PLURAL[vy as 1 | 2]} side by side, so the cell before them must be a ${name(opposite(vy))}.`, [y, z]);
+      if (vx !== EMPTY && vx === vz && vy === EMPTY)
+        return deduce(y, opposite(vx), `A ${name(vx)} on both sides, so the middle must be a ${name(opposite(vx))}.`, [x, z]);
+    }
+  }
+
+  // Full lines
+  for (let li = 0; li < allLines.length; li++) {
+    const line = allLines[li];
+    for (const v of [DOT, RING] as const) {
+      const have = line.filter((c) => grid[c] === v);
+      const empty = line.find((c) => grid[c] === EMPTY);
+      if (have.length === half && empty !== undefined) {
+        return deduce(
+          empty,
+          opposite(v),
+          `${lineName(li)[0].toUpperCase()}${lineName(li).slice(1)} already has ${half} ${PLURAL[v]}, so the rest are ${PLURAL[opposite(v) as 1 | 2]}.`,
+          have,
+        );
+      }
+    }
+  }
+
+  // One step of "what if"
+  for (let cell = 0; cell < grid.length; cell++) {
+    if (grid[cell] !== EMPTY) continue;
+    for (const v of [DOT, RING] as const) {
+      const trial = grid.slice() as Cell[];
+      trial[cell] = v;
+      if (propagate(size, trial, allLines, links) === "contradiction") {
+        return deduce(
+          cell,
+          opposite(v),
+          `Try a ${name(v)} here and follow the rules: a row or column breaks. So it has to be a ${name(opposite(v))}.`,
+          [],
+        );
+      }
+    }
+  }
+
+  // Should be unreachable for generated boards; keeps hints working on anything else.
+  const cell = grid.indexOf(EMPTY);
+  return deduce(cell, solution[cell], `Only a ${name(solution[cell])} works here.`, []);
+}

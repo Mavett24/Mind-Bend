@@ -156,3 +156,28 @@ Open Trivia DB's API isn't reachable from the build environment, so questions co
 **2026-10-30**
 A game's `generate` may be async. The play session shows "building board" and starts the clock only once the board is ready. Weave loads its word list this way; trivia loads its question file once a mode is picked.
 **Why:** word lists and question banks are hundreds of KB. Loading them up front would slow the home screen for everyone.
+
+### D-030 · How-to-play screen before every board
+**2026-10-30**
+Pressing play shows a how-to-play screen first: a small illustrated example, three steps, what the chosen difficulty means, and the controls. A "skip this screen next time" option is remembered per game, and "how to play" on the start card always reopens it. "Next board" after a result goes straight to the board.
+**Why:** Mavett asked for instructions before playing. Several games (blocks, balance, recall) are hard to guess from the board alone.
+
+### D-031 · Difficulty described in plain words
+**2026-10-30**
+Every game has one line per tier saying what that tier changes ("4 colours, shown for 3 seconds, rebuild 2"). It shows under the difficulty picker and on the how-to-play screen.
+**Why:** "hard" on its own meant nothing in recall. The tier labels are now backed by what actually changes.
+
+### D-032 · Hints with a 5 second cooldown
+**2026-10-30**
+Path, balance and weave have a hint button that locks for 5 seconds after use, with a visible sweep and countdown. Hints are counted on the result screen but don't change the score.
+**Why:** hints help players learn and get unstuck, the cooldown stops them being spammed to auto-solve.
+
+### D-033 · Balance hints explain, they don't fill
+**2026-10-30**
+A balance hint highlights a cell and names the rule that forces it. The player places the symbol.
+**Why:** the app is for getting better. Seeing the rule teaches the deduction; filling the cell would skip it.
+
+### D-034 · Weave follows Wend: no diagonals, empty tiles, length slots
+**2026-10-30** · amends D-026
+Moves are up, down, left and right only. Each board has scattered empty tiles, and the length of every hidden word is shown as a row of boxes.
+**Why:** Mavett compared it with the real game. Orthogonal moves make the routes a real logic puzzle, and the length slots give a goal you can reason with ("I still need a 7").

@@ -7,12 +7,13 @@ import { AnimatePresence, motion } from "motion/react";
 import { GAMES, type GameMeta } from "@/games/registry";
 import { MODULES } from "@/games/modules";
 import { isTier, suggestTier, TIERS, TIER_LABEL, type Tier } from "@/engine/difficulty";
-import { boardSeed, challengeQuery, dailyBoard, isValidSeed, randomSeed, type BoardKey, type Mode } from "@/engine/seed";
-import { createRng } from "@/engine/rng";
+import { boardSeed, dailyBoard, isValidSeed, randomSeed, type BoardKey, type Mode } from "@/engine/seed";
 import { dailyStreak, emptyStats, loadStats, type GameStats } from "@/engine/stats";
 import { useToday } from "@/lib/useToday";
 import { dur, ease } from "@/lib/motion";
 import { Button } from "./Button";
+import { GameIntroScreen, introSkipped } from "./GameIntro";
+import { INTRO } from "@/games/intro";
 import { PlaySession } from "./PlaySession";
 import { PointsDisplay, TimeDisplay } from "./TimeDisplay";
 import { GameIcon } from "./GameIcon";
@@ -34,6 +35,8 @@ export function GameStart({ game }: { game: GameMeta }) {
   const suggested = suggestTier(stats.rating);
   const [tier, setTier] = useState<Tier>(challenge?.tier ?? "medium");
   const [board, setBoard] = useState<BoardKey | null>(null);
+  /** Board waiting behind the how-to-play screen. */
+  const [pending, setPending] = useState<BoardKey | null>(null);
 
   useEffect(() => {
     const loaded = loadStats(game.id);
@@ -62,10 +65,12 @@ export function GameStart({ game }: { game: GameMeta }) {
     setBoard({ gameId: game.id, tier: nextTier, seed: randomSeed() });
   }
 
-  function start() {
-    if (mode === "daily" && daily) setBoard(daily);
-    else if (mode === "challenge" && challenge) setBoard({ gameId: game.id, ...challenge });
-    else setBoard({ gameId: game.id, tier, seed: randomSeed() });
+  function start(forceIntro = false) {
+    const key: BoardKey | null =
+      mode === "daily" ? daily : mode === "challenge" && challenge ? { gameId: game.id, ...challenge } : { gameId: game.id, tier, seed: randomSeed() };
+    if (!key) return;
+    if (forceIntro || !introSkipped(game.id)) setPending(key);
+    else setBoard(key);
   }
 
   const modeOptions = [
@@ -101,8 +106,18 @@ export function GameStart({ game }: { game: GameMeta }) {
               onExit={backToMenu}
               onNext={nextBoard}
             />
-          ) : board ? (
-            <BoardPlaceholder key={boardSeed(board)} board={board} onBack={backToMenu} />
+          ) : pending ? (
+            <GameIntroScreen
+              key="intro"
+              game={game}
+              tier={pending.tier}
+              mode={mode}
+              onBack={() => setPending(null)}
+              onStart={() => {
+                setBoard(pending);
+                setPending(null);
+              }}
+            />
           ) : (
             <motion.div
               key="start"
@@ -154,14 +169,24 @@ export function GameStart({ game }: { game: GameMeta }) {
                   onChange={setTier}
                   disabled={mode !== "practice"}
                 />
-                <p className="h-5 text-caption text-steel">
-                  {mode === "daily" && "today's tier is fixed. everyone plays this board."}
-                  {mode === "practice" && `• suggested for your rating: ${suggested}`}
-                  {mode === "challenge" && `a friend's board · seed ${challenge?.seed}`}
-                </p>
-                <Button onClick={start} className="w-full" disabled={mode === "daily" && !daily}>
+                <div className="flex min-h-[44px] flex-col gap-0.5">
+                  <p className="text-body text-fog">{INTRO[game.id].tiers[effectiveTier]}</p>
+                  <p className="text-caption text-steel">
+                    {mode === "daily" && "today's tier is fixed. everyone plays this board."}
+                    {mode === "practice" && `• suggested for your rating: ${suggested}`}
+                    {mode === "challenge" && `a friend's board · seed ${challenge?.seed}`}
+                  </p>
+                </div>
+                <Button onClick={() => start()} className="w-full" disabled={mode === "daily" && !daily}>
                   play
                 </Button>
+                <button
+                  type="button"
+                  onClick={() => start(true)}
+                  className="self-center text-caption text-steel underline decoration-slate underline-offset-4 hover:text-fog"
+                >
+                  how to play
+                </button>
               </div>
             </motion.div>
           )}
@@ -177,71 +202,5 @@ function Stat({ label, value }: { label: string; value: React.ReactNode }) {
       <dt className="truncate text-caption uppercase text-steel">{label}</dt>
       <dd className="font-mono text-heading-lg">{value}</dd>
     </div>
-  );
-}
-
-/**
- * Stand-in stage until each game's generator lands (roadmap phase 2+).
- * It already runs the real seed pipeline: the same seed always paints the same grid.
- */
-function BoardPlaceholder({ board, onBack }: { board: BoardKey; onBack: () => void }) {
-  const size = { easy: 5, medium: 6, hard: 7, expert: 8 }[board.tier];
-  const cells = useMemo(() => {
-    const rng = createRng(boardSeed(board));
-    return Array.from({ length: size * size }, () => rng.chance(0.18));
-  }, [board, size]);
-  const [copied, setCopied] = useState(false);
-
-  async function share() {
-    const url = `${window.location.origin}/play/${board.gameId}?${challengeQuery(board)}`;
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2400);
-    } catch {
-      window.prompt("Copy this challenge link", url);
-    }
-  }
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: dur.base, ease: ease.out }}
-      className="flex flex-1 flex-col gap-6 p-6"
-    >
-      <div className="flex items-baseline justify-between text-caption uppercase text-steel">
-        <span>{board.tier}</span>
-        <span>seed {board.seed}</span>
-      </div>
-
-      <div className="grid flex-1 content-center gap-1" style={{ gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))` }}>
-        {cells.map((filled, i) => {
-          const row = Math.floor(i / size);
-          const col = i % size;
-          return (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, scale: 0.6 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: dur.base, ease: ease.spring, delay: (row + col) * 0.016 }}
-              className={`aspect-square rounded-cell ${filled ? "bg-ember" : "bg-graphite"}`}
-            />
-          );
-        })}
-      </div>
-
-      <p className="text-center text-fog">The board generator for this game is in build. Same seed, same grid, always.</p>
-
-      <div className="grid grid-cols-2 gap-3">
-        <Button variant="ghost" arrow={false} onClick={onBack}>
-          ← back
-        </Button>
-        <Button variant="ghost" arrow={false} onClick={share}>
-          {copied ? "link copied ✓" : "share board"}
-        </Button>
-      </div>
-    </motion.div>
   );
 }

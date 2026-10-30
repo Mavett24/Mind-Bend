@@ -41,7 +41,7 @@ export const GAMES: readonly GameMeta[] = [
     name: "weave",
     skill: "words",
     tagline: "A grid made entirely of hidden words.",
-    rules: "Trace words through touching letters, diagonals too. Every letter belongs to one hidden word.",
+    rules: "Trace words through letters that touch up, down, left or right. Every letter belongs to one hidden word.",
     status: "live",
   },
   {

@@ -1,6 +1,6 @@
 # recall
 
-**Skill:** visual working memory · **Inspired by:** Dialed's color game · **Status:** live (v0.3)
+**Skill:** visual working memory · **Inspired by:** Dialed's color game · **Status:** live (v0.5)
 
 ## The twist
 
@@ -17,12 +17,14 @@ Instruction copy: "Remember the colours and where they were. Then rebuild one." 
 
 ## Interaction
 
-- During display, the stage is the stimulus: one tile fills it, two stack, three form bands, four form a 2×2 grid. Only the round (`1 / 5`) and the countdown (`3.28`, 32px, fraction dimmed) sit on top, in ink chosen for contrast with the colour underneath. The game clock is hidden: recall is scored, not timed.
-- Recall: other tiles go dark, the target tile shows your colour live with "rebuild this".
-- Picker: three OKLCH sliders (hue, chroma, lightness). Each track is a live gradient of what that slider would do to your current colour. Press anywhere on a track and drag. Arrow keys nudge.
-- Commit with "lock in".
-- Reveal: the target tile splits, yours on top and the original below, sliding in from the middle. The other tiles come back at 40% so you can see what you were holding. The round score counts up next to its ΔE, then the round line lands.
-- After 5 rounds, the shared result screen shows the average score. "Best colour" is the highest single score.
+Each round has four steps:
+
+1. **Ready.** The stage shows dashed outlines where the tiles will be, and a card says what's coming: "3 colours, shown for 3 seconds". Below: "Remember all 3 colours and where each one is. You'll rebuild one." The player starts the round with "show the colours", so nothing flashes by unexpectedly.
+2. **Show.** Tiles fill with colour (rounded, gapped). A countdown sits in a dark pill in the corner so it reads on any colour.
+3. **Rebuild.** Other tiles go back to dashed outlines. The target tile has a white ring and a "rebuild this one" pill, and fills live with the player's colour. Three sliders: hue, vividness, brightness (plain names for OKLCH hue, chroma, lightness). Each track is a live gradient of what that slider would do. Then "lock in".
+4. **Reveal.** The target splits, yours on top and the original below, with labels in pills. Other tiles come back at half strength. The score shows as "8.25 /10" next to the colour difference and "(0 is perfect)", then the round line.
+
+Progress dots at the top show the five rounds. Expert rebuilds two tiles per round, labelled "colour 1 of 2". The game clock is hidden: recall is scored, not timed.
 
 ## Colour space and scoring
 

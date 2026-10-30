@@ -122,7 +122,6 @@ export function PlaySession<P>({ game, module, board, mode, nextDailyHref, onExi
               <p className="animate-pulse font-mono text-caption uppercase tracking-wide text-steel">building board</p>
             )}
           </div>
-          {module.scoring !== "points" && <p className="text-center text-fog">{game.rules}</p>}
         </motion.div>
       )}
     </AnimatePresence>

@@ -35,9 +35,13 @@ Solver (`solvePath`): depth-first search from 1 that counts solutions up to 2. P
 
 Measured over 100 seeds per tier. Generation time (server CPU): Easy and Medium under 3ms median, Hard ~10ms, Expert ~55ms median and under 300ms worst case.
 
+## Hints
+
+The hint button highlights the next correct cell with a pulsing outline. If the line has gone off the solution, it is cut back to the last correct cell first. Hints have a 5 second cooldown and are counted on the result screen. Logic: `pathHint` in the engine, tested to walk from 1 to a full solve.
+
 ## Scoring
 
-Time to solve. Backtracks are counted and shown but do not change the score.
+Time to solve. Hints are counted and shown but do not change the score.
 
 ## Score lines (draft)
 

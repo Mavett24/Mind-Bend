@@ -4,7 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import type { BoardProps } from "@/games/types";
 import { dur, ease } from "@/lib/motion";
-import { DOT, EMPTY, findViolations, isSolved, lines, RING, type BalancePuzzle, type Cell } from "./engine";
+import { HintButton } from "@/components/HintButton";
+import { balanceHint, DOT, EMPTY, findViolations, isSolved, lines, RING, type BalanceHint, type BalancePuzzle, type Cell } from "./engine";
 
 /** Rule breaks appear after a pause, so the board doesn't nag mid-thought (docs/games/balance.md). */
 const VIOLATION_DELAY_MS = 600;
@@ -39,6 +40,8 @@ export function BalanceBoard({ puzzle, onSolved }: BoardProps<BalancePuzzle>) {
   const [focus, setFocus] = useState(() => givens.findIndex((g) => g === EMPTY));
   const [solved, setSolved] = useState(false);
   const [rippleFrom, setRippleFrom] = useState(0);
+  const [hint, setHint] = useState<BalanceHint | null>(null);
+  const [hintsUsed, setHintsUsed] = useState(0);
   const mistakes = useRef(0);
   const cellRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const reduced = useReducedMotion();
@@ -52,7 +55,8 @@ export function BalanceBoard({ puzzle, onSolved }: BoardProps<BalancePuzzle>) {
       setSolved(true);
       setRippleFrom(lastChanged.current);
       setShown({ lines: new Set(), links: new Set() });
-      onSolved({ extra: { label: "mistakes", value: mistakes.current } });
+      setHint(null);
+      onSolved({ extra: { label: "hints", value: hintsUsed } });
       return;
     }
     const id = setTimeout(() => {
@@ -63,17 +67,27 @@ export function BalanceBoard({ puzzle, onSolved }: BoardProps<BalancePuzzle>) {
       });
     }, VIOLATION_DELAY_MS);
     return () => clearTimeout(id);
-  }, [grid, links, onSolved, size]);
+  }, [grid, hintsUsed, links, onSolved, size]);
 
   const set = (cell: number, value: Cell) => {
     if (solved || givens[cell] !== EMPTY) return;
     lastChanged.current = cell;
+    // The hint stays up until the player acts on the cell it points at.
+    if (hint && hint.cell === cell) setHint(null);
     setGrid((g) => {
       const copy = g.slice() as Cell[];
       copy[cell] = value;
       return copy;
     });
     if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate?.(6);
+  };
+
+  const giveHint = () => {
+    const h = balanceHint(puzzle, grid);
+    if (!h) return;
+    setHint(h);
+    setHintsUsed((n) => n + 1);
+    moveFocus(h.cell);
   };
 
   const moveFocus = (cell: number) => {
@@ -137,8 +151,16 @@ export function BalanceBoard({ puzzle, onSolved }: BoardProps<BalancePuzzle>) {
                 transition={solved ? { duration: 0.42, ease: ease.spring, delay: distance(cell) * 0.035 } : { duration: dur.fast }}
                 className={`relative flex h-full w-full items-center justify-center rounded-cell transition-colors duration-[var(--dur-fast)] ${
                   given ? "cursor-default bg-slate/60" : "bg-graphite hover:bg-iron"
-                }`}
+                } ${hint?.related.includes(cell) ? "ring-1 ring-fog/60" : ""}`}
               >
+                {hint?.cell === cell && (
+                  <motion.span
+                    aria-hidden
+                    className={`pointer-events-none absolute inset-0 rounded-cell border-2 ${hint.kind === "wrong" ? "border-ember" : "border-paper"}`}
+                    animate={reduced ? { opacity: 1 } : { opacity: [1, 0.35, 1] }}
+                    transition={reduced ? { duration: 0 } : { duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                )}
                 <span className={`flex h-full w-full items-center justify-center ${given ? "opacity-100" : "opacity-90"}`}>
                   <Symbol value={value} />
                 </span>
@@ -178,6 +200,22 @@ export function BalanceBoard({ puzzle, onSolved }: BoardProps<BalancePuzzle>) {
             </span>
           );
         })}
+      </div>
+      <div className="mt-4 flex min-h-10 items-start justify-between gap-3">
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.p
+            key={hint ? `${hint.cell}-${hint.reason}` : "none"}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: dur.base, ease: ease.out }}
+            className={`pt-1 text-body ${hint?.kind === "wrong" ? "text-paper" : "text-fog"}`}
+            aria-live="polite"
+          >
+            {hint ? hint.reason : "\u00a0"}
+          </motion.p>
+        </AnimatePresence>
+        <HintButton onHint={giveHint} count={hintsUsed} disabled={solved} />
       </div>
       <p className="sr-only" aria-live="polite">
         {solved
