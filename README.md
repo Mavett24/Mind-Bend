@@ -2,6 +2,8 @@
 
 Logic puzzles, memory games and trivia in one app, with daily challenges, infinite practice and adaptive difficulty.
 
+**Live:** https://mind-bend.vercel.app
+
 Every board is generated from a seed and checked for a single solution, so you never play the same puzzle twice and you can share any board with a link.
 
 ## Games

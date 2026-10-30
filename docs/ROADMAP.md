@@ -5,7 +5,7 @@
 - [x] Next.js app with design tokens and fonts
 - [x] Seeded RNG, daily seeds, difficulty tiers, skill rating, local storage, with tests
 - [x] Home screen and the shared game frame
-- [ ] First deploy on Vercel
+- [x] First deploy on Vercel: https://mind-bend.vercel.app
 
 ## Phase 2 · Engine and first two games
 - [ ] Shared game flow: start card, play, result screen, share link, stats
