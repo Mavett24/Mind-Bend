@@ -1,18 +1,18 @@
 version: 2
 
+# At most one npm PR and one Actions PR a month, minor and patch updates only.
 updates:
   - package-ecosystem: npm
     directory: /
     schedule:
-      interval: weekly
-      day: monday
-    open-pull-requests-limit: 5
+      interval: monthly
+    open-pull-requests-limit: 1
     groups:
-      next-react:
-        patterns: ["next", "eslint-config-next", "react", "react-dom", "@types/react", "@types/react-dom"]
-      tooling:
-        dependency-type: development
-        update-types: ["minor", "patch"]
+      dependencies:
+        patterns: ["*"]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     commit-message:
       prefix: deps
 
@@ -20,5 +20,9 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    open-pull-requests-limit: 1
+    groups:
+      actions:
+        patterns: ["*"]
     commit-message:
       prefix: ci
