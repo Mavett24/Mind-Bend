@@ -22,6 +22,7 @@
   --color-ember: #da5c2c;
   --color-ember-hover: #e46a3a;
   --color-ember-wash: #2a1810; /* ember at ~15% over void, for cells the path has covered */
+  --color-entry: #9ec1ff; /* numbers the player types into a board (sudoku), next to paper givens */
 
   /* Type */
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;

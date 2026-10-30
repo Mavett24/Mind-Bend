@@ -181,3 +181,14 @@ A balance hint highlights a cell and names the rule that forces it. The player p
 **2026-10-30** · amends D-026
 Moves are up, down, left and right only. Each board has scattered empty tiles, and the length of every hidden word is shown as a row of boxes.
 **Why:** Mavett compared it with the real game. Orthogonal moves make the routes a real logic puzzle, and the length slots give a goal you can reason with ("I still need a 7").
+
+### D-035 · Recall's ready step only opens the game
+**2026-10-30** · amends the recall rework
+The ready screen ("3 colours, shown for 3 seconds") shows once, before round 1. Later rounds start as soon as the player taps "next round".
+**Why:** Mavett found the instructions repeating after every round. The how-to-play screen and the first ready step already explain the game; repeating it broke the flow.
+
+### D-036 · Sudoku joins the lineup with the same difficulty system
+**2026-10-30**
+Sudoku uses the same machinery as balance: a seeded generator, a human-style logic solver that gates every removal (so boards are unique and need no guessing), and a grade by technique. Easy is 6×6 like LinkedIn Mini Sudoku, the rest are 9×9. Hard and expert are defined by how many advanced deductions they require, not just by how few numbers are given.
+**Why:** given count alone is a weak measure of sudoku difficulty. A 26-given board can be trivial or brutal; the techniques it needs decide how it feels.
+**Gave up:** a strict "expert always needs triples or X-wing" rule. Only about 1 in 10 random boards needs them, which made generation slow (~0.5s+). Expert instead needs at least 3 advanced steps and allows triples and X-wing when they appear.

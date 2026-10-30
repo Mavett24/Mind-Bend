@@ -27,6 +27,9 @@
 - [x] weave matches Wend: no diagonals, empty tiles, length slots
 - [x] recall UI rework
 
+## Phase 4.6 · Sudoku
+- [x] sudoku: generator, logic solver, grading, hints, board UI
+
 ## Phase 5 · Score tracking and reuse
 - [ ] Proper history of every game played, progress over time, per-game and overall stats (next prompt)
 

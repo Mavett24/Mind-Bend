@@ -1,4 +1,4 @@
-export type GameId = "path" | "balance" | "blocks" | "weave" | "recall" | "trivia";
+export type GameId = "path" | "balance" | "blocks" | "sudoku" | "weave" | "recall" | "trivia";
 export type GameStatus = "live" | "building";
 
 export interface GameMeta {
@@ -34,6 +34,14 @@ export const GAMES: readonly GameMeta[] = [
     skill: "spatial",
     tagline: "Split the grid into rectangles that fit the clues.",
     rules: "Draw a rectangle around every clue. Match its size and shape.",
+    status: "live",
+  },
+  {
+    id: "sudoku",
+    name: "sudoku",
+    skill: "number logic",
+    tagline: "Every number once per row, column and box.",
+    rules: "Fill the grid so every row, column and box holds each number once.",
     status: "live",
   },
   {

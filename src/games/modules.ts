@@ -12,6 +12,8 @@ import { generateWeave, WEAVE_PAR_MS } from "./weave/engine";
 import { WeaveBoard } from "./weave/Board";
 import { generateTrivia, TRIVIA_PAR_MS } from "./trivia/engine";
 import { TriviaBoard } from "./trivia/Board";
+import { generateSudoku, SUDOKU_PAR_MS } from "./sudoku/engine";
+import { SudokuBoard } from "./sudoku/Board";
 
 /** Score lines come from each game's spec in docs/games/. */
 const path: GameModule<ReturnType<typeof generatePath>> = {
@@ -82,6 +84,17 @@ const trivia: GameModule<ReturnType<typeof generateTrivia>> = {
   },
 };
 
+const sudoku: GameModule<ReturnType<typeof generateSudoku>> = {
+  generate: generateSudoku,
+  parMs: SUDOKU_PAR_MS,
+  Board: SudokuBoard,
+  lines: {
+    high: ["Nine for nine.", "Every number knew its place.", "Clean grid, no guesswork."],
+    mid: ["Solid logic.", "Filled in, fair and square.", "The numbers fell into line."],
+    low: ["Slow, steady, solved.", "Every box checked. Eventually.", "Patience is a technique too."],
+  },
+};
+
 // Each module has its own puzzle type; the shared flow only passes puzzles back to the board that made them.
 export const MODULES: Partial<Record<GameId, GameModule<unknown>>> = {
   path: path as GameModule<unknown>,
@@ -90,4 +103,5 @@ export const MODULES: Partial<Record<GameId, GameModule<unknown>>> = {
   recall: recall as GameModule<unknown>,
   weave: weave as GameModule<unknown>,
   trivia: trivia as GameModule<unknown>,
+  sudoku: sudoku as GameModule<unknown>,
 };

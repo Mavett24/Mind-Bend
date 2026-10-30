@@ -17,9 +17,9 @@ Instruction copy: "Remember the colours and where they were. Then rebuild one." 
 
 ## Interaction
 
-Each round has four steps:
+The game opens with one ready step, then every round has three steps:
 
-1. **Ready.** The stage shows dashed outlines where the tiles will be, and a card says what's coming: "3 colours, shown for 3 seconds". Below: "Remember all 3 colours and where each one is. You'll rebuild one." The player starts the round with "show the colours", so nothing flashes by unexpectedly.
+1. **Ready (once, before round 1).** The stage shows dashed outlines where the tiles will be, and a card says what's coming: "3 colours, shown for 3 seconds". Below: "Remember all 3 colours and where each one is. You'll rebuild one." The player starts with "show the colours", so nothing flashes by unexpectedly. After that, "next round" goes straight to the colours (D-035).
 2. **Show.** Tiles fill with colour (rounded, gapped). A countdown sits in a dark pill in the corner so it reads on any colour.
 3. **Rebuild.** Other tiles go back to dashed outlines. The target tile has a white ring and a "rebuild this one" pill, and fills live with the player's colour. Three sliders: hue, vividness, brightness (plain names for OKLCH hue, chroma, lightness). Each track is a live gradient of what that slider would do. Then "lock in".
 4. **Reveal.** The target splits, yours on top and the original below, with labels in pills. Other tiles come back at half strength. The score shows as "8.25 /10" next to the colour difference and "(0 is perfect)", then the round line.

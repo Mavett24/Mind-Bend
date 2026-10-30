@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.0 · 2026-10-30 · Sudoku
+
+- **sudoku** is playable: 6×6 on easy, 9×9 above. Tap a cell then a number, notes mode, row/column/box and same-number shading, instant clash marks, keyboard play (D-036).
+- Generator gated by a logic solver (singles, pointing, claiming, pairs, triples, X-wing), graded by advanced steps per tier. 160 boards tested unique; hard and expert never solvable with singles alone.
+- Explained hints with the 5 second cooldown, tested to solve every board on their own.
+- How-to-play screen and tier lines for sudoku. New design token `--color-entry` for player-entered numbers.
+- Fix: recall's ready step now shows once per game instead of before every round (D-035).
+
 ## 0.5.0 · 2026-10-30 · Hints, how to play, Wend-style weave, clearer recall
 
 - **How to play** before every board: illustrated example, three steps, what the chosen difficulty means, controls, "skip next time" per game. "How to play" link on the start card (D-030).

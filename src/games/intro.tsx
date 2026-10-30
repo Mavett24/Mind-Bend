@@ -102,6 +102,37 @@ function BlocksExample() {
   );
 }
 
+function SudokuExample() {
+  // A solved 4×4 mini grid: every row, column and 2×2 box has 1 to 4 once.
+  const grid = [1, 2, 3, 4, 3, 4, 1, 2, 2, 1, 4, 3, 4, 3, 2, 1];
+  const givens = new Set([0, 3, 5, 6, 9, 10, 12, 15]);
+  return (
+    <svg viewBox="0 0 4.3 4.3" className="h-28 w-28" aria-hidden>
+      {grid.map((v, i) => {
+        const r = Math.floor(i / 4);
+        const c = i % 4;
+        const x = c + (c >= 2 ? 0.3 : 0);
+        const y = r + (r >= 2 ? 0.3 : 0);
+        return (
+          <g key={i}>
+            <rect x={x + 0.05} y={y + 0.05} width={0.9} height={0.9} rx={0.14} className={cellBg} />
+            <text
+              x={x + 0.5}
+              y={y + 0.52}
+              textAnchor="middle"
+              dominantBaseline="central"
+              fontSize={0.5}
+              className={`font-mono ${givens.has(i) ? "fill-paper font-bold" : "fill-entry"}`}
+            >
+              {v}
+            </text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
 function WeaveExample() {
   const letters = ["C", "A", "T", "■", "R", "S", "D", "O", "G"];
   const word = [0, 1, 2]; // CAT
@@ -226,6 +257,21 @@ export const INTRO: Record<GameId, GameIntro> = {
       expert: "8×8 grid, most shapes hidden",
     },
     Example: BlocksExample,
+  },
+  sudoku: {
+    steps: [
+      "Fill every empty cell with a number.",
+      "Each row, column and box holds every number exactly once.",
+      "Use notes to pencil in options. Numbers that clash get an orange underline.",
+    ],
+    controls: "Tap a cell, then a number. Tap the same number again to clear. Keys: arrows, numbers, N for notes, backspace.",
+    tiers: {
+      easy: "6×6 grid, numbers 1 to 6, simple steps only",
+      medium: "9×9 grid, about 30 numbers given, simple steps only",
+      hard: "9×9 grid, about 27 given, needs pairs and pointing",
+      expert: "9×9 grid, about 24 given, needs several advanced steps",
+    },
+    Example: SudokuExample,
   },
   weave: {
     steps: [

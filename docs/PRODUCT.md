@@ -41,22 +41,23 @@ Four tiers: Easy, Medium, Hard, Expert. Each game spec defines what a tier chang
 
 A per-game skill rating (Elo-style, starting at 1000) moves after every practice game based on result and time. The app suggests the tier that matches the rating. The user can always override it.
 
-## Game lineup (v1)
+## Game lineup
 
 | Game | Skill | Inspired by | Status |
 |------|-------|-------------|--------|
-| Path | Route planning | LinkedIn Zip | Planned |
-| Balance | Binary deduction | LinkedIn Tango | Planned |
-| Blocks | Spatial partitioning | LinkedIn Patches | Planned |
-| Weave | Word finding | LinkedIn Wend | Planned |
-| Recall | Sensory memory | Dialed | Planned |
-| Trivia | Knowledge | Lessgames | Planned |
+| Path | Route planning | LinkedIn Zip | Live |
+| Balance | Binary deduction | LinkedIn Tango | Live |
+| Blocks | Spatial partitioning | LinkedIn Patches | Live |
+| Sudoku | Number logic | LinkedIn Mini Sudoku, classic sudoku | Live |
+| Weave | Word finding | LinkedIn Wend | Live |
+| Recall | Sensory memory | Dialed | Live |
+| Trivia | Knowledge | Lessgames | Live |
 
 Names are working titles. Mechanics are inspired by these games; names, visuals and content are our own. Each game has a spec in `docs/games/`.
 
 ## Scope
 
-**In v1:** six games, daily + practice + challenge links, four tiers, local stats and skill rating, desktop and mobile web, sound and haptics on supported devices.
+**In v1:** seven games, daily + practice + challenge links, four tiers, local stats and skill rating, desktop and mobile web, sound and haptics on supported devices.
 
 **Not in v1:** accounts, global leaderboards, multiplayer, native apps, monetisation. Leaderboards can come later through a free backend tier if the app earns it.
 

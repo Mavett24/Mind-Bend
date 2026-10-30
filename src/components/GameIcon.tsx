@@ -30,6 +30,13 @@ const glyphs: Record<GameId, React.ReactNode> = {
       <rect x="11" y="11" width="6" height="6" fill="none" stroke="currentColor" strokeWidth="1.6" />
     </>
   ),
+  sudoku: (
+    <>
+      <rect x="3" y="3" width="14" height="14" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M8 3v14M12 3v14M3 8h14M3 12h14" stroke="currentColor" strokeWidth="1" opacity="0.6" />
+      <rect x="12.6" y="3.6" width="3.8" height="3.8" fill="currentColor" />
+    </>
+  ),
   trivia: (
     <>
       <path d="M6.5 7a3.5 3.5 0 1 1 5 3.2c-1 .5-1.5 1.1-1.5 2.3v.5" fill="none" stroke="currentColor" strokeWidth="1.6" />

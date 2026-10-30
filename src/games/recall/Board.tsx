@@ -10,7 +10,7 @@ import { oklchToHex, type Oklch } from "./color";
 import { finalScore, PICKER, ROUNDS, scoreGuess, type RecallPuzzle } from "./engine";
 
 /**
- * Each round: ready (what's coming) → show (memorise) → recall (rebuild) → reveal (compare).
+ * Game opens on a ready step (what's coming). Each round: show (memorise) → recall (rebuild) → reveal (compare).
  * Expert rebuilds two tiles per round: recall → reveal → recall → reveal.
  */
 type Phase = "ready" | "show" | "recall" | "reveal";
@@ -177,7 +177,8 @@ export function RecallBoard({ puzzle, onSolved }: BoardProps<RecallPuzzle>) {
       setRoundIndex(roundIndex + 1);
       setTargetIndex(0);
       setGuess(next.starts[0]);
-      setPhase("ready");
+      // The ready step only opens the game; later rounds start straight away.
+      setPhase("show");
     } else if (!finished.current) {
       finished.current = true;
       onSolved({ points: finalScore(points), extra: { label: "best colour", value: Math.max(...points) } });

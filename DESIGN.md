@@ -38,6 +38,7 @@ This is the single source of truth for every visual and motion decision. The bas
 |-------|-------|------|
 | `--color-ember` | `#da5c2c` | Primary action fill, progress, active state, the daily card tick |
 | `--color-ember-hover` | `#e46a3a` | Primary action hover |
+| `--color-entry` | `#9ec1ff` | Numbers the player enters on a board (sudoku), so they read apart from bold paper givens. 9.6:1 on graphite |
 | `--color-ember-wash` | `#2a1810` | Ember at about 15% over void. Fill for board cells covered by the player (path) |
 
 Ember rules: primary buttons, progress bars, the active tier in the difficulty picker, the path line in Path, the small tick beside the daily card label, the wordmark cursor. Never on body text, never as a large background outside a board.

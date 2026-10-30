@@ -13,6 +13,7 @@ Every board is generated from a seed and checked for a single solution, so you n
 | path | Route planning | live |
 | balance | Binary deduction | live |
 | blocks | Spatial partitioning | live |
+| sudoku | Number logic | live |
 | weave | Word finding | live |
 | recall | Visual working memory | live |
 | trivia | Knowledge and estimation | live |

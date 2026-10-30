@@ -16,7 +16,7 @@ export default function Home() {
             <span className="text-ash">Never the same board twice.</span>
           </h1>
           <p className="max-w-xl text-fog">
-            Six games for logic, memory and knowledge. Every board is generated and checked for a single solution. A
+            Seven games for logic, memory and knowledge. Every board is generated and checked for a single solution. A
             daily set for everyone, infinite practice for you, and difficulty that follows your skill.
           </p>
         </section>
