@@ -18,6 +18,10 @@ Every board is generated from a seed and checked for a single solution, so you n
 | recall | Visual working memory | live |
 | trivia | Knowledge and estimation | live |
 
+## Scores
+
+Every game you play is saved in your browser as one record. Ratings (one per game, Elo-style), bests, streaks and suggestions are calculated from that history, so the site knows you on every visit without an account. `/stats` shows it all, and a transfer code moves it to another device. See D-039 in the decision log.
+
 ## Docs
 
 | File | What it holds |
@@ -37,7 +41,8 @@ Next.js · TypeScript · Tailwind CSS v4 · Motion · Vitest · Vercel
 src/
   app/          routes and layout
   components/   shared UI (game card, buttons, pickers)
-  engine/       pure TypeScript: seeded RNG, seeds, difficulty, rating, storage
+  engine/       pure TypeScript: seeded RNG, seeds, difficulty, rating, history, storage
+  lib/          client hooks: history store, profile, motion tokens
   games/        one folder per game: generator, solver, board UI
 ```
 

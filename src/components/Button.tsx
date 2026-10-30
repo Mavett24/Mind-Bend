@@ -3,12 +3,12 @@
 import { motion, type HTMLMotionProps } from "motion/react";
 import { dur, ease } from "@/lib/motion";
 
-type Variant = "primary" | "ghost";
+type Variant = "primary" | "ghost" | "ember";
 
 const styles: Record<Variant, string> = {
-  primary:
-    "bg-ember text-void font-bold shadow-[var(--shadow-subtle)] hover:bg-ember-hover disabled:bg-slate disabled:text-ash",
-  ghost: "border border-slate text-paper hover:border-fog disabled:text-steel disabled:border-iron",
+  primary: "bg-paper text-void font-medium hover:bg-white disabled:bg-slate disabled:text-ash",
+  ember: "bg-ember text-void font-medium hover:bg-ember-hover disabled:bg-slate disabled:text-ash",
+  ghost: "bg-white/[0.06] text-paper shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)] hover:bg-white/[0.1] disabled:text-steel",
 };
 
 interface ButtonProps extends HTMLMotionProps<"button"> {

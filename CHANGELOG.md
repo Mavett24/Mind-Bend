@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7.0 · 2026-10-30 · Dialed redesign, score history, stats
+
+- **Redesign** after Dialed: raised gradient cards with layered shadows, a bright hue and squircle icon tile per game, card art with tilted mini boards that lift on hover, white primary pills, a bento game grid (D-037, D-038).
+- **Score history:** every game is saved in the browser with its tier, mode, seed, time or points and hints. Ratings, bests, streaks and solve rates are derived from it. v0.6 totals are migrated once. Tabs stay in sync (D-039).
+- **Stats page** (`/stats`): totals, training-days calendar, skill bars, per-game rating chart with tier thresholds and hover, bests per tier, recent games with rating change.
+- **Transfer code** to move history to another device, merged without duplicates. Reset with a two-step confirm.
+- **Scores with a purpose:** start card opens on your suggested tier with progress to the next; result screen shows rank, change vs your average, rating bar animating to the next tier and level-ups that move your next board up; home "next up" suggestion; greeting with your streak (D-040).
+- Hints now cost rating (15% each, floor 40%). Leaving a started board counts as a quit (D-041).
+- "next daily game" jumps to the first daily board you haven't finished.
+
 ## 0.6.0 · 2026-10-30 · Sudoku
 
 - **sudoku** is playable: 6×6 on easy, 9×9 above. Tap a cell then a number, notes mode, row/column/box and same-number shading, instant clash marks, keyboard play (D-036).

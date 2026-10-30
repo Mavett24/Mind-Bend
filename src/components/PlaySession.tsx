@@ -3,14 +3,24 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import type { GameMeta } from "@/games/registry";
+import { GAMES, type GameMeta } from "@/games/registry";
 import type { GameModule, SolveDetail } from "@/games/types";
-import { boardSeed, challengeQuery, utcDateKey, type BoardKey, type Mode } from "@/engine/seed";
+import type { Tier } from "@/engine/difficulty";
+import { boardSeed, challengeQuery, type BoardKey, type Mode } from "@/engine/seed";
 import { createRng } from "@/engine/rng";
-import { applyResult, dailyStreak, loadStats, saveStats, type ResultSummary } from "@/engine/stats";
+import { outcomeScore } from "@/engine/rating";
+import { pointsBand, pointsOutcome, timeBand, type Band } from "@/engine/stats";
+import { dayKey, gameSummary, insightFor, overall, ratingOutcome, tierProgress, type GameRecord, type GameSummary, type ResultInsight } from "@/engine/history";
+import { addRecord, newRecordId } from "@/lib/history";
+import { scoringOf } from "@/lib/profile";
 import { dur, ease } from "@/lib/motion";
 import { Button } from "./Button";
+import { GameIcon, hue } from "./GameIcon";
+import { TierBar } from "./charts";
 import { CountUpPoints, CountUpTime, GameClock, PointsDisplay, TimeDisplay } from "./TimeDisplay";
+
+/** Leaving a board after this long counts as a quit in your history (it never changes your rating). */
+const QUIT_AFTER_MS = 5000;
 
 interface PlaySessionProps<P> {
   game: GameMeta;
@@ -20,20 +30,28 @@ interface PlaySessionProps<P> {
   /** Link for the primary action after a daily board, e.g. the next game in the daily set. */
   nextDailyHref: string | null;
   onExit: () => void;
-  onNext: () => void;
+  /** Next practice board, optionally at a new tier after a level up. */
+  onNext: (tier?: Tier) => void;
 }
 
 interface Finished {
-  timeMs: number;
+  record: GameRecord;
   detail: SolveDetail;
-  summary: ResultSummary;
+  insight: ResultInsight;
+  summary: GameSummary;
+  band: Band;
   streak: number;
+  dailyDone: number;
+  /** The first daily game still open today, if any. */
+  nextDaily: string | null;
 }
 
 export function PlaySession<P>({ game, module, board, mode, nextDailyHref, onExit, onNext }: PlaySessionProps<P>) {
   const [puzzle, setPuzzle] = useState<P | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [startedAt, setStartedAt] = useState(() => performance.now());
+  const readyAt = useRef<number | null>(null);
+  const recorded = useRef(false);
 
   // Boards may load content first; the clock starts when the board is ready.
   useEffect(() => {
@@ -43,17 +61,31 @@ export function PlaySession<P>({ game, module, board, mode, nextDailyHref, onExi
       .then((p) => {
         if (!live) return;
         setPuzzle(p);
-        setStartedAt(performance.now());
+        const now = performance.now();
+        readyAt.current = now;
+        setStartedAt(now);
       })
       .catch(() => live && setLoadError(true));
     return () => {
       live = false;
     };
   }, [module, board]);
+
+  // Walking away from a started board is recorded as a quit, so completion rate is honest.
+  useEffect(() => {
+    return () => {
+      const at = readyAt.current;
+      if (recorded.current || at === null) return;
+      const timeMs = performance.now() - at;
+      if (timeMs < QUIT_AFTER_MS) return;
+      recorded.current = true;
+      addRecord({ id: newRecordId(), at: Date.now(), gameId: game.id, tier: board.tier, mode, seed: board.seed, timeMs, solved: false, quit: true });
+    };
+  }, [game.id, board.tier, board.seed, mode]);
+
   const [stoppedAt, setStoppedAt] = useState<number | null>(null);
   const [finished, setFinished] = useState<Finished | null>(null);
   const [showResult, setShowResult] = useState(false);
-  const recorded = useRef(false);
 
   const handleSolved = useCallback(
     (detail: SolveDetail) => {
@@ -61,27 +93,43 @@ export function PlaySession<P>({ game, module, board, mode, nextDailyHref, onExi
       recorded.current = true;
       const end = performance.now();
       const timeMs = end - startedAt;
-      const today = new Date();
-      const prev = loadStats(game.id);
-      const summary = applyResult(
-        prev,
-        {
-          tier: board.tier,
-          mode,
-          timeMs,
-          solved: true,
-          points: module.scoring === "points" ? (detail.points ?? 0) : undefined,
-          dateKey: mode === "daily" ? utcDateKey(today) : undefined,
-        },
-        module.parMs[board.tier],
-      );
-      saveStats(game.id, summary.stats);
+      const scored = module.scoring === "points";
+      const points = scored ? (detail.points ?? 0) : undefined;
+      const hints = detail.extra?.label === "hints" ? detail.extra.value : 0;
+      const parMs = module.parMs[board.tier];
+      const base = scored ? pointsOutcome(points!) : outcomeScore(true, timeMs, parMs);
+      const record: GameRecord = {
+        id: newRecordId(),
+        at: Date.now(),
+        gameId: game.id,
+        tier: board.tier,
+        mode,
+        seed: board.seed,
+        timeMs,
+        solved: true,
+        points,
+        hints: hints || undefined,
+        // Daily boards are shared by everyone and don't move your rating.
+        outcome: mode === "daily" ? undefined : ratingOutcome(base, hints),
+      };
+      const data = addRecord(record);
+      const scoring = scoringOf(game.id);
+      const today = dayKey(record.at);
       setStoppedAt(end);
-      setFinished({ timeMs, detail, summary, streak: dailyStreak(summary.stats.dailyDone, utcDateKey(today)) });
+      setFinished({
+        record,
+        detail,
+        insight: insightFor(data, record, scoring),
+        summary: gameSummary(data, game.id, scoring),
+        band: scored ? pointsBand(points!) : timeBand(timeMs, parMs),
+        streak: overall(data, record.at).streak,
+        dailyDone: GAMES.filter((g) => gameSummary(data, g.id, scoringOf(g.id)).dailyDone.has(today)).length,
+        nextDaily: GAMES.find((g) => !gameSummary(data, g.id, scoringOf(g.id)).dailyDone.has(today))?.id ?? null,
+      });
       // Let the solve ripple play before the result takes the stage. Scored games have no ripple.
-      setTimeout(() => setShowResult(true), module.scoring === "points" ? 150 : 950);
+      setTimeout(() => setShowResult(true), scored ? 150 : 950);
     },
-    [board.tier, game.id, mode, module.parMs, module.scoring, startedAt],
+    [board.tier, board.seed, game.id, mode, module.parMs, module.scoring, startedAt],
   );
 
   const Board = module.Board;
@@ -101,7 +149,7 @@ export function PlaySession<P>({ game, module, board, mode, nextDailyHref, onExi
         >
           <div className="flex items-center justify-between">
             <div className="flex flex-col">
-              <span className="text-caption uppercase tracking-wide text-steel">
+              <span className="text-caption uppercase tracking-wide text-ash">
                 {board.tier} · {mode}
               </span>
               <span className="text-caption text-steel">seed {board.seed}</span>
@@ -128,25 +176,32 @@ export function PlaySession<P>({ game, module, board, mode, nextDailyHref, onExi
   );
 }
 
-function Result<P>({
-  game,
-  module,
-  board,
-  mode,
-  finished,
-  nextDailyHref,
-  onExit,
-  onNext,
-}: Omit<PlaySessionProps<P>, never> & { finished: Finished }) {
-  const { summary, timeMs, detail, streak } = finished;
-  const line = useMemo(
-    () => createRng(`${boardSeed(board)}:line`).pick(module.lines[summary.band]),
-    [board, module.lines, summary.band],
-  );
+const ordinal = (n: number) => {
+  const s = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return `${n}${s[(v - 20) % 10] || s[v] || s[0]}`;
+};
+
+function Result<P>({ game, module, board, mode, finished, nextDailyHref, onExit, onNext }: PlaySessionProps<P> & { finished: Finished }) {
+  const { record, detail, insight, summary, band, streak, dailyDone, nextDaily } = finished;
+  const dailyHref = nextDaily ? `/play/${nextDaily}?m=daily` : nextDailyHref;
+  const line = useMemo(() => createRng(`${boardSeed(board)}:line`).pick(module.lines[band]), [board, module.lines, band]);
   const scored = module.scoring === "points";
-  const bestMs = summary.stats.bestMs[board.tier];
-  const bestPoints = summary.stats.bestPoints[board.tier];
+  const best = summary.best[board.tier];
   const [copied, setCopied] = useState(false);
+  const before = tierProgress(insight.ratingBefore);
+  const after = tierProgress(insight.ratingAfter);
+  const delta = insight.ratingAfter - insight.ratingBefore;
+  const color = hue(game.id);
+
+  const chips: string[] = [];
+  if (insight.newBest) chips.push("new best");
+  if (insight.of > 1) chips.push(insight.rank === 1 && !insight.newBest ? `ties your best of ${insight.of}` : `${ordinal(insight.rank)} of ${insight.of} at ${board.tier}`);
+  if (insight.vsRecent !== null && Math.abs(insight.vsRecent) >= 0.03) {
+    const pct = Math.round(Math.abs(insight.vsRecent) * 100);
+    chips.push(scored ? `${pct}% ${insight.vsRecent > 0 ? "above" : "below"} your average` : `${pct}% ${insight.vsRecent > 0 ? "faster" : "slower"} than your average`);
+  }
+  if (insight.of === 1) chips.push(`first ${board.tier} solve`);
 
   async function share() {
     const url = `${window.location.origin}/play/${board.gameId}?${challengeQuery(board)}`;
@@ -164,58 +219,97 @@ function Result<P>({
       initial={{ opacity: 0, scale: 0.97 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: dur.slow, ease: ease.springStrong }}
-      className="flex flex-1 flex-col gap-6 p-6"
+      className="flex flex-1 flex-col gap-5 p-6"
     >
-      <p className="text-caption uppercase tracking-wide text-steel">
-        {game.name} · {board.tier} · {scored ? "score" : "solved"}
+      <p className="flex items-center gap-2 text-caption uppercase tracking-wide text-ash">
+        <GameIcon id={game.id} size={22} />
+        {game.name} · {board.tier} · {mode}
       </p>
 
       <div className="flex flex-col gap-3">
         {scored ? (
           <CountUpPoints points={detail.points ?? 0} className="text-number-lg font-bold" />
         ) : (
-          <CountUpTime ms={timeMs} className="text-number-lg font-bold" />
+          <CountUpTime ms={record.timeMs} className="text-number-lg font-bold" />
         )}
         <motion.p
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: dur.base, ease: ease.out, delay: dur.count + 0.2 }}
+          transition={{ duration: dur.base, ease: ease.out, delay: dur.count + 0.1 }}
           className="text-heading-sm text-fog"
         >
           {line}
         </motion.p>
+        {chips.length > 0 && (
+          <ul className="flex flex-wrap gap-1.5">
+            {chips.map((c, i) => (
+              <motion.li
+                key={c}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: dur.base, ease: ease.spring, delay: dur.count + 0.25 + i * 0.08 }}
+                className={`rounded-full px-2.5 py-1 font-mono text-caption ${c === "new best" ? "bg-paper font-medium text-void" : "bg-white/[0.06] text-chalk"}`}
+              >
+                {c}
+              </motion.li>
+            ))}
+          </ul>
+        )}
       </div>
 
-      <dl className="grid grid-cols-3 gap-4 border-y border-iron py-4">
+      {mode === "daily" ? (
+        <div className="well flex flex-col gap-3 rounded-[18px] p-4">
+          <div className="flex items-baseline justify-between">
+            <span className="text-caption uppercase text-ash">daily set</span>
+            <span className="font-mono text-caption text-ash">{streak}d streak</span>
+          </div>
+          <span className="font-mono text-heading-lg">
+            {dailyDone}
+            <span className="text-steel">/{GAMES.length} today</span>
+          </span>
+          <TierBar progress={dailyDone / GAMES.length} from={(dailyDone - 1) / GAMES.length} delay={0.4} />
+          <span className="text-caption text-steel">Daily boards count for streaks and bests, not your rating.</span>
+        </div>
+      ) : (
+        <div className="well flex flex-col gap-3 rounded-[18px] p-4">
+          <div className="flex items-baseline justify-between">
+            <span className="text-caption uppercase text-ash">rating</span>
+            <span className="font-mono text-heading-lg">
+              {insight.ratingAfter}{" "}
+              <span className={delta >= 0 ? "text-paper" : "text-ash"} style={delta > 0 ? { color } : undefined}>
+                {delta >= 0 ? "+" : ""}
+                {delta}
+              </span>
+            </span>
+          </div>
+          <TierBar
+            progress={after.next ? after.progress : 1}
+            from={after.current === before.current ? before.progress : 0}
+            color={color}
+            delay={0.4}
+          />
+          <span className="font-mono text-caption text-ash">
+            {insight.promoted
+              ? `Level up: ${after.current} is now your suggested tier.`
+              : after.next
+                ? `${after.nextAt! - insight.ratingAfter} to ${after.next}`
+                : "top tier. keep it there."}
+            {record.hints ? ` · ${record.hints} ${record.hints === 1 ? "hint" : "hints"} cost some rating` : ""}
+          </span>
+        </div>
+      )}
+
+      <dl className="grid grid-cols-3 gap-4">
         <div className="flex flex-col gap-1">
-          <dt className="text-caption uppercase text-steel">{summary.newBest ? "new best" : "best"}</dt>
+          <dt className="text-caption uppercase text-steel">best</dt>
           <dd className="text-heading-sm">
-            {scored ? (
-              bestPoints !== undefined ? <PointsDisplay points={bestPoints} /> : "--"
-            ) : bestMs ? (
-              <TimeDisplay ms={bestMs} />
-            ) : (
-              "--"
-            )}
+            {best === undefined ? "--" : scored ? <PointsDisplay points={best} /> : <TimeDisplay ms={best} />}
           </dd>
         </div>
-        {mode === "daily" ? (
-          <div className="flex flex-col gap-1">
-            <dt className="text-caption uppercase text-steel">streak</dt>
-            <dd className="font-mono text-heading-sm">{streak}</dd>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-1">
-            <dt className="text-caption uppercase text-steel">rating</dt>
-            <dd className="font-mono text-heading-sm">
-              {summary.stats.rating}{" "}
-              <span className="text-ash">
-                {summary.ratingDelta >= 0 ? "+" : ""}
-                {summary.ratingDelta}
-              </span>
-            </dd>
-          </div>
-        )}
+        <div className="flex flex-col gap-1">
+          <dt className="text-caption uppercase text-steel">played</dt>
+          <dd className="font-mono text-heading-sm">{summary.played}</dd>
+        </div>
         {detail.extra && (
           <div className="flex flex-col gap-1">
             <dt className="text-caption uppercase text-steel">{detail.extra.label}</dt>
@@ -225,10 +319,10 @@ function Result<P>({
       </dl>
 
       <div className="mt-auto flex flex-col gap-3">
-        {mode === "daily" && nextDailyHref ? (
+        {mode === "daily" && nextDaily && dailyHref ? (
           <Link
-            href={nextDailyHref}
-            className="group inline-flex h-12 items-center justify-center gap-2 rounded-full bg-ember px-6 font-mono text-[15px] font-bold text-void transition-colors duration-[var(--dur-fast)] hover:bg-ember-hover"
+            href={dailyHref}
+            className="group inline-flex h-12 items-center justify-center gap-2 rounded-full bg-paper px-6 font-mono text-[15px] font-medium text-void transition-colors duration-[var(--dur-fast)] hover:bg-white"
           >
             next daily game
             <span aria-hidden className="transition-transform duration-[var(--dur-base)] ease-[var(--ease-spring)] group-hover:translate-x-1">
@@ -236,8 +330,8 @@ function Result<P>({
             </span>
           </Link>
         ) : (
-          <Button onClick={onNext} className="w-full">
-            {mode === "daily" ? "practice this game" : "next board"}
+          <Button onClick={() => onNext(insight.promoted ? after.current : undefined)} className="w-full">
+            {mode === "daily" ? "practice this game" : insight.promoted ? `next board · ${after.current}` : "next board"}
           </Button>
         )}
         <div className="grid grid-cols-2 gap-3">

@@ -8,7 +8,8 @@ import { GAMES, type GameMeta } from "@/games/registry";
 import { MODULES } from "@/games/modules";
 import { isTier, suggestTier, TIERS, TIER_LABEL, type Tier } from "@/engine/difficulty";
 import { boardSeed, dailyBoard, isValidSeed, randomSeed, type BoardKey, type Mode } from "@/engine/seed";
-import { dailyStreak, emptyStats, loadStats, type GameStats } from "@/engine/stats";
+import { tierProgress } from "@/engine/history";
+import { useProfile } from "@/lib/profile";
 import { useToday } from "@/lib/useToday";
 import { dur, ease } from "@/lib/motion";
 import { Button } from "./Button";
@@ -16,7 +17,9 @@ import { GameIntroScreen, introSkipped } from "./GameIntro";
 import { INTRO } from "@/games/intro";
 import { PlaySession } from "./PlaySession";
 import { PointsDisplay, TimeDisplay } from "./TimeDisplay";
-import { GameIcon } from "./GameIcon";
+import { GameIcon, hue } from "./GameIcon";
+import { MiniBoard } from "./GameArt";
+import { Sparkline, TierBar } from "./charts";
 import { Segmented } from "./Segmented";
 import { TitleReveal } from "./TitleReveal";
 
@@ -31,23 +34,28 @@ export function GameStart({ game }: { game: GameMeta }) {
   }, [params]);
 
   const [mode, setMode] = useState<Mode>(challenge ? "challenge" : params.get("m") === "daily" ? "daily" : "practice");
-  const [stats, setStats] = useState<GameStats>(emptyStats);
-  const suggested = suggestTier(stats.rating);
+  const profile = useProfile();
+  const summary = profile?.games[game.id] ?? null;
+  const rating = summary?.rating ?? 1000;
+  const suggested = suggestTier(rating);
+  const progress = tierProgress(rating);
   const [tier, setTier] = useState<Tier>(challenge?.tier ?? "medium");
   const [board, setBoard] = useState<BoardKey | null>(null);
   /** Board waiting behind the how-to-play screen. */
   const [pending, setPending] = useState<BoardKey | null>(null);
 
+  // Once history is read, open on the tier your rating suggests (a challenge link keeps its own tier).
+  const ready = profile !== null;
   useEffect(() => {
-    const loaded = loadStats(game.id);
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- stats live in localStorage, read after mount
-    setStats(loaded);
-    if (!challenge) setTier(suggestTier(loaded.rating));
-  }, [game.id, challenge]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- history lives in localStorage, read after mount
+    if (ready && !challenge) setTier(suggested);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only when history first becomes available
+  }, [ready, challenge]);
 
   const daily = today ? dailyBoard(game.id, today) : null;
   const effectiveTier = mode === "daily" ? (daily?.tier ?? tier) : mode === "challenge" ? challenge!.tier : tier;
-  const streak = today ? dailyStreak(stats.dailyDone, today.toISOString().slice(0, 10)) : 0;
+  const best = summary?.best[effectiveTier];
+  const solveRate = summary && summary.played > 0 ? Math.round((summary.solved / summary.played) * 100) : null;
 
   const gameModule = MODULES[game.id];
   const nextDaily = GAMES.slice(GAMES.findIndex((g) => g.id === game.id) + 1).find((g) => MODULES[g.id]);
@@ -55,11 +63,10 @@ export function GameStart({ game }: { game: GameMeta }) {
 
   function backToMenu() {
     setBoard(null);
-    setStats(loadStats(game.id));
   }
 
-  function nextBoard() {
-    const nextTier = board?.tier ?? tier;
+  function nextBoard(promotedTo?: Tier) {
+    const nextTier = promotedTo ?? board?.tier ?? tier;
     setMode("practice");
     setTier(nextTier);
     setBoard({ gameId: game.id, tier: nextTier, seed: randomSeed() });
@@ -85,11 +92,11 @@ export function GameStart({ game }: { game: GameMeta }) {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: dur.slow, ease: ease.out }}
-        className="flex min-h-[min(586px,calc(100dvh-104px))] w-full max-w-[440px] flex-col rounded-card border border-iron bg-carbon"
+        className="surface flex min-h-[min(586px,calc(100dvh-104px))] w-full max-w-[440px] flex-col overflow-hidden rounded-card"
       >
-        <header className="flex h-12 shrink-0 items-center justify-between border-b border-iron px-4 text-caption text-steel">
+        <header className="flex h-12 shrink-0 items-center justify-between border-b border-white/[0.06] px-4 text-caption text-steel">
           <span>~/play/{game.id}</span>
-          <Link href="/" aria-label="Close" className="flex h-8 w-8 items-center justify-center rounded-full text-fog transition-colors duration-[var(--dur-fast)] hover:bg-iron hover:text-paper">
+          <Link href="/" aria-label="Close" className="flex h-8 w-8 items-center justify-center rounded-full text-fog transition-colors duration-[var(--dur-fast)] hover:bg-white/[0.08] hover:text-paper">
             ×
           </Link>
         </header>
@@ -127,36 +134,50 @@ export function GameStart({ game }: { game: GameMeta }) {
               transition={{ duration: dur.base, ease: ease.out }}
               className="flex flex-1 flex-col gap-6 p-6"
             >
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-3">
-                  <GameIcon id={game.id} />
-                  <span className="text-caption uppercase tracking-wide text-steel">{game.skill}</span>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-3">
+                    <GameIcon id={game.id} size={44} />
+                    <span className="text-caption uppercase tracking-wide text-ash">{game.skill}</span>
+                  </div>
+                  <h1 className="text-display font-medium tracking-[-0.04em]">
+                    <TitleReveal text={game.name} />
+                  </h1>
+                  <p className="text-fog">{game.rules}</p>
                 </div>
-                <h1 className="text-display font-bold">
-                  <TitleReveal text={game.name} />
-                </h1>
-                <p className="text-heading-sm text-fog">{game.rules}</p>
+                <motion.div
+                  initial={{ opacity: 0, rotate: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, rotate: 6, scale: 1 }}
+                  transition={{ duration: dur.slow, ease: ease.spring, delay: 0.1 }}
+                  className="hidden shrink-0 rounded-[16px] bg-[#151515] p-2 shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_10px_24px_rgba(0,0,0,0.5)] min-[380px]:block"
+                >
+                  <MiniBoard id={game.id} size={72} />
+                </motion.div>
               </div>
 
-              <dl className="grid grid-cols-3 gap-4 border-y border-iron py-4">
-                <Stat label="rating" value={String(stats.rating)} />
+              <div className="well flex flex-col gap-3 rounded-[18px] p-4">
+                <div className="flex items-end justify-between gap-3">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-caption uppercase text-ash">rating</span>
+                    <span className="font-mono text-heading-lg">{summary ? rating : "--"}</span>
+                  </div>
+                  {summary && summary.ratingSeries.length > 1 && (
+                    <Sparkline points={summary.ratingSeries.slice(-20).map((p) => p.rating)} color={hue(game.id)} width={112} height={30} />
+                  )}
+                </div>
+                <TierBar progress={progress.progress} color={hue(game.id)} />
+                <span className="font-mono text-caption text-ash">
+                  {progress.next ? `${suggested} now · ${progress.nextAt! - rating} to ${progress.next}` : "expert. the top tier."}
+                </span>
+              </div>
+
+              <dl className="grid grid-cols-3 gap-4">
                 <Stat
-                  label="best"
-                  value={
-                    gameModule?.scoring === "points" ? (
-                      stats.bestPoints[effectiveTier] !== undefined ? (
-                        <PointsDisplay points={stats.bestPoints[effectiveTier]!} />
-                      ) : (
-                        "--"
-                      )
-                    ) : stats.bestMs[effectiveTier] ? (
-                      <TimeDisplay ms={stats.bestMs[effectiveTier]!} />
-                    ) : (
-                      "--"
-                    )
-                  }
+                  label={`best · ${effectiveTier}`}
+                  value={best === undefined ? "--" : gameModule?.scoring === "points" ? <PointsDisplay points={best} /> : <TimeDisplay ms={best} />}
                 />
-                <Stat label="streak" value={String(streak)} />
+                <Stat label="played" value={summary ? String(summary.played) : "--"} />
+                <Stat label="solved" value={solveRate === null ? "--" : `${solveRate}%`} />
               </dl>
 
               <div className="mt-auto flex flex-col gap-3">
@@ -178,7 +199,7 @@ export function GameStart({ game }: { game: GameMeta }) {
                   </p>
                 </div>
                 <Button onClick={() => start()} className="w-full" disabled={mode === "daily" && !daily}>
-                  play
+                  play {game.name}
                 </Button>
                 <button
                   type="button"
@@ -200,7 +221,7 @@ function Stat({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1">
       <dt className="truncate text-caption uppercase text-steel">{label}</dt>
-      <dd className="font-mono text-heading-lg">{value}</dd>
+      <dd className="font-mono text-heading-sm">{value}</dd>
     </div>
   );
 }

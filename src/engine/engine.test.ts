@@ -3,7 +3,7 @@ import { createRng, hashString } from "./rng";
 import { boardSeed, dailyBoard, isValidSeed, randomSeed, utcDateKey, utcIsoWeekday } from "./seed";
 import { dailyTier, suggestTier, TIERS } from "./difficulty";
 import { outcomeScore, START_RATING, updateRating } from "./rating";
-import { applyResult, dailyStreak, emptyStats, pointsBand, timeBand } from "./stats";
+import { pointsBand, pointsOutcome, timeBand } from "./stats";
 
 describe("rng", () => {
   it("is deterministic for the same seed", () => {
@@ -121,42 +121,7 @@ describe("rating", () => {
   });
 });
 
-describe("daily streak", () => {
-  it("counts consecutive days and survives until today is played", () => {
-    const done = ["2026-10-27", "2026-10-28", "2026-10-29"];
-    expect(dailyStreak(done, "2026-10-29")).toBe(3);
-    expect(dailyStreak(done, "2026-10-30")).toBe(3);
-    expect(dailyStreak(done, "2026-10-31")).toBe(0);
-    expect(dailyStreak([...done, "2026-10-30"], "2026-10-30")).toBe(4);
-  });
-});
-
-describe("recording results", () => {
-  it("updates rating and bests for practice", () => {
-    const first = applyResult(emptyStats(), { tier: "medium", mode: "practice", timeMs: 50_000, solved: true }, 60_000);
-    expect(first.stats.played).toBe(1);
-    expect(first.stats.bestMs.medium).toBe(50_000);
-    expect(first.newBest).toBe(false); // the first time is a baseline, not a "new best"
-    expect(first.ratingDelta).toBeGreaterThan(0);
-    expect(first.band).toBe("high");
-
-    const second = applyResult(first.stats, { tier: "medium", mode: "practice", timeMs: 40_000, solved: true }, 60_000);
-    expect(second.newBest).toBe(true);
-    expect(second.stats.bestMs.medium).toBe(40_000);
-  });
-
-  it("counts daily boards for the streak but not the rating", () => {
-    const r = applyResult(
-      emptyStats(),
-      { tier: "hard", mode: "daily", timeMs: 90_000, solved: true, dateKey: "2026-10-30" },
-      120_000,
-    );
-    expect(r.ratingDelta).toBe(0);
-    expect(r.stats.dailyDone).toEqual(["2026-10-30"]);
-    const again = applyResult(r.stats, { tier: "hard", mode: "daily", timeMs: 80_000, solved: true, dateKey: "2026-10-30" }, 120_000);
-    expect(again.stats.dailyDone).toEqual(["2026-10-30"]);
-  });
-
+describe("scoring bands", () => {
   it("bands times against par and points against fixed thresholds", () => {
     expect(timeBand(60_000, 60_000)).toBe("high");
     expect(timeBand(100_000, 60_000)).toBe("mid");
@@ -166,14 +131,9 @@ describe("recording results", () => {
     expect(pointsBand(3.9)).toBe("low");
   });
 
-  it("uses points instead of time for scored games", () => {
-    const a = applyResult(emptyStats(), { tier: "hard", mode: "practice", timeMs: 999_999, solved: true, points: 9 }, 1);
-    expect(a.stats.bestPoints.hard).toBe(9);
-    expect(a.stats.bestMs.hard).toBeUndefined();
-    expect(a.ratingDelta).toBeGreaterThan(0);
-    const b = applyResult(a.stats, { tier: "hard", mode: "practice", timeMs: 1, solved: true, points: 2 }, 1);
-    expect(b.newBest).toBe(false);
-    expect(b.ratingDelta).toBeLessThan(0);
-    expect(b.stats.bestPoints.hard).toBe(9);
+  it("maps points to a rating outcome", () => {
+    expect(pointsOutcome(4)).toBe(0);
+    expect(pointsOutcome(6.5)).toBeCloseTo(0.5);
+    expect(pointsOutcome(9.5)).toBe(1);
   });
 });

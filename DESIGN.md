@@ -1,16 +1,16 @@
 # Mind Bend: Design System
 
-> A terminal at midnight that plays like a toy. Flat black, soft cards, mono headlines, one orange accent, and motion with weight.
+> A terminal at midnight that plays like a toy. Black page, raised cards that catch the light, mono headlines, a bright colour per game, and motion with weight.
 
 This is the single source of truth for every visual and motion decision. The base comes from the Axiom style reference (`docs/reference/axiom-style-reference.md`). The motion language is studied from Dialed. Where the two disagree, or where a game needs something the reference never covered, the call is made here and logged in `docs/DECISIONS.md`.
 
 ## 1. Principles
 
 1. **The card is the stage.** Every game lives inside one card with fixed proportions. The page around it stays quiet.
-2. **Flat, layered darkness.** Elevation comes from stepping neutrals (`#000` → `#111` → `#191919` → `#202020`), never from shadows or gradients.
+2. **Cards float, the page stays black.** Cards are raised surfaces (a soft top-to-bottom gradient, a 1px light ring and three layered drop shadows), Dialed style. Inside a card, wells and boards step back down with flat neutrals. (D-037, replaces "flat, layered darkness")
 3. **Two voices, one family.** Geist Mono speaks (headings, labels, numbers, buttons). Geist Sans explains (everything you read). Nothing else.
-4. **Ember is a tool.** Orange marks the primary action and progress. It is never decoration.
-5. **Color belongs to the board.** Chrome is monochrome. Color appears only inside a game board, where it carries game meaning.
+4. **Ember is the brand mark.** Orange is the wordmark cursor, the streak, the pickers and activity. Primary buttons are white pills (D-038).
+5. **Each game owns one hue.** A game's colour appears on its icon tile, its card art, its rating bar and its chart line, always next to the game's name or icon, never alone. Everything else in chrome stays monochrome.
 6. **Motion has mass.** Things overshoot slightly and settle, like they were thrown. Nothing slides linearly.
 7. **Numbers are the hero.** Timers and scores are set huge. They are the most important content on the screen.
 
@@ -42,6 +42,30 @@ This is the single source of truth for every visual and motion decision. The bas
 | `--color-ember-wash` | `#2a1810` | Ember at about 15% over void. Fill for board cells covered by the player (path) |
 
 Ember rules: primary buttons, progress bars, the active tier in the difficulty picker, the path line in Path, the small tick beside the daily card label, the wordmark cursor. Never on body text, never as a large background outside a board.
+
+### Game hues
+
+| Token | Value | Game |
+|-------|-------|------|
+| `--color-hue-path` | `#ff7a2f` | path |
+| `--color-hue-balance` | `#22c7b8` | balance |
+| `--color-hue-blocks` | `#ff5ca8` | blocks |
+| `--color-hue-sudoku` | `#8585ff` | sudoku |
+| `--color-hue-weave` | `#4ade80` | weave |
+| `--color-hue-recall` | `#ffcc33` | recall |
+| `--color-hue-trivia` | `#38bdf8` | trivia |
+
+Black glyphs and text on every hue pass 4.5:1. All pass 3:1 against the card surface. They are identity colours, not a chart palette: two hues (pink and teal) sit close for deuteranopes, so a hue is always paired with the game's name or icon and charts show one game at a time.
+
+### Surfaces
+
+| Token | Value | Use |
+|-------|-------|-----|
+| `--color-surface-top` / `--color-surface-bottom` | `#0e0e0e` → `#262623` | The `.surface` gradient on every card |
+| `--shadow-card` | 1px white ring at 7% + drops at 1/3, 7/14, 18/36px | Resting card |
+| `--shadow-card-hover` | brighter ring, deeper drops | Hovered game card, which also lifts 2px |
+| `--shadow-tile` | inset top highlight + small drop | Game icon tiles |
+| `.well` | white at 3% with a 6% inset ring | Stat blocks and panels inside a card |
 
 ### Board palette (games only)
 
@@ -101,36 +125,48 @@ The reference scale stops at 32px. Mind Bend adds three larger steps for numbers
 | full | 9999px | Buttons (pill), icon badges, the close button |
 
 Nested radii step down (card 24 → control 14 → cell 8) so inner corners never look sharper than the shell around them.
-- **Shadow:** none, except `--shadow-subtle` on buttons.
+- **Shadow:** cards use `--shadow-card` (see Surfaces). Nothing else casts a shadow except the floating mini boards in card art.
 - **Page max width:** 1200px. Section gap 40px. Card padding 32px (24px on mobile).
 
 ### The game card
 
 - Portrait, max width 440px, centred. 3:4 is the minimum height (586px at full width); the card grows when content needs it rather than clipping.
 - On mobile the card fills the viewport width minus 16px gutters and as much height as the safe area allows.
-- Surface `--color-carbon`, 1px `--color-iron` border.
+- `.surface` (gradient + card shadow), no border.
 - Inside, three zones: a header strip (game name, round `1 / 5`, close), the stage (board or stimulus), and an action strip (primary action, secondary controls).
 
-### Home grid
+### Home
 
-- Featured daily card spanning the full row, with a small ember tick beside its label.
-- Below it, a grid of game tiles: 1 column on mobile, 2 on tablet, 3 on desktop.
-- Each tile: `--color-graphite` surface, icon badge, game name, one-line description, the skill it trains as an uppercase tag, a ghost "play →" link.
+- Greeting: first visit gets the pitch; a returning player gets their streak and today's count instead.
+- Top row: the daily set card (progress `3/7` with one bar per game in its hue, the list with ticks, "continue with <next>") and the "you" card (streak, games played, longest run, a 14-day activity bar chart, and a "next up" suggestion with progress to the next tier).
+- Game cards, Dialed style: `.surface`, 44px hue icon tile, title in `.title-card` (24px Geist Mono, weight 500, -0.04em), tagline, a white "play <game> →" pill, rating and suggested tier top right (or a "new" pill if never played). Card art fills the bottom: two tilted mini boards in the game's hue that bleed off the edge; the front one straightens and lifts on hover.
+- Grid: 1 column on mobile, 2 on tablet, 3 on desktop with the first and last cards spanning two columns (seven cards fill three rows).
+
+### Stats page
+
+Totals row, training-days calendar (26 weeks, Monday first, four ember steps), skill bars on one shared 600 to 2000 scale, a per-game table that doubles as the picker for a rating-over-time chart (tier thresholds drawn as grey lines), bests per tier, recent games with rating change, and the data card (transfer code, import, reset).
 
 ## 5. Components
 
 | Component | Spec |
 |-----------|------|
-| Primary button | Ember fill, `--color-void` text (5.6:1, paper on ember fails at 3.3:1), Geist Mono 15px weight 700, pill radius, 48px tall, 24px horizontal padding, trailing `→`. Hover: `--color-ember-hover`. Press: scale 0.97. |
-| Ghost button | Transparent, 1px `--color-slate` border, Geist Mono 15px weight 400, pill radius. Hover: border `--color-fog`. |
+| Primary button | `--color-paper` fill, black text, Geist Mono 15px weight 500, pill, 48px tall, trailing `→`. Hover: white. Press: scale 0.97. Labels name the game where they can ("play sudoku"). |
+| Ghost button | White at 6% with an 8% inset ring, paper text, pill. Hover: white at 10%. |
+| Ember button | Kept for destructive confirms ("yes, delete"). |
+| Insight chip | Mono 12px pill on white at 6%: "2nd of 14 at medium", "12% faster than your average". "new best" is a paper pill with black text. |
+| Rating panel | `.well` with rating and change, a bar in the game hue animating from the old to the new progress towards the next tier, and a caption ("139 to hard" or the level-up line). |
 | Tier picker | Four segments in a row, 1px iron dividers. Active segment ember underline and paper text, inactive steel text. Selection indicator slides between segments with the spring curve. |
 | Mode toggle | Daily / Practice segmented control, same mechanics as the tier picker. |
 | Tag | 12px uppercase `--color-steel`, no fill, no border. |
-| Icon badge | 32px circle, `--color-iron` fill, paper glyph. |
+| Icon tile | Squircle (radius 30% of size) in the game hue, black glyph, `--shadow-tile`. 22 to 44px. |
 | Stat block | Uppercase caption label above a 24px number. Used for time, moves, streak, rating. |
 | Hint button | Ghost pill, 40px tall. After use it locks for 5s: an iron fill sweeps out with scaleX and the label counts down ("hint · 4s"). |
 | How-to-play screen | Example illustration on a void panel, numbered steps (iron number badges), a graphite tier box, controls in 13px steel, skip checkbox, back + start. |
 | Toast | Bottom centre, `--color-graphite`, 1px iron border, 14px text, slides up with spring, auto-dismiss 2.4s. |
+
+### Charts
+
+Hand-built SVG, one series per chart in the game's hue. 2px lines with round joins, end dot r 4 to 5 with a 2px surface ring, a 10 to 18% hue wash under the rating line, hairline solid grid in `#262626`, axis text in ash. The last value is labelled; everything else is in the hover tooltip (paper pill, black text) and the table beside it. Activity uses ember in four steps (none, 1, 2 to 3, 4+ games).
 
 ## 6. Motion
 

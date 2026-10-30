@@ -45,14 +45,18 @@ const glyphs: Record<GameId, React.ReactNode> = {
   ),
 };
 
-export function GameIcon({ id, size = 32 }: { id: GameId; size?: number }) {
+/** The game's identity hue as a CSS value, for inline styles and SVG fills. */
+export const hue = (id: GameId) => `var(--color-hue-${id})`;
+
+/** A bright squircle tile with a black glyph, Dialed style. */
+export function GameIcon({ id, size = 40 }: { id: GameId; size?: number }) {
   return (
     <span
-      className="inline-flex shrink-0 items-center justify-center rounded-full bg-iron text-paper"
-      style={{ width: size, height: size }}
+      className="inline-flex shrink-0 items-center justify-center text-void shadow-[var(--shadow-tile)]"
+      style={{ width: size, height: size, borderRadius: size * 0.3, background: hue(id) }}
       aria-hidden
     >
-      <svg viewBox="0 0 20 20" width={size * 0.56} height={size * 0.56}>
+      <svg viewBox="0 0 20 20" width={size * 0.55} height={size * 0.55}>
         {glyphs[id]}
       </svg>
     </span>

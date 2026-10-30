@@ -30,8 +30,13 @@
 ## Phase 4.6 · Sudoku
 - [x] sudoku: generator, logic solver, grading, hints, board UI
 
-## Phase 5 · Score tracking and reuse
-- [ ] Proper history of every game played, progress over time, per-game and overall stats (next prompt)
+## Phase 5 · Score tracking, stats and redesign
+- [x] History of every game played, derived ratings, bests, streaks, solve rates
+- [x] Stats page with rating charts, calendar, skills, recent games
+- [x] Scores that steer play: suggested tier, tier progress, level-ups, next-up suggestion
+- [x] Transfer code between devices
+- [x] Dialed-inspired visual redesign: raised cards, game hues, card art, white pills
+- [ ] Optional cloud sync (free Vercel database) on the same record format
 
 ## Phase 6 · Polish
 - [ ] Motion pass on every signature moment (see DESIGN.md §6)

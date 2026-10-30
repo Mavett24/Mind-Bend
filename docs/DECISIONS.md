@@ -192,3 +192,33 @@ The ready screen ("3 colours, shown for 3 seconds") shows once, before round 1. 
 Sudoku uses the same machinery as balance: a seeded generator, a human-style logic solver that gates every removal (so boards are unique and need no guessing), and a grade by technique. Easy is 6×6 like LinkedIn Mini Sudoku, the rest are 9×9. Hard and expert are defined by how many advanced deductions they require, not just by how few numbers are given.
 **Why:** given count alone is a weak measure of sudoku difficulty. A 26-given board can be trivial or brutal; the techniques it needs decide how it feels.
 **Gave up:** a strict "expert always needs triples or X-wing" rule. Only about 1 in 10 random boards needs them, which made generation slow (~0.5s+). Expert instead needs at least 3 advanced steps and allows triples and X-wing when they appear.
+
+### D-037 · Dialed-style raised cards
+**2026-10-30** · replaces the "flat, layered darkness" principle
+Cards are now raised surfaces: a top-to-bottom gradient (#0e0e0e to #262623), a 1px light ring and three layered drop shadows, measured from Dialed. Each game card carries art: two tilted mini boards that bleed off the bottom edge and lift on hover.
+**Why:** Mavett asked for the app to take its look from Dialed. Depth on the cards gives the home screen the same tactile, collectible feel, while the black page keeps the terminal mood.
+**Gave up:** the strict "no shadows, no gradients" rule from the Axiom base.
+
+### D-038 · White primary pills, a hue per game
+**2026-10-30** · amends D-010
+Primary buttons are paper pills with black text. Each game owns one bright hue for its icon tile, card art, rating bar and chart line. Ember stays as the brand mark: wordmark cursor, streak, pickers, activity calendar.
+**Why:** with seven bright icon tiles on screen, ember buttons competed with them. White pills read as the action on every card, and the hues make games recognisable at a glance, like Dialed's colour tiles.
+**Gave up:** "colour belongs to the board". Guardrail: a hue never carries meaning alone, it always sits next to the game's name or icon.
+
+### D-039 · Local-first score history, no backend
+**2026-10-30** · replaces the per-game totals of D-019
+Every finished or abandoned game is saved as one record (game, tier, mode, seed, time or points, hints, rating result) in the browser. Ratings, bests, streaks, solve rates, the activity calendar and suggestions are all worked out from that list. Totals saved by v0.6 are migrated once as a starting point. A transfer code (base64 JSON) moves history between devices; imports merge by record id.
+**Why:** the site has to remember players across visits without accounts. Keeping raw records means one source of truth that can't drift, new stats need no migration, and a later cloud sync only has to upload the same records.
+**Gave up:** sync across devices without a manual code, and protection against clearing site data. A free database on Vercel can be added later without changing the record format.
+
+### D-040 · Scores that steer what you play
+**2026-10-30**
+The rating now drives decisions instead of decorating them: the start card opens on the tier your rating suggests, a bar shows progress to the next tier, the result screen announces a level-up and offers the next board at the new tier, and the home screen's "next up" points at an unfinished daily set, an untried game, your weakest rating (50+ below your average) or the game you've neglected longest. Results are placed in context: rank among your solves at that tier, change against your recent average, new best.
+**Why:** Mavett asked for a scoring system that serves a purpose. A number only matters if it changes what happens next.
+
+### D-041 · Hints cost rating, quits are recorded
+**2026-10-30** · amends D-032
+Each hint takes 15% off a solve's rating result, down to 40%. Leaving a board after 5 seconds is saved as a quit: it shows in the solve rate and recent games but doesn't change the rating.
+**Why:** if hints were free, a player could hint through hard boards and climb tiers they can't solve, and the suggested tier would stop meaning anything. Quits keep the solve rate honest without punishing someone for closing a tab.
+**Gave up:** counting quits as losses, which would be stricter but would also punish accidental exits.
+

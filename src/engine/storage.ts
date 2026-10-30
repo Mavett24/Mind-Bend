@@ -4,7 +4,8 @@
  * Every call degrades to an in-memory fallback instead of crashing.
  */
 
-const PREFIX = "mb:v1:";
+export const STORAGE_PREFIX = "mb:v1:";
+const PREFIX = STORAGE_PREFIX;
 const memory = new Map<string, string>();
 
 function storage(): Storage | null {

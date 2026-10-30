@@ -4,7 +4,7 @@
  * Mind Bend design tokens. Source of truth: DESIGN.md.
  * Spacing uses Tailwind's default 4px step: DESIGN.md --spacing-8 = Tailwind `2`, --spacing-16 = `4`, --spacing-32 = `8`.
  */
-@theme {
+@theme static {
   /* Neutrals */
   --color-void: #000000;
   --color-carbon: #111111;
@@ -23,6 +23,19 @@
   --color-ember-hover: #e46a3a;
   --color-ember-wash: #2a1810; /* ember at ~15% over void, for cells the path has covered */
   --color-entry: #9ec1ff; /* numbers the player types into a board (sudoku), next to paper givens */
+
+  /* Game identity hues: icon tiles, card art, charts. Black text on all of them passes 4.5:1. */
+  --color-hue-path: #ff7a2f;
+  --color-hue-balance: #22c7b8;
+  --color-hue-blocks: #ff5ca8;
+  --color-hue-sudoku: #8585ff;
+  --color-hue-weave: #4ade80;
+  --color-hue-recall: #ffcc33;
+  --color-hue-trivia: #38bdf8;
+
+  /* Dialed-style raised surface */
+  --color-surface-top: #0e0e0e;
+  --color-surface-bottom: #262623;
 
   /* Type */
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
@@ -57,6 +70,12 @@
   --radius-control: 14px;
   --radius-card: 24px;
   --shadow-subtle: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
+  /* A 1px light ring plus three soft drops: the card floats instead of sitting in a border. */
+  --shadow-card: rgba(255, 255, 255, 0.07) 0 0 0 1px, rgba(0, 0, 0, 0.3) 0 1px 3px 0, rgba(0, 0, 0, 0.35) 0 7px 14px 0,
+    rgba(0, 0, 0, 0.4) 0 18px 36px 0;
+  --shadow-card-hover: rgba(255, 255, 255, 0.12) 0 0 0 1px, rgba(0, 0, 0, 0.3) 0 1px 3px 0, rgba(0, 0, 0, 0.4) 0 10px 20px 0,
+    rgba(0, 0, 0, 0.5) 0 28px 48px 0;
+  --shadow-tile: rgba(255, 255, 255, 0.25) 0 1px 0 0 inset, rgba(0, 0, 0, 0.35) 0 2px 6px 0;
 
   /* Motion */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -103,6 +122,32 @@ h4,
 .text-number-lg,
 .text-number-xl {
   font-family: var(--font-mono);
+}
+
+/* Raised card: gradient, light ring, layered drop shadow. */
+.surface {
+  background-image: linear-gradient(var(--color-surface-top) 0%, var(--color-surface-bottom) 100%);
+  box-shadow: var(--shadow-card);
+}
+
+/* Flat inset well inside a surface, for stats and pickers. */
+.well {
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: rgba(255, 255, 255, 0.06) 0 0 0 1px inset;
+}
+
+/* Dialed card titles: medium weight, tight tracking. */
+.title-card {
+  font-family: var(--font-mono);
+  font-size: 24px;
+  line-height: 1.15;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); }
+  50% { transform: translateY(-4px) rotate(var(--r, 0deg)); }
 }
 
 ::selection {
