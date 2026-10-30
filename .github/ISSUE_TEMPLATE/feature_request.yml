@@ -1,0 +1,16 @@
+name: Idea
+description: A new game, mode or improvement.
+labels: ["idea"]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: The idea
+      description: What it is and what problem it solves for a player.
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: References
+      description: Games, screenshots or links that show what you mean.
