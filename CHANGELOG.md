@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0 · 2026-10-30 · Spatial and memory
+
+- **blocks** is playable: drag to draw rectangles with a live area preview, tap to remove, keyboard support. Exact-cover solver proves every board unique (400 seeds tested). Colour-blind-safe palette with shape glyphs; touching rectangles never share a colour (D-024).
+- **recall** is playable: five rounds of hold-and-rebuild, 1 to 4 colours depending on tier, OKLCH sliders, split reveal with ΔE and a line per round. CIEDE2000 scoring tested against published reference pairs (D-023).
+- Shared flow supports scored games: points count up on the result screen, bests per tier, rating mapping that treats 4/10 or less as a loss (D-022). Clock hidden for scored games.
+- Fix: board grids now force equal row heights, so drawn rectangles sit exactly on their cells.
+- Fix: buttons no longer wrap on narrow phones.
+
 ## 0.2.0 · 2026-10-30 · First two games
 
 - **path** is playable: drag to draw, drag back or tap to cut the line, keyboard support. Generator builds a random Hamiltonian path and rules out every alternative solution (D-017). 240 seeds tested unique.

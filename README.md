@@ -12,9 +12,9 @@ Every board is generated from a seed and checked for a single solution, so you n
 |------|-------|--------|
 | path | Route planning | live |
 | balance | Binary deduction | live |
-| blocks | Spatial partitioning | planned |
+| blocks | Spatial partitioning | live |
 | weave | Word finding | planned |
-| recall | Visual working memory | planned |
+| recall | Visual working memory | live |
 | trivia | Knowledge and estimation | planned |
 
 ## Docs

@@ -34,7 +34,7 @@ export const GAMES: readonly GameMeta[] = [
     skill: "spatial",
     tagline: "Split the grid into rectangles that fit the clues.",
     rules: "Draw a rectangle around every clue. Match its size and shape.",
-    status: "building",
+    status: "live",
   },
   {
     id: "weave",
@@ -50,7 +50,7 @@ export const GAMES: readonly GameMeta[] = [
     skill: "working memory",
     tagline: "Hold the colours. Rebuild one from memory.",
     rules: "Remember the colours and where they were. Then rebuild one.",
-    status: "building",
+    status: "live",
   },
   {
     id: "trivia",

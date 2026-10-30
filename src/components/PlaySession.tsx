@@ -10,7 +10,7 @@ import { createRng } from "@/engine/rng";
 import { applyResult, dailyStreak, loadStats, saveStats, type ResultSummary } from "@/engine/stats";
 import { dur, ease } from "@/lib/motion";
 import { Button } from "./Button";
-import { CountUpTime, GameClock, TimeDisplay } from "./TimeDisplay";
+import { CountUpPoints, CountUpTime, GameClock, PointsDisplay, TimeDisplay } from "./TimeDisplay";
 
 interface PlaySessionProps<P> {
   game: GameMeta;
@@ -48,16 +48,23 @@ export function PlaySession<P>({ game, module, board, mode, nextDailyHref, onExi
       const prev = loadStats(game.id);
       const summary = applyResult(
         prev,
-        { tier: board.tier, mode, timeMs, solved: true, dateKey: mode === "daily" ? utcDateKey(today) : undefined },
+        {
+          tier: board.tier,
+          mode,
+          timeMs,
+          solved: true,
+          points: module.scoring === "points" ? (detail.points ?? 0) : undefined,
+          dateKey: mode === "daily" ? utcDateKey(today) : undefined,
+        },
         module.parMs[board.tier],
       );
       saveStats(game.id, summary.stats);
       setStoppedAt(end);
       setFinished({ timeMs, detail, summary, streak: dailyStreak(summary.stats.dailyDone, utcDateKey(today)) });
-      // Let the solve ripple play before the result takes the stage.
-      setTimeout(() => setShowResult(true), 950);
+      // Let the solve ripple play before the result takes the stage. Scored games have no ripple.
+      setTimeout(() => setShowResult(true), module.scoring === "points" ? 150 : 950);
     },
-    [board.tier, game.id, mode, module.parMs, startedAt],
+    [board.tier, game.id, mode, module.parMs, module.scoring, startedAt],
   );
 
   const Board = module.Board;
@@ -82,12 +89,12 @@ export function PlaySession<P>({ game, module, board, mode, nextDailyHref, onExi
               </span>
               <span className="text-caption text-steel">seed {board.seed}</span>
             </div>
-            <GameClock startedAt={startedAt} stoppedAt={stoppedAt} />
+            {module.scoring !== "points" && <GameClock startedAt={startedAt} stoppedAt={stoppedAt} />}
           </div>
           <div className="flex flex-1 items-center justify-center">
             <Board puzzle={puzzle} onSolved={handleSolved} />
           </div>
-          <p className="text-center text-fog">{game.rules}</p>
+          {module.scoring !== "points" && <p className="text-center text-fog">{game.rules}</p>}
         </motion.div>
       )}
     </AnimatePresence>
@@ -109,7 +116,9 @@ function Result<P>({
     () => createRng(`${boardSeed(board)}:line`).pick(module.lines[summary.band]),
     [board, module.lines, summary.band],
   );
-  const best = summary.stats.bestMs[board.tier];
+  const scored = module.scoring === "points";
+  const bestMs = summary.stats.bestMs[board.tier];
+  const bestPoints = summary.stats.bestPoints[board.tier];
   const [copied, setCopied] = useState(false);
 
   async function share() {
@@ -131,11 +140,15 @@ function Result<P>({
       className="flex flex-1 flex-col gap-6 p-6"
     >
       <p className="text-caption uppercase tracking-wide text-steel">
-        {game.name} · {board.tier} · solved
+        {game.name} · {board.tier} · {scored ? "score" : "solved"}
       </p>
 
       <div className="flex flex-col gap-3">
-        <CountUpTime ms={timeMs} className="text-number-lg font-bold" />
+        {scored ? (
+          <CountUpPoints points={detail.points ?? 0} className="text-number-lg font-bold" />
+        ) : (
+          <CountUpTime ms={timeMs} className="text-number-lg font-bold" />
+        )}
         <motion.p
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
@@ -149,7 +162,15 @@ function Result<P>({
       <dl className="grid grid-cols-3 gap-4 border-y border-iron py-4">
         <div className="flex flex-col gap-1">
           <dt className="text-caption uppercase text-steel">{summary.newBest ? "new best" : "best"}</dt>
-          <dd className="text-heading-sm">{best ? <TimeDisplay ms={best} /> : "--"}</dd>
+          <dd className="text-heading-sm">
+            {scored ? (
+              bestPoints !== undefined ? <PointsDisplay points={bestPoints} /> : "--"
+            ) : bestMs ? (
+              <TimeDisplay ms={bestMs} />
+            ) : (
+              "--"
+            )}
+          </dd>
         </div>
         {mode === "daily" ? (
           <div className="flex flex-col gap-1">

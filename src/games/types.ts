@@ -5,6 +5,8 @@ import type { BoardKey } from "@/engine/seed";
 export interface SolveDetail {
   /** Shown on the result screen, e.g. { label: "backtracks", value: 3 }. Not part of the score. */
   extra?: { label: string; value: number };
+  /** Scored games: 0 to 10. Required when the module's scoring is "points". */
+  points?: number;
 }
 
 export interface BoardProps<P> {
@@ -13,9 +15,9 @@ export interface BoardProps<P> {
 }
 
 export interface ScoreLines {
-  fast: readonly string[];
-  average: readonly string[];
-  slow: readonly string[];
+  high: readonly string[];
+  mid: readonly string[];
+  low: readonly string[];
 }
 
 /** Everything the shared play flow needs from a game. */
@@ -24,4 +26,6 @@ export interface GameModule<P> {
   parMs: Record<Tier, number>;
   Board: ComponentType<BoardProps<P>>;
   lines: ScoreLines;
+  /** "time": fastest solve wins (default). "points": the board reports a 0 to 10 score, the clock is hidden. */
+  scoring?: "time" | "points";
 }

@@ -21,7 +21,7 @@ export function Button({ variant = "primary", arrow = true, className = "", chil
     <motion.button
       whileTap={{ scale: 0.97 }}
       transition={{ duration: dur.fast, ease: ease.spring }}
-      className={`group inline-flex h-12 items-center justify-center gap-2 rounded-full px-6 font-mono text-[15px] transition-colors duration-[var(--dur-fast)] disabled:cursor-not-allowed ${styles[variant]} ${className}`}
+      className={`group inline-flex h-12 items-center justify-center gap-2 whitespace-nowrap rounded-full px-5 font-mono text-[15px] transition-colors duration-[var(--dur-fast)] disabled:cursor-not-allowed ${styles[variant]} ${className}`}
       {...rest}
     >
       {children as React.ReactNode}

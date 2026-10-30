@@ -25,30 +25,47 @@ export function TimeDisplay({ ms, className = "" }: { ms: number; className?: st
   );
 }
 
-/** Signature moment 6: counts from 0 to the value, decelerating. Instant with reduced motion. */
-export function CountUpTime({ ms, durationMs = 900, className = "" }: { ms: number; durationMs?: number; className?: string }) {
+/** Animates 0 → value, decelerating. Instant with reduced motion. */
+function useCountUp(target: number, durationMs: number): number {
   const reduced = useReducedMotion();
-  const [value, setValue] = useState(reduced ? ms : 0);
+  const [value, setValue] = useState(reduced ? target : 0);
   const frame = useRef(0);
-
   useEffect(() => {
     if (reduced) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- reduced motion skips the animation
-      setValue(ms);
+      setValue(target);
       return;
     }
     const start = performance.now();
     const tick = (now: number) => {
       const t = Math.min(1, (now - start) / durationMs);
-      const eased = 1 - (1 - t) ** 4;
-      setValue(ms * eased);
+      setValue(target * (1 - (1 - t) ** 4));
       if (t < 1) frame.current = requestAnimationFrame(tick);
     };
     frame.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame.current);
-  }, [ms, durationMs, reduced]);
+  }, [target, durationMs, reduced]);
+  return value;
+}
 
-  return <TimeDisplay ms={value} className={className} />;
+/** Signature moment 6: the score counts up from zero. */
+export function CountUpTime({ ms, durationMs = 900, className = "" }: { ms: number; durationMs?: number; className?: string }) {
+  return <TimeDisplay ms={useCountUp(ms, durationMs)} className={className} />;
+}
+
+/** A 0 to 10 score as "7.42", decimals dimmed. */
+export function PointsDisplay({ points, className = "" }: { points: number; className?: string }) {
+  const [whole, fraction] = Math.max(0, points).toFixed(2).split(".");
+  return (
+    <span className={`font-mono tabular-nums ${className}`}>
+      {whole}
+      <span className="text-ash">.{fraction}</span>
+    </span>
+  );
+}
+
+export function CountUpPoints({ points, durationMs = 900, className = "" }: { points: number; durationMs?: number; className?: string }) {
+  return <PointsDisplay points={useCountUp(points, durationMs)} className={className} />;
 }
 
 /** Live game clock, ticking every 100ms from `startedAt` until `stoppedAt` is set. */

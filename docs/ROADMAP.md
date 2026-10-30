@@ -13,8 +13,8 @@
 - [x] balance: generator, solver, uniqueness tests, board UI
 
 ## Phase 3 · Spatial and memory
-- [ ] blocks
-- [ ] recall
+- [x] blocks
+- [x] recall
 
 ## Phase 4 · Words and knowledge
 - [ ] weave with curated dictionary

@@ -112,3 +112,20 @@ The running clock uses `--text-heading-lg`, not `--text-number` as first specifi
 **2026-10-30**
 Boards are generated synchronously when a game starts, while the start card animates out.
 **Why:** measured generation is fast (Expert path ~55ms median on a server CPU, under 300ms worst case). A Web Worker adds complexity for no visible gain yet. Revisit if a low-end phone shows a stall.
+
+### D-022 · Scored games, and how points move the rating
+**2026-10-30**
+Games can report a 0 to 10 score instead of a time (recall does). Bests are kept per tier, score bands are 8+, 5+ and below. For rating, 4/10 or less counts as a loss and 9/10 or more as a full win.
+**Why:** a straight points/10 mapping made a 2/10 on Hard raise a new player's rating, because Elo expected even less. Anchoring the loss at 4/10 makes the rating mean what it says.
+**Also:** score bands were renamed from fast/average/slow to high/mid/low so one vocabulary covers both timed and scored games.
+
+### D-023 · Recall picks in OKLCH, scores in CIEDE2000
+**2026-10-30**
+The picker uses three OKLCH sliders. Scoring uses ΔE00 on the colours actually displayed.
+**Why:** OKLCH makes equal slider steps look like equal changes, so the picker feels fair. CIEDE2000 is the standard measure of how different two colours look to people, the closest equivalent to Dialed's psychoacoustic scoring for sound.
+**Gave up:** Dialed's familiar hue/saturation/brightness sliders, which are less even perceptually.
+
+### D-024 · Blocks palette from Okabe-Ito, plus shape glyphs
+**2026-10-30**
+Rectangles use eight colour-blind-safe hues, all at least 5.9:1 against the cell colour, and each clue also shows its shape glyph.
+**Why:** colour carries meaning here, so it can't be the only signal. Touching rectangles never share a colour (tested).

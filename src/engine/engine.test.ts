@@ -3,7 +3,7 @@ import { createRng, hashString } from "./rng";
 import { boardSeed, dailyBoard, isValidSeed, randomSeed, utcDateKey, utcIsoWeekday } from "./seed";
 import { dailyTier, suggestTier, TIERS } from "./difficulty";
 import { outcomeScore, START_RATING, updateRating } from "./rating";
-import { applyResult, dailyStreak, emptyStats, scoreBand } from "./stats";
+import { applyResult, dailyStreak, emptyStats, pointsBand, timeBand } from "./stats";
 
 describe("rng", () => {
   it("is deterministic for the same seed", () => {
@@ -138,7 +138,7 @@ describe("recording results", () => {
     expect(first.stats.bestMs.medium).toBe(50_000);
     expect(first.newBest).toBe(false); // the first time is a baseline, not a "new best"
     expect(first.ratingDelta).toBeGreaterThan(0);
-    expect(first.band).toBe("fast");
+    expect(first.band).toBe("high");
 
     const second = applyResult(first.stats, { tier: "medium", mode: "practice", timeMs: 40_000, solved: true }, 60_000);
     expect(second.newBest).toBe(true);
@@ -157,9 +157,23 @@ describe("recording results", () => {
     expect(again.stats.dailyDone).toEqual(["2026-10-30"]);
   });
 
-  it("bands times against par", () => {
-    expect(scoreBand(60_000, 60_000)).toBe("fast");
-    expect(scoreBand(100_000, 60_000)).toBe("average");
-    expect(scoreBand(130_000, 60_000)).toBe("slow");
+  it("bands times against par and points against fixed thresholds", () => {
+    expect(timeBand(60_000, 60_000)).toBe("high");
+    expect(timeBand(100_000, 60_000)).toBe("mid");
+    expect(timeBand(130_000, 60_000)).toBe("low");
+    expect(pointsBand(8.2)).toBe("high");
+    expect(pointsBand(5)).toBe("mid");
+    expect(pointsBand(3.9)).toBe("low");
+  });
+
+  it("uses points instead of time for scored games", () => {
+    const a = applyResult(emptyStats(), { tier: "hard", mode: "practice", timeMs: 999_999, solved: true, points: 9 }, 1);
+    expect(a.stats.bestPoints.hard).toBe(9);
+    expect(a.stats.bestMs.hard).toBeUndefined();
+    expect(a.ratingDelta).toBeGreaterThan(0);
+    const b = applyResult(a.stats, { tier: "hard", mode: "practice", timeMs: 1, solved: true, points: 2 }, 1);
+    expect(b.newBest).toBe(false);
+    expect(b.ratingDelta).toBeLessThan(0);
+    expect(b.stats.bestPoints.hard).toBe(9);
   });
 });

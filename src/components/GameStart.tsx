@@ -14,7 +14,7 @@ import { useToday } from "@/lib/useToday";
 import { dur, ease } from "@/lib/motion";
 import { Button } from "./Button";
 import { PlaySession } from "./PlaySession";
-import { TimeDisplay } from "./TimeDisplay";
+import { PointsDisplay, TimeDisplay } from "./TimeDisplay";
 import { GameIcon } from "./GameIcon";
 import { Segmented } from "./Segmented";
 import { TitleReveal } from "./TitleReveal";
@@ -125,7 +125,22 @@ export function GameStart({ game }: { game: GameMeta }) {
 
               <dl className="grid grid-cols-3 gap-4 border-y border-iron py-4">
                 <Stat label="rating" value={String(stats.rating)} />
-                <Stat label="best" value={stats.bestMs[effectiveTier] ? <TimeDisplay ms={stats.bestMs[effectiveTier]!} /> : "--"} />
+                <Stat
+                  label="best"
+                  value={
+                    gameModule?.scoring === "points" ? (
+                      stats.bestPoints[effectiveTier] !== undefined ? (
+                        <PointsDisplay points={stats.bestPoints[effectiveTier]!} />
+                      ) : (
+                        "--"
+                      )
+                    ) : stats.bestMs[effectiveTier] ? (
+                      <TimeDisplay ms={stats.bestMs[effectiveTier]!} />
+                    ) : (
+                      "--"
+                    )
+                  }
+                />
                 <Stat label="streak" value={String(streak)} />
               </dl>
 

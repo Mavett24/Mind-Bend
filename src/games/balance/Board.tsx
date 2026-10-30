@@ -113,7 +113,7 @@ export function BalanceBoard({ puzzle, onSolved }: BoardProps<BalancePuzzle>) {
         role="grid"
         aria-label={`balance board, ${size} by ${size}`}
         className="relative grid aspect-square w-full"
-        style={{ gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))` }}
+        style={{ gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${size}, minmax(0, 1fr))` }}
       >
         {grid.map((value, cell) => {
           const given = givens[cell] !== EMPTY;
