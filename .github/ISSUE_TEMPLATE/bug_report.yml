@@ -1,0 +1,29 @@
+name: Bug report
+description: Something broken or wrong on a board, a screen or a score.
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: game
+    attributes:
+      label: Where
+      options: [path, balance, blocks, sudoku, weave, recall, trivia, home, stats, other]
+    validations:
+      required: true
+  - type: input
+    id: board
+    attributes:
+      label: Board link or seed
+      description: The share link reproduces the exact board. Paste it if you have it.
+      placeholder: https://mind-bend.vercel.app/play/path?t=hard&s=k3f9x2
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, what you saw instead.
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device and browser
+      placeholder: iPhone 15, Safari 18

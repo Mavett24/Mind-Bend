@@ -1,2 +1,12 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Normalise line endings
+* text=auto eol=lf
+
+# Binary assets
+*.png binary
+*.ico binary
+*.woff2 binary
+
+# Keep generated files out of diffs and language stats
+package-lock.json linguist-generated
+public/data/** linguist-generated
+docs/** linguist-documentation

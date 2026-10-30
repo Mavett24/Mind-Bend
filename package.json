@@ -2,13 +2,26 @@
   "name": "mind-bend",
   "version": "0.7.0",
   "private": true,
+  "description": "Logic puzzles, memory games and trivia with daily challenges, infinite practice and adaptive difficulty.",
+  "homepage": "https://mind-bend.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Mavett24/mind-bend.git"
+  },
+  "author": "Matteo Favetta (https://matteofavetta.com)",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.9"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "check": "npm run lint && npm run typecheck && npm test"
   },
   "dependencies": {
     "geist": "^1.8.2",
