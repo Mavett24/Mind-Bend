@@ -137,8 +137,10 @@ Nested radii step down (card 24 → control 14 → cell 8) so inner corners neve
 
 ### Home
 
-- Greeting: first visit gets the pitch; a returning player gets their streak and today's count instead.
-- Top row: the daily set card (progress `3/7` with one bar per game in its hue, the list with ticks, "continue with <next>") and the "you" card (streak, games played, longest run, a 14-day activity bar chart, and a "next up" suggestion with progress to the next tier).
+- Hero (D-042), full bleed under the header. Behind it, a board field: 14 tilted mini boards from all seven games, drifting slowly (12px bob, 7 to 12s) and following the pointer with depth (springy parallax, mouse only). A void radial keeps the headline readable and the field melts into the page at the bottom. On mobile, five boards sit in a band above the headline.
+- Hero left: terminal prompt with an ember caret, a two-line mono headline at up to 84px (paper, then steel: "Seven boards. / Fresh daily." for a first visit, the streak or boards left for a returning player), a short pitch on first visit, a white pill naming the next daily game with its icon tile, a ghost "practice" pill, and the week ramp (one bar per weekday, height by tier, today in ember).
+- Hero right: the daily set card. `0/7` at `--text-number` with the fraction dimmed, today's tier pill, one bar per game in its hue, the seven games as rows, and a ticking countdown to the next set. Hovering or focusing a row lights that game's boards in the field (scale up, hue glow) and dims the rest; at rest the next unplayed game is lit.
+- Below the hero, the "you" card runs horizontally: streak, played and best run, the 14-day activity bars, and the "next up" suggestion with progress to the next tier.
 - Game cards, Dialed style: `.surface`, 44px hue icon tile, title in `.title-card` (24px Geist Mono, weight 500, -0.04em), tagline, a white "play <game> →" pill, rating and suggested tier top right (or a "new" pill if never played). Card art fills the bottom: two tilted mini boards in the game's hue that bleed off the edge; the front one straightens and lifts on hover.
 - Grid: 1 column on mobile, 2 on tablet, 3 on desktop with the first and last cards spanning two columns (seven cards fill three rows).
 

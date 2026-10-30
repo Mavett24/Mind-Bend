@@ -215,6 +215,20 @@ export function GameArt({ id, className = "" }: { id: GameId; className?: string
   );
 }
 
+/** One raised mini board panel at a given width, for the home hero's board field. */
+export function BoardPanel({ id, v, width }: { id: GameId; v: 0 | 1; width: number }) {
+  return (
+    <div
+      className="rounded-[22px] bg-[#151515] shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_18px_40px_rgba(0,0,0,0.6)]"
+      style={{ width, padding: width * 0.07, borderRadius: width * 0.13 }}
+    >
+      <svg viewBox="0 0 100 100" className="block h-auto w-full" aria-hidden>
+        {ART[id](v, hue(id))}
+      </svg>
+    </div>
+  );
+}
+
 /** A single upright mini board, for the start card and stats. */
 export function MiniBoard({ id, size = 96 }: { id: GameId; size?: number }) {
   return (

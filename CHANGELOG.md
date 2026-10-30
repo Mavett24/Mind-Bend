@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- **New home hero** (D-042): a field of floating mini boards from all seven games with pointer parallax, a big mono headline, the daily set in front with a live countdown to the next set, and the week's difficulty ramp. Hovering a game in the set lights its boards in the background.
+- The "you" card now runs horizontally under the hero.
+
 ## 0.7.0 · 2026-10-30 · Dialed redesign, score history, stats
 
 - **Redesign** after Dialed: raised gradient cards with layered shadows, a bright hue and squircle icon tile per game, card art with tilted mini boards that lift on hover, white primary pills, a bento game grid (D-037, D-038).

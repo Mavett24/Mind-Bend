@@ -222,3 +222,9 @@ Each hint takes 15% off a solve's rating result, down to 40%. Leaving a board af
 **Why:** if hints were free, a player could hint through hard boards and climb tiers they can't solve, and the suggested tier would stop meaning anything. Quits keep the solve rate honest without punishing someone for closing a tab.
 **Gave up:** counting quits as losses, which would be stricter but would also punish accidental exits.
 
+### D-042 · A home hero that shows the games
+**2026-10-30**
+The home screen opens on a full-bleed hero instead of a greeting line and two cards. Mini boards from every game float behind a big mono headline and react to the pointer; the daily set sits in front as the main object, with a countdown to the next set and the week's difficulty ramp. Pointing at a game in the set lights its boards in the background.
+**Why:** Mavett asked for a hero that slaps and is more engaging. The boards show what the app is before anyone reads a word, and linking the set to the field makes the first screen respond to you. The headline uses number-sized type because on the home screen the hook is the message, not a timer.
+**Gave up:** the "you" card next to the daily set above the fold (it moves below the hero) and the rule that type above 32px is for numbers only.
+
