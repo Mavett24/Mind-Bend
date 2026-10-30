@@ -1,0 +1,32 @@
+# Roadmap
+
+## Phase 1 · Foundation
+- [x] Product brief, design system, game specs, decision log
+- [x] Next.js app with design tokens and fonts
+- [x] Seeded RNG, daily seeds, difficulty tiers, skill rating, local storage, with tests
+- [x] Home screen and the shared game frame
+- [ ] First deploy on Vercel
+
+## Phase 2 · Engine and first two games
+- [ ] Shared game flow: start card, play, result screen, share link, stats
+- [ ] path: generator, solver, uniqueness tests, board UI
+- [ ] balance: generator, solver, uniqueness tests, board UI
+
+## Phase 3 · Spatial and memory
+- [ ] blocks
+- [ ] recall
+
+## Phase 4 · Words and knowledge
+- [ ] weave with curated dictionary
+- [ ] trivia: higher or lower dataset, categories question bank
+
+## Phase 5 · Polish
+- [ ] Motion pass on every signature moment (see DESIGN.md §6)
+- [ ] Sound and haptics
+- [ ] Accessibility audit, keyboard play for every board
+- [ ] Performance pass on low-end phones
+
+## Phase 6 · Case study
+- [ ] Screen recordings of each game and signature moment
+- [ ] Metrics: generator speed, uniqueness test counts, Lighthouse scores
+- [ ] Write-up from DECISIONS.md

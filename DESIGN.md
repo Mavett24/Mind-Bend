@@ -1,0 +1,173 @@
+# Mind Bend: Design System
+
+> A terminal at midnight that plays like a toy. Flat black, monospaced, one orange accent, and motion with weight.
+
+This is the single source of truth for every visual and motion decision. The base comes from the Axiom style reference (`docs/reference/axiom-style-reference.md`). The motion language is studied from Dialed. Where the two disagree, or where a game needs something the reference never covered, the call is made here and logged in `docs/DECISIONS.md`.
+
+## 1. Principles
+
+1. **The card is the stage.** Every game lives inside one card with fixed proportions. The page around it stays quiet.
+2. **Flat, layered darkness.** Elevation comes from stepping neutrals (`#000` → `#111` → `#191919` → `#202020`), never from shadows or gradients.
+3. **One voice.** A single monospaced family for everything. Hierarchy comes from size and weight, not from typeface changes.
+4. **Ember is a tool.** Orange marks the primary action and progress. It is never decoration.
+5. **Color belongs to the board.** Chrome is monochrome. Color appears only inside a game board, where it carries game meaning.
+6. **Motion has mass.** Things overshoot slightly and settle, like they were thrown. Nothing slides linearly.
+7. **Numbers are the hero.** Timers and scores are set huge. They are the most important content on the screen.
+
+## 2. Color
+
+### Neutrals (chrome)
+
+| Token | Value | Role |
+|-------|-------|------|
+| `--color-void` | `#000000` | Page background, card play surface |
+| `--color-carbon` | `#111111` | Primary surface, game card base |
+| `--color-graphite` | `#191919` | Elevated surfaces, tiles, board cells |
+| `--color-iron` | `#202020` | Hairline borders, grid lines |
+| `--color-slate` | `#3a3a3a` | Muted borders, inactive strokes |
+| `--color-pewter` | `#505050` | Decorative rules |
+| `--color-steel` | `#606060` | Tertiary text, inactive labels |
+| `--color-ash` | `#7e7e7e` | Helper text, dimmed digits |
+| `--color-fog` | `#b4b4b4` | Secondary text |
+| `--color-chalk` | `#d9d9d9` | Light strokes |
+| `--color-paper` | `#eeeeee` | Primary text |
+
+### Accent
+
+| Token | Value | Role |
+|-------|-------|------|
+| `--color-ember` | `#da5c2c` | Primary action fill, progress, active state, the 2px left mark on featured cards |
+| `--color-ember-hover` | `#e46a3a` | Primary action hover |
+
+Ember rules: primary buttons, progress bars, the active tier in the difficulty picker, the path line in Path, the 2px left border on the daily card. Never on body text, never as a large background outside a board.
+
+### Board palette (games only)
+
+Inside a game board, color is information: regions in Blocks, symbols in Balance, the stimulus in Recall. These palettes live in each game's spec and must:
+
+- pass 3:1 contrast against `--color-graphite` for any filled cell
+- stay distinguishable for deuteranopia and protanopia (pair hue with a symbol or pattern where meaning depends on it)
+- never leak outside the board onto chrome
+
+Recall is the one game where the whole card becomes the stimulus color. That is the game, so it is allowed.
+
+### State without color
+
+Correct, wrong and hint states use symbols and borders, not green or red fills: `✓`, `×`, `!`, a 1px `--color-paper` outline, a shake. The only exception is a wrong cell inside a board, which may flash ember briefly.
+
+## 3. Typography
+
+**Family:** JetBrains Mono (400, 700) everywhere. It replaces BerkeleyMono, which is a paid licence. Loaded through `next/font` for zero layout shift.
+
+**Fallback:** `ui-monospace, SFMono-Regular, Menlo, monospace`. No proportional fonts in UI.
+
+### Scale
+
+The reference scale stops at 32px. Mind Bend adds three larger steps for numbers, because the timer and score are the hero of every screen.
+
+| Token | Size | Line height | Tracking | Use |
+|-------|------|-------------|----------|-----|
+| `--text-caption` | 12px | 1.5 | 0 | Labels, metadata, tags (uppercase) |
+| `--text-body` | 14px | 1.71 | 0 | Body copy, descriptions |
+| `--text-heading-sm` | 18px | 1.56 | 0 | Card titles |
+| `--text-heading` | 20px | 1.4 | 0 | Section titles |
+| `--text-heading-lg` | 24px | 1.33 | -0.01em | Game titles on cards |
+| `--text-display` | 32px | 1.25 | -0.02em | Page titles |
+| `--text-number` | 56px | 1 | -0.04em | In-game timer, move counters |
+| `--text-number-lg` | 88px | 0.95 | -0.05em | Result score |
+| `--text-number-xl` | 128px | 0.9 | -0.06em | Result score on desktop |
+
+**Number treatment** (from Dialed): split a number into its significant part and its fraction, and dim the fraction. `3.28` renders as `3` in `--color-paper` and `.28` in `--color-ash`. Always use tabular figures so digits do not jitter while counting.
+
+## 4. Space, shape, layout
+
+- **Base unit:** 8px. Tokens `--spacing-8` through `--spacing-96`.
+- **Radius:** 2px on cards, buttons, inputs and board cells. 9999px only on pills and icon badges under 32px. No soft corners.
+- **Shadow:** none, except `--shadow-subtle` on buttons.
+- **Page max width:** 1200px. Section gap 40px. Card padding 32px (24px on mobile).
+
+### The game card
+
+- Portrait, max width 440px, centred. 3:4 is the minimum height (586px at full width); the card grows when content needs it rather than clipping.
+- On mobile the card fills the viewport width minus 16px gutters and as much height as the safe area allows.
+- Surface `--color-carbon`, 1px `--color-iron` border.
+- Inside, three zones: a header strip (game name, round `1 / 5`, close), the stage (board or stimulus), and an action strip (primary action, secondary controls).
+
+### Home grid
+
+- Featured daily card spanning the full row, with a 2px ember left border.
+- Below it, a grid of game tiles: 1 column on mobile, 2 on tablet, 3 on desktop.
+- Each tile: `--color-graphite` surface, icon badge, game name, one-line description, the skill it trains as an uppercase tag, a ghost "play →" link.
+
+## 5. Components
+
+| Component | Spec |
+|-----------|------|
+| Primary button | Ember fill, `--color-void` text (5.6:1, paper on ember fails at 3.3:1), 16px weight 700, 2px radius, 10px 16px padding, trailing `→`. Hover: `--color-ember-hover`. Press: scale 0.97. |
+| Ghost button | Transparent, 1px `--color-slate` border, 16px weight 400. Hover: border `--color-fog`. |
+| Tier picker | Four segments in a row, 1px iron dividers. Active segment ember underline and paper text, inactive steel text. Selection indicator slides between segments with the spring curve. |
+| Mode toggle | Daily / Practice segmented control, same mechanics as the tier picker. |
+| Tag | 12px uppercase `--color-steel`, no fill, no border. |
+| Icon badge | 32px circle, `--color-iron` fill, paper glyph. |
+| Stat block | Uppercase caption label above a 24px number. Used for time, moves, streak, rating. |
+| Toast | Bottom centre, `--color-graphite`, 1px iron border, 14px text, slides up with spring, auto-dismiss 2.4s. |
+
+## 6. Motion
+
+Motion is the part that should feel like Dialed: physical, slightly springy, quick to start and soft to land. All motion is built with Motion (`motion/react`) or CSS transitions using these tokens.
+
+### Easing
+
+| Token | Curve | Use |
+|-------|-------|-----|
+| `--ease-out` | `cubic-bezier(0.22, 1, 0.36, 1)` | Default for entrances, fades, layout |
+| `--ease-spring` | `cubic-bezier(0.34, 1.56, 0.4, 1)` | Buttons, tier indicator, cells placed on the board |
+| `--ease-spring-strong` | `cubic-bezier(0.26, 1.45, 0.38, 1)` | Score reveal, puzzle-solved moment |
+| `--ease-in` | `cubic-bezier(0.5, 0, 0.7, 0.4)` | Exits only |
+
+### Duration
+
+| Token | Value | Use |
+|-------|-------|-----|
+| `--dur-fast` | 120ms | Hover, press |
+| `--dur-base` | 240ms | Most transitions |
+| `--dur-slow` | 480ms | Card stage changes, result split |
+| `--dur-count` | 900ms | Score count-up |
+
+### Signature moments
+
+1. **Title reveal.** On a game's start screen, the title enters letter by letter, 24ms stagger, rising 8px with `--ease-out`.
+2. **Commit press.** The primary action compresses to 0.97 on press and springs back on release.
+3. **Cell placement.** A placed symbol or path segment scales from 0.6 to 1 with `--ease-spring`. Removing reverses with `--ease-in` at `--dur-fast`.
+4. **Solve.** When a board is solved, cells ripple from the last placed cell outward (16ms per cell of distance), each doing a small scale bounce, then the board settles.
+5. **Result split.** For comparison games (Recall), the card splits horizontally: your answer on top, the target below, over `--dur-slow`.
+6. **Score count-up.** The score counts from 0 to its value over `--dur-count`, decelerating, then the score-band line fades in 200ms after.
+7. **Wrong move.** The offending cell shakes horizontally 4px, three cycles, 240ms total.
+
+### Rules
+
+- Animate only `transform` and `opacity`.
+- Respect `prefers-reduced-motion`: replace movement with opacity fades, keep the count-up instant.
+- Input is never blocked by animation. A user can place the next cell while the last one is still settling.
+
+## 7. Voice
+
+Short, dry, a little cheeky. Every score band gets a line, the way Dialed does it. Lines live in each game's spec, three to five per band, picked at random.
+
+- Lowercase game names in UI (`path`, `balance`).
+- Labels in uppercase captions (`TIME`, `STREAK`).
+- No exclamation marks except on a perfect score.
+- Instructions fit in two sentences.
+
+## 8. Sound and haptics
+
+- Sound off by default, toggle in the header, remembered.
+- Short synthesised ticks (Web Audio, no files) for placement, solve and wrong move.
+- `navigator.vibrate` for placement (8ms) and wrong move (pattern 20, 40, 20) on supported devices.
+
+## 9. Accessibility
+
+- Every board is fully keyboard playable: arrow keys move focus, Enter or Space acts, Backspace undoes.
+- Touch targets at least 44px. Boards scale cell size down to that limit, then reduce grid size options on very small screens.
+- Text contrast at least 4.5:1. Paper on void is 18.1:1, fog on carbon 9.1:1, ash on carbon 4.7:1, void on ember 5.6:1. Steel on carbon is 3.0:1, so steel is only for non-essential labels and large numbers.
+- Game state is announced through an `aria-live` region.
