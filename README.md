@@ -5,7 +5,7 @@
 Logic puzzles, memory games and trivia in one app.<br>
 Daily challenges, infinite practice, difficulty that adapts to you.
 
-[![CI](https://github.com/Mavett24/mind-bend/actions/workflows/ci.yml/badge.svg)](https://github.com/Mavett24/mind-bend/actions/workflows/ci.yml)
+[![CI](https://github.com/Mavett24/Mind-Bend/actions/workflows/ci.yml/badge.svg)](https://github.com/Mavett24/Mind-Bend/actions/workflows/ci.yml)
 [![Live](https://img.shields.io/badge/play-mind--bend.vercel.app-da5c2c)](https://mind-bend.vercel.app)
 ![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)
