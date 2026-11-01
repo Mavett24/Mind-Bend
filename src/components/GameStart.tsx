@@ -155,59 +155,79 @@ export function GameStart({ game }: { game: GameMeta }) {
                 </motion.div>
               </div>
 
+              {/* Your record: context, kept quieter than the choices below (D-045). */}
               <div className="well flex flex-col gap-3 rounded-[18px] p-4">
-                <div className="flex items-end justify-between gap-3">
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-caption uppercase text-ash">rating</span>
-                    <span className="font-mono text-heading-lg">{summary ? rating : "--"}</span>
+                <dl className="grid grid-cols-4 gap-3">
+                  <Stat label="rating" value={summary ? String(rating) : "--"} />
+                  <Stat
+                    label="best"
+                    title={`best on ${effectiveTier}`}
+                    value={best === undefined ? "--" : gameModule?.scoring === "points" ? <PointsDisplay points={best} /> : <TimeDisplay ms={best} />}
+                  />
+                  <Stat label="played" value={summary ? String(summary.played) : "0"} />
+                  <Stat label="solved" value={solveRate === null ? "--" : `${solveRate}%`} />
+                </dl>
+                <div className="flex items-center gap-3">
+                  <div className="flex-1">
+                    <TierBar progress={progress.progress} color={hue(game.id)} />
                   </div>
                   {summary && summary.ratingSeries.length > 1 && (
-                    <Sparkline points={summary.ratingSeries.slice(-20).map((p) => p.rating)} color={hue(game.id)} width={112} height={30} />
+                    <Sparkline points={summary.ratingSeries.slice(-20).map((p) => p.rating)} color={hue(game.id)} width={72} height={20} />
                   )}
                 </div>
-                <TierBar progress={progress.progress} color={hue(game.id)} />
                 <span className="font-mono text-caption text-ash">
                   {progress.next ? `${suggested} now · ${progress.nextAt! - rating} to ${progress.next}` : "expert. the top tier."}
                 </span>
               </div>
 
-              <dl className="grid grid-cols-3 gap-4">
-                <Stat
-                  label={`best · ${effectiveTier}`}
-                  value={best === undefined ? "--" : gameModule?.scoring === "points" ? <PointsDisplay points={best} /> : <TimeDisplay ms={best} />}
-                />
-                <Stat label="played" value={summary ? String(summary.played) : "--"} />
-                <Stat label="solved" value={solveRate === null ? "--" : `${solveRate}%`} />
-              </dl>
+              <div className="mt-auto flex flex-col gap-5">
+                <section className="flex flex-col gap-2" aria-labelledby="start-mode">
+                  <Eyebrow id="start-mode" step="01">
+                    mode
+                  </Eyebrow>
+                  <Segmented id="mode" label="Mode" options={modeOptions} value={mode} onChange={setMode} />
+                </section>
 
-              <div className="mt-auto flex flex-col gap-3">
-                <Segmented id="mode" label="Mode" options={modeOptions} value={mode} onChange={setMode} />
-                <Segmented
-                  id="tier"
-                  label="Difficulty"
-                  options={TIERS.map((t) => ({ value: t, label: TIER_LABEL[t], marked: t === suggested }))}
-                  value={effectiveTier}
-                  onChange={setTier}
-                  disabled={mode !== "practice"}
-                />
-                <div className="flex min-h-[44px] flex-col gap-0.5">
-                  <p className="text-body text-fog">{INTRO[game.id].tiers[effectiveTier]}</p>
-                  <p className="text-caption text-steel">
-                    {mode === "daily" && "today's tier is fixed. everyone plays this board."}
-                    {mode === "practice" && `• suggested for your rating: ${suggested}`}
-                    {mode === "challenge" && `a friend's board · seed ${challenge?.seed}`}
-                  </p>
+                <section className="flex flex-col gap-2" aria-labelledby="start-tier">
+                  <Eyebrow id="start-tier" step="02" note={mode === "daily" ? "fixed today" : mode === "challenge" ? "set by the link" : undefined}>
+                    difficulty
+                  </Eyebrow>
+                  <Segmented
+                    id="tier"
+                    label="Difficulty"
+                    options={TIERS.map((t) => ({ value: t, label: TIER_LABEL[t], marked: mode === "practice" && t === suggested }))}
+                    value={effectiveTier}
+                    onChange={setTier}
+                    disabled={mode !== "practice"}
+                  />
+                  <div className="flex min-h-[44px] flex-col gap-0.5 pt-1">
+                    <p className="text-body text-paper">{INTRO[game.id].tiers[effectiveTier]}</p>
+                    <p className="text-caption text-ash">
+                      {mode === "daily" && "everyone plays this board today."}
+                      {mode === "practice" &&
+                        (effectiveTier === suggested ? (
+                          <>
+                            <span className="text-ember">•</span> suggested for your rating
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-ember">•</span> suggested for your rating: {suggested}
+                          </>
+                        ))}
+                      {mode === "challenge" && `a friend's board · seed ${challenge?.seed}`}
+                    </p>
+                  </div>
+                </section>
+
+                {/* Play is the one primary action. On narrow phones the two stack, play on top. */}
+                <div className="flex flex-col-reverse gap-3 min-[420px]:grid min-[420px]:grid-cols-[auto_1fr]">
+                  <Button variant="ghost" arrow={false} onClick={() => start(true)} className="w-full">
+                    how to play
+                  </Button>
+                  <Button onClick={() => start()} className="w-full" disabled={mode === "daily" && !daily}>
+                    play {game.name}
+                  </Button>
                 </div>
-                <Button onClick={() => start()} className="w-full" disabled={mode === "daily" && !daily}>
-                  play {game.name}
-                </Button>
-                <button
-                  type="button"
-                  onClick={() => start(true)}
-                  className="self-center text-caption text-steel underline decoration-slate underline-offset-4 hover:text-fog"
-                >
-                  how to play
-                </button>
               </div>
             </motion.div>
           )}
@@ -217,11 +237,22 @@ export function GameStart({ game }: { game: GameMeta }) {
   );
 }
 
-function Stat({ label, value }: { label: string; value: React.ReactNode }) {
+function Stat({ label, value, title }: { label: string; value: React.ReactNode; title?: string }) {
   return (
-    <div className="flex flex-col gap-1">
-      <dt className="truncate text-caption uppercase text-steel">{label}</dt>
-      <dd className="font-mono text-heading-sm">{value}</dd>
+    <div className="flex min-w-0 flex-col gap-1" title={title}>
+      <dt className="truncate text-caption uppercase text-ash">{label}</dt>
+      <dd className="font-mono text-heading-sm tabular-nums">{value}</dd>
     </div>
+  );
+}
+
+/** Section label above a choice on the start card: a step number and a name (D-045). */
+function Eyebrow({ id, step, note, children }: { id: string; step: string; note?: string; children: React.ReactNode }) {
+  return (
+    <h2 id={id} className="flex items-baseline gap-2 text-caption uppercase tracking-wide text-ash">
+      <span className="text-ember">{step}</span>
+      <span>{children}</span>
+      {note && <span className="normal-case tracking-normal text-steel">· {note}</span>}
+    </h2>
   );
 }

@@ -42,7 +42,7 @@ This is the single source of truth for every visual and motion decision. The bas
 | `--color-ember-wash` | `#2a1810` | Ember at about 15% over void. Fill for board cells covered by the player (path) |
 | `--color-cell-line` | `#6b6b6b` | 1px outline on every board cell (path, balance, blocks, sudoku). 3.3:1 on graphite, so a cell reads as a cell on the card even with no fill change |
 
-Ember rules: primary buttons, progress bars, the active tier in the difficulty picker, the path line in Path, the small tick beside the daily card label, the wordmark cursor. Never on body text, never as a large background outside a board.
+Ember rules: primary buttons, progress bars, step numbers in start-card eyebrows and the suggested-tier dot, the path line in Path, the small tick beside the daily card label, the wordmark cursor. Never on body text, never as a large background outside a board.
 
 ### Game hues
 
@@ -147,6 +147,10 @@ Nested radii step down (card 24 → control 14 → cell 8) so inner corners neve
 - Game cards, Dialed style: `.surface`, 44px hue icon tile, title in `.title-card` (24px Geist Mono, weight 500, -0.04em), tagline, a white "play <game> →" pill, rating and suggested tier top right (or a "new" pill if never played). Card art fills the bottom: two tilted mini boards in the game's hue that bleed off the edge; the front one straightens and lifts on hover.
 - Grid: 1 column on mobile, 2 on tablet, 3 on desktop with the first and last cards spanning two columns (seven cards fill three rows).
 
+### Start card
+
+Read top to bottom in the order you decide (D-045): what the game is (icon tile, skill eyebrow, title, rules, mini board), your record (one `.well`: rating, best, played and solved in a four-column row of stat blocks, then the tier bar and its caption), then the two choices under numbered eyebrows (`01 mode`, `02 difficulty` with the tier line in paper under it), then one action row: a ghost "how to play" pill and the white "play <game> →" pill. Below 420px the row stacks with play on top. Only the play pill is filled white; everything above it is context or a choice.
+
 ### Stats page
 
 Totals row, training-days calendar (26 weeks, Monday first, four ember steps), skill bars on one shared 600 to 2000 scale, a per-game table that doubles as the picker for a rating-over-time chart (tier thresholds drawn as grey lines), bests per tier, recent games with rating change, and the data card (transfer code, import, reset).
@@ -160,8 +164,9 @@ Totals row, training-days calendar (26 weeks, Monday first, four ember steps), s
 | Ember button | Kept for destructive confirms ("yes, delete"). |
 | Insight chip | Mono 12px pill on white at 6%: "2nd of 14 at medium", "12% faster than your average". "new best" is a paper pill with black text. |
 | Rating panel | `.well` with rating and change, a bar in the game hue animating from the old to the new progress towards the next tier, and a caption ("139 to hard" or the level-up line). |
-| Tier picker | Four segments in a row, 1px iron dividers. Active segment ember underline and paper text, inactive steel text. Selection indicator slides between segments with the spring curve. |
-| Mode toggle | Daily / Practice segmented control, same mechanics as the tier picker. |
+| Tier picker | Segmented control: a 1px slate track (`--radius-control`, white at 3%, 4px padding) holding four segments. The active segment is a raised slate chip (`--radius-cell`, top highlight, small drop) with paper text; inactive segments are ash text that brightens on hover. The chip slides between segments with the spring curve. The suggested tier carries a 4px ember dot. When the tier is fixed (daily, challenge) the whole control sits at 50% opacity. |
+| Mode toggle | Daily / Practice (and Challenge from a link) on the same segmented control as the tier picker. |
+| Eyebrow | Section label above a choice on the start card: 12px uppercase ash, led by an ember step number (`01 mode`, `02 difficulty`) and an optional steel note (`· fixed today`). |
 | Tag | 12px uppercase `--color-steel`, no fill, no border. |
 | Icon tile | Squircle (radius 30% of size) in the game hue, black glyph, `--shadow-tile`. 22 to 44px. |
 | Stat block | Uppercase caption label above a 24px number. Used for time, moves, streak, rating. |
