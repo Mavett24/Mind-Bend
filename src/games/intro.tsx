@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import type { Tier } from "@/engine/difficulty";
 import type { GameId } from "./registry";
 import { BLOCKS_PALETTE } from "./blocks/palette";
+import { SUDOKU_GIVENS } from "./sudoku/engine";
 
 export interface GameIntro {
   /** Three or four numbered steps. */
@@ -266,10 +267,10 @@ export const INTRO: Record<GameId, GameIntro> = {
     ],
     controls: "Tap a cell, then a number. Tap the same number again to clear. Keys: arrows, numbers, N for notes, backspace.",
     tiers: {
-      easy: "6×6 grid, numbers 1 to 6, simple steps only",
-      medium: "9×9 grid, about 30 numbers given, simple steps only",
-      hard: "9×9 grid, about 27 given, needs pairs and pointing",
-      expert: "9×9 grid, about 24 given, needs several advanced steps",
+      easy: `6×6 grid, ${SUDOKU_GIVENS.easy} numbers given`,
+      medium: `6×6 grid, ${SUDOKU_GIVENS.medium} numbers given`,
+      hard: `6×6 grid, ${SUDOKU_GIVENS.hard} numbers given`,
+      expert: `6×6 grid, only ${SUDOKU_GIVENS.expert} numbers given`,
     },
     Example: SudokuExample,
   },

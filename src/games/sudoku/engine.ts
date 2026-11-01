@@ -1,11 +1,12 @@
 /**
  * sudoku: fill the grid so every row, column and box holds each number once.
- * Easy is a 6×6 grid (2×3 boxes), the other tiers are 9×9.
+ * Every tier is a 6×6 grid (2×3 boxes), like LinkedIn Mini Sudoku. Difficulty is the number of
+ * givens: more numbers to start from is easier, fewer is harder (D-044).
  *
- * Fairness and difficulty work like balance (D-018): a board is only accepted if a human-style
- * logic solver finishes it with the techniques allowed for its tier. Logic only places forced
- * numbers, so a board it finishes has exactly one solution. Harder tiers must also need their
- * techniques: a hard board can't be finished with singles alone.
+ * Fairness works like balance (D-018): a board is only accepted if a human-style logic solver
+ * finishes it with singles alone. Logic only places forced numbers, so a board it finishes has
+ * exactly one solution and never needs a guess. The solver keeps pairs, pointing, triples and
+ * X-wing for hints and for any future 9×9 mode.
  * Pure TypeScript. See docs/games/sudoku.md.
  */
 import { createRng, type Rng } from "@/engine/rng";
@@ -25,25 +26,33 @@ export interface SudokuPuzzle {
 }
 
 interface TierConfig {
-  size: 6 | 9;
-  /** Techniques the player may need. */
-  level: 1 | 2 | 3;
-  /** The board must need at least this many advanced steps (pairs, pointing and up). 0 = singles only. */
-  minAdvanced: number;
-  /** Stop removing givens at this count. */
-  minGivens: number;
-  /** Remove givens in rotationally symmetric pairs (classic look) or one at a time (fewer givens). */
+  /** Exact number of givens the board starts with. */
+  givens: number;
+  /** Remove givens in rotationally symmetric pairs (classic look) or one at a time (reaches the floor of 9). */
   symmetric: boolean;
 }
 
+/** Grid size for every tier (D-044). */
+export const SUDOKU_SIZE = 6;
+/** Techniques a board may need: singles only, at every tier. */
+const LEVEL = 1;
+
 const CONFIG: Record<Tier, TierConfig> = {
-  easy: { size: 6, level: 1, minAdvanced: 0, minGivens: 10, symmetric: true },
-  medium: { size: 9, level: 1, minAdvanced: 0, minGivens: 30, symmetric: true },
-  hard: { size: 9, level: 2, minAdvanced: 1, minGivens: 26, symmetric: true },
-  expert: { size: 9, level: 3, minAdvanced: 3, minGivens: 22, symmetric: false },
+  easy: { givens: 18, symmetric: true },
+  medium: { givens: 14, symmetric: true },
+  hard: { givens: 12, symmetric: true },
+  expert: { givens: 9, symmetric: false },
 };
 
-export const SUDOKU_PAR_MS: Record<Tier, number> = { easy: 90_000, medium: 300_000, hard: 600_000, expert: 900_000 };
+/** Givens per tier, for copy and tests. */
+export const SUDOKU_GIVENS: Record<Tier, number> = {
+  easy: CONFIG.easy.givens,
+  medium: CONFIG.medium.givens,
+  hard: CONFIG.hard.givens,
+  expert: CONFIG.expert.givens,
+};
+
+export const SUDOKU_PAR_MS: Record<Tier, number> = { easy: 45_000, medium: 75_000, hard: 120_000, expert: 180_000 };
 
 // ---------------------------------------------------------------- geometry
 
@@ -354,11 +363,14 @@ function fullGrid(size: number, rng: Rng): number[] {
 
 export function generateSudoku(key: BoardKey): SudokuPuzzle {
   const cfg = CONFIG[key.tier];
-  const { size } = cfg;
+  const size = SUDOKU_SIZE;
   const g = geometry(size);
   const root = createRng(boardSeed(key));
   let fallback: SudokuPuzzle | null = null;
 
+  // Each attempt removes givens in random order, keeping a removal only if singles can still
+  // finish the board, and stops at the tier's count. Low counts (expert's 9) are reached on about
+  // 1 attempt in 5, so 60 attempts practically always land on it; otherwise keep the fewest seen.
   for (let attempt = 0; attempt < 60; attempt++) {
     const rng = root.fork(`attempt-${attempt}`);
     const solution = fullGrid(size, rng.fork("grid"));
@@ -369,28 +381,27 @@ export function generateSudoku(key: BoardKey): SudokuPuzzle {
       ? removeRng.shuffle([...givens.keys()].filter((c) => c <= givens.length - 1 - c))
       : removeRng.shuffle([...givens.keys()]);
     for (const cell of order) {
+      if (count === cfg.givens) break;
       const twin = givens.length - 1 - cell;
       const pair = !cfg.symmetric || cell === twin ? [cell] : [cell, twin];
-      if (count - pair.length < cfg.minGivens) continue;
+      if (count - pair.length < cfg.givens) continue;
       const kept = pair.map((c) => givens[c]);
       pair.forEach((c) => (givens[c] = 0));
-      if (solveLogic(size, givens, cfg.level).solved) count -= pair.length;
+      if (solveLogic(size, givens, LEVEL).solved) count -= pair.length;
       else pair.forEach((c, i) => (givens[c] = kept[i]));
     }
-    const graded = solveLogic(size, givens, cfg.level);
+    const graded = solveLogic(size, givens, LEVEL);
     const puzzle: SudokuPuzzle = {
       size,
       boxRows: g.boxRows,
       boxCols: g.boxCols,
       givens,
       solution,
-      level: Math.max(1, graded.level) as 1 | 2 | 3,
+      level: 1,
       advanced: graded.advanced,
     };
-    // Singles-only tiers must not need anything harder (they can't: level caps it). Harder tiers need enough advanced steps.
-    if (puzzle.advanced >= cfg.minAdvanced) return puzzle;
-    // Keep the hardest board seen, in case no attempt reaches the tier's floor.
-    if (!fallback || puzzle.advanced > fallback.advanced) fallback = puzzle;
+    if (count === cfg.givens) return puzzle;
+    if (!fallback || count < fallback.givens.filter(Boolean).length) fallback = puzzle;
   }
   return fallback!;
 }

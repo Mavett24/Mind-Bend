@@ -228,9 +228,14 @@ The home screen opens on a full-bleed hero instead of a greeting line and two ca
 **Why:** Mavett asked for a hero that slaps and is more engaging. The boards show what the app is before anyone reads a word, and linking the set to the field makes the first screen respond to you. The headline uses number-sized type because on the home screen the hook is the message, not a timer.
 **Gave up:** the "you" card next to the daily set above the fold (it moves below the hero) and the rule that type above 32px is for numbers only.
 
-
 ### D-043 · Every board cell gets an outline
 **2026-11-02**
 Path, balance, blocks and sudoku cells now carry a 1px outline in a new token, `--color-cell-line` (`#6b6b6b`). It reaches 3.3:1 against the cell fill, the WCAG bar for shapes you need to see to play. State outlines take its place rather than stacking on it: the selected sudoku cell is paper, cells a hint points to are fog, the hinted cell keeps its 2px pulse.
 **Why:** after the raised-card redesign (D-037) the cell fill and the card behind it are the same dark grey (1.01:1), so empty cells disappeared and the grid only showed where something was placed. Playtesting flagged it as hard to read. An outline fixes it without lifting the cell fill, which would have eaten into the contrast of the dots, numbers and region colours on top.
 **Gave up:** the borderless, floating-tile look of the cells. Steel (`#606060`) was the closest existing token but sits at 2.8:1, so a new token was worth it.
+
+### D-044 · Sudoku is 6×6 at every tier, difficulty is the givens
+**2026-11-02** · replaces the tiers in D-036
+Every tier is a 6×6 grid, solvable with singles only. Tiers differ by how many numbers you start with: 18 on easy, 14 on medium, 12 on hard, 9 on expert. Pars drop to 45s, 75s, 2 min and 3 min.
+**Why:** playtesting found the 9×9 tiers far too hard and not what the game is for. Mavett wants the LinkedIn Mini Sudoku feel at every level: a quick board you finish, where more help makes it easier and less help makes it harder. Givens are a difficulty you can see before you start, and every board still has one solution with no guessing.
+**Gave up:** classic 9×9 sudoku and the technique ladder (pairs, pointing, X-wing) that defined hard and expert. The solver keeps those techniques, so a 9×9 mode can come back later as its own option.
