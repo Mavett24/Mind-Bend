@@ -6,7 +6,7 @@ import { dur, ease } from "@/lib/motion";
 interface Option<T extends string> {
   value: T;
   label: string;
-  /** Small marker under the label, e.g. the suggested tier. */
+  /** Small ember marker on the segment, e.g. the suggested tier. */
   marked?: boolean;
 }
 
@@ -19,11 +19,21 @@ interface SegmentedProps<T extends string> {
   disabled?: boolean;
 }
 
-/** Tier picker and mode toggle. The ember indicator slides between segments on the spring curve. */
+/**
+ * Tier picker and mode toggle (D-045). A stroked track so it reads as a control, and a filled
+ * chip on the active segment that slides between options on the spring curve.
+ */
 export function Segmented<T extends string>({ id, label, options, value, onChange, disabled }: SegmentedProps<T>) {
   return (
-    <div role="radiogroup" aria-label={label} className="flex w-full overflow-hidden rounded-control border border-iron">
-      {options.map((opt, i) => {
+    <div
+      role="radiogroup"
+      aria-label={label}
+      aria-disabled={disabled || undefined}
+      className={`flex w-full gap-1 rounded-control border border-slate bg-white/[0.03] p-1 transition-opacity duration-[var(--dur-fast)] ${
+        disabled ? "opacity-50" : ""
+      }`}
+    >
+      {options.map((opt) => {
         const active = opt.value === value;
         return (
           <button
@@ -33,21 +43,20 @@ export function Segmented<T extends string>({ id, label, options, value, onChang
             aria-checked={active}
             disabled={disabled}
             onClick={() => onChange(opt.value)}
-            className={`relative flex h-10 flex-1 items-center justify-center text-caption uppercase tracking-wide transition-colors duration-[var(--dur-fast)] ${
-              i > 0 ? "border-l border-iron" : ""
-            } ${active ? "text-paper" : "text-steel hover:text-fog"} disabled:cursor-not-allowed`}
+            className={`relative flex h-9 flex-1 items-center justify-center rounded-cell text-caption uppercase tracking-wide transition-colors duration-[var(--dur-fast)] ${
+              active ? "text-paper" : "text-ash enabled:hover:bg-white/[0.04] enabled:hover:text-paper"
+            } disabled:cursor-not-allowed`}
           >
-            {opt.label}
-            {opt.marked && (
-              <span aria-label="suggested" className="absolute right-1.5 top-1.5 h-1 w-1 rounded-full bg-fog" />
-            )}
             {active && (
               <motion.span
+                aria-hidden
                 layoutId={`seg-${id}`}
                 transition={{ duration: dur.base, ease: ease.spring }}
-                className="absolute inset-x-0 bottom-0 h-[2px] bg-ember"
+                className="absolute inset-0 rounded-cell bg-slate shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_1px_3px_rgba(0,0,0,0.4)]"
               />
             )}
+            <span className="relative">{opt.label}</span>
+            {opt.marked && <span aria-label="suggested" className="absolute right-1.5 top-1.5 h-1 w-1 rounded-full bg-ember" />}
           </button>
         );
       })}
