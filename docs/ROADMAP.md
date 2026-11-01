@@ -39,6 +39,7 @@
 - [ ] Optional cloud sync (free Vercel database) on the same record format
 
 ## Phase 6 · Polish
+- [x] Cell outlines at 3:1 on every logic board (D-043)
 - [ ] Motion pass on every signature moment (see DESIGN.md §6)
 - [ ] Sound and haptics
 - [ ] Accessibility audit, keyboard play for every board

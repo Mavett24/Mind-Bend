@@ -161,7 +161,7 @@ export function BlocksBoard({ puzzle, onSolved }: BoardProps<BlocksPuzzle>) {
           return (
             <div key={cell} className="p-[3px]">
               <div
-                className={`flex h-full w-full items-center justify-center gap-[2px] rounded-cell bg-graphite ${
+                className={`flex h-full w-full items-center justify-center gap-[2px] rounded-cell border border-cell-line bg-graphite ${
                   cell === cursor ? "group-focus-visible/board:outline group-focus-visible/board:outline-1 group-focus-visible/board:outline-paper" : ""
                 }`}
               >

@@ -23,6 +23,7 @@
   --color-ember-hover: #e46a3a;
   --color-ember-wash: #2a1810; /* ember at ~15% over void, for cells the path has covered */
   --color-entry: #9ec1ff; /* numbers the player types into a board (sudoku), next to paper givens */
+  --color-cell-line: #6b6b6b; /* 1px outline on every board cell, 3.3:1 on graphite so cells read on the card */
 
   /* Game identity hues: icon tiles, card art, charts. Black text on all of them passes 4.5:1. */
   --color-hue-path: #ff7a2f;

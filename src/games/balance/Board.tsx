@@ -149,9 +149,9 @@ export function BalanceBoard({ puzzle, onSolved }: BoardProps<BalancePuzzle>) {
                 onKeyDown={(e) => onKeyDown(e, cell)}
                 animate={solved && !reduced ? { scale: [1, 1.1, 1] } : { scale: 1 }}
                 transition={solved ? { duration: 0.42, ease: ease.spring, delay: distance(cell) * 0.035 } : { duration: dur.fast }}
-                className={`relative flex h-full w-full items-center justify-center rounded-cell transition-colors duration-[var(--dur-fast)] ${
+                className={`relative flex h-full w-full items-center justify-center rounded-cell border transition-colors duration-[var(--dur-fast)] ${
                   given ? "cursor-default bg-slate/60" : "bg-graphite hover:bg-iron"
-                } ${hint?.related.includes(cell) ? "ring-1 ring-fog/60" : ""}`}
+                } ${hint?.related.includes(cell) ? "border-fog" : "border-cell-line"}`}
               >
                 {hint?.cell === cell && (
                   <motion.span
