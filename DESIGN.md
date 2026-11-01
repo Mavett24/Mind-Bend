@@ -40,6 +40,7 @@ This is the single source of truth for every visual and motion decision. The bas
 | `--color-ember-hover` | `#e46a3a` | Primary action hover |
 | `--color-entry` | `#9ec1ff` | Numbers the player enters on a board (sudoku), so they read apart from bold paper givens. 9.6:1 on graphite |
 | `--color-ember-wash` | `#2a1810` | Ember at about 15% over void. Fill for board cells covered by the player (path) |
+| `--color-cell-line` | `#6b6b6b` | 1px outline on every board cell (path, balance, blocks, sudoku). 3.3:1 on graphite, so a cell reads as a cell on the card even with no fill change |
 
 Ember rules: primary buttons, progress bars, the active tier in the difficulty picker, the path line in Path, the small tick beside the daily card label, the wordmark cursor. Never on body text, never as a large background outside a board.
 
@@ -74,6 +75,8 @@ Inside a game board, color is information: regions in Blocks, symbols in Balance
 - pass 3:1 contrast against `--color-graphite` for any filled cell
 - stay distinguishable for deuteranopia and protanopia (pair hue with a symbol or pattern where meaning depends on it)
 - never leak outside the board onto chrome
+
+Every board cell has a 1px `--color-cell-line` outline. Cell fill and card are both near `#191919`, so the outline is what defines the grid. State outlines (selected, hint, related) replace it instead of stacking on top of it: selected is paper, a hint's related cells are fog.
 
 Recall is the one game where the whole card becomes the stimulus color. That is the game, so it is allowed.
 

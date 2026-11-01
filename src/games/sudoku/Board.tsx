@@ -152,9 +152,9 @@ export function SudokuBoard({ puzzle, onSolved }: BoardProps<SudokuPuzzle>) {
                     }}
                     animate={solved && !reduced ? { scale: [1, 1.12, 1] } : { scale: 1 }}
                     transition={solved ? { duration: 0.42, ease: ease.spring, delay: distance(cell) * 0.03 } : { duration: dur.fast }}
-                    className={`relative flex items-center justify-center rounded-[6px] font-mono leading-none transition-colors duration-[var(--dur-fast)] ${
+                    className={`relative flex items-center justify-center rounded-[6px] border font-mono leading-none transition-colors duration-[var(--dur-fast)] ${
                       isSel ? "bg-slate" : sameDigit ? "bg-slate/60" : highlight ? "bg-iron" : given ? "bg-graphite" : "bg-graphite/70"
-                    } ${isRelated ? "ring-1 ring-inset ring-fog/60" : ""}`}
+                    } ${isSel && !isHint ? "border-paper" : isRelated ? "border-fog" : "border-cell-line"}`}
                     style={{ fontSize: size === 6 ? "clamp(18px, 6.5vw, 28px)" : "clamp(15px, 4.8vw, 22px)" }}
                   >
                     {value ? (
@@ -180,7 +180,6 @@ export function SudokuBoard({ puzzle, onSolved }: BoardProps<SudokuPuzzle>) {
                         transition={reduced ? { duration: 0 } : { duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
                       />
                     )}
-                    {isSel && !isHint && <span aria-hidden className="pointer-events-none absolute inset-0 rounded-[6px] ring-1 ring-inset ring-paper" />}
                   </motion.button>
                 );
               })}

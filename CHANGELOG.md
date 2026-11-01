@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **Cell outlines** on path, balance, blocks and sudoku: every cell now has a 1px outline at 3.3:1 so empty cells read on the card. The selected sudoku cell and a hint's related cells swap the outline colour instead of adding a second ring (D-043). New token `--color-cell-line`.
 - **New home hero** (D-042): a field of floating mini boards from all seven games with pointer parallax, a big mono headline, the daily set in front with a live countdown to the next set, and the week's difficulty ramp. Hovering a game in the set lights its boards in the background.
 - The "you" card now runs horizontally under the hero.
 - Repo: CI on every push and pull request (lint, typecheck, tests, build), Dependabot, issue and PR templates, MIT licence for the code, `.editorconfig`, `.nvmrc`, `typecheck` and `check` scripts, and a README with screenshots and architecture notes.

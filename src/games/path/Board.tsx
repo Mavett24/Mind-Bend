@@ -182,7 +182,9 @@ export function PathBoard({ puzzle, onSolved }: BoardProps<PathPuzzle>) {
               width={1 - PAD * 2}
               height={1 - PAD * 2}
               rx={0.16}
-              className={visited.has(cell) ? "fill-ember-wash" : "fill-graphite"}
+              className={`stroke-cell-line ${visited.has(cell) ? "fill-ember-wash" : "fill-graphite"}`}
+              strokeWidth={1}
+              vectorEffect="non-scaling-stroke"
               style={{ transformBox: "fill-box", transformOrigin: "center" }}
               animate={solved && !reduced ? { scale: [1, 1.1, 1] } : { scale: 1 }}
               transition={
