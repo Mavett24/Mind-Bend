@@ -185,6 +185,7 @@ Totals row, training-days calendar (26 weeks, Monday first, four ember steps), s
 | Hint button | Ghost pill, 40px tall. After use it locks for 5s: an iron fill sweeps out with scaleX and the label counts down ("hint · 4s"). |
 | How-to-play screen | Example illustration on a void panel, numbered steps (iron number badges), a graphite tier box, controls in 13px steel, skip checkbox, back + start. |
 | Toast | Bottom centre, `--color-graphite`, 1px iron border, 14px text, slides up with spring, auto-dismiss 2.4s. |
+| Cookie card | `.surface` card fixed to the bottom, max 520px, 16px gutters on mobile, above the safe area. Caption eyebrow `COOKIES`, two sentences of fog body text with a privacy link, then accept and reject as identical ghost pills in a two-column grid (never one filled and one ghost). Rises 24px and fades in. Never blocks the page (D-053). |
 
 ### Charts
 

@@ -54,6 +54,11 @@
 - [ ] Accessibility audit, keyboard play for every board
 - [ ] Performance pass on low-end phones
 
+## Launch prep
+- [x] Google Analytics 4 behind a consent banner, privacy page (D-053)
+- [ ] GA4 analytics plan: custom events, dimensions, key events, reports
+- [ ] Favicon, social images, SEO and GEO, custom domain
+
 ## Phase 7 · Case study
 - [ ] Screen recordings of each game and signature moment
 - [ ] Metrics: generator speed, uniqueness test counts, Lighthouse scores
