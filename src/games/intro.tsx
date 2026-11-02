@@ -28,7 +28,7 @@ function ChessExample() {
   return (
     <svg viewBox="0 0 4 3" className="h-28 w-[150px]" aria-hidden>
       {Array.from({ length: 12 }, (_, i) => (
-        <rect key={i} x={i % 4} y={Math.floor(i / 4)} width={1} height={1} className={(i % 4 + Math.floor(i / 4)) % 2 === 0 ? "fill-square-light" : "fill-square-dark"} />
+        <rect key={i} x={(i % 4) + 0.03} y={Math.floor(i / 4) + 0.03} width={0.94} height={0.94} rx={0.14} className={(i % 4 + Math.floor(i / 4)) % 2 === 0 ? "fill-square-light" : "fill-square-dark"} />
       ))}
       <PieceAt type="k" color="b" x={2} y={0} size={1} />
       <PieceAt type="p" color="b" x={1} y={1} size={1} />

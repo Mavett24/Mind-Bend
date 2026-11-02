@@ -62,11 +62,11 @@ The start card shows rating, peak, played and solved, with a bar to the next hun
 ## Visuals
 
 - Hue: violet `--color-hue-chess` `#c084fc`.
-- Board: violet-tinted squares `--color-square-light` `#5d5672` and `--color-square-dark` `#39334a` (D-047), coordinates in the opposite square colour, 10 px mono.
-- Pieces: Mind Bend's own flat set (`src/games/chess/pieces.tsx`). White is paper with a black edge, black is near-black with a chalk edge, so both read on both squares.
-- Last move: hue at 32% over both squares. Selected piece: paper at 16%. King in check: 3 px ember inset ring. Hint: 3 px hue ring that pulses, then a hue arrow.
+- Board: rounded tiles with a 2 px void gap on a void panel, built like the cells on every other board (D-050). Light tiles are slate, dark tiles iron. Coordinates in 9 px mono, fog at 60%.
+- Pieces: Mind Bend's own set (`src/games/chess/pieces.tsx`): chunky, low silhouettes on one shared rounded base. White is paper with a void edge, black is void with a fog edge, so both read on both tiles.
+- Last move: hue at 34% over both tiles. Selected piece: 2 px paper ring. King in check: 2 px ember ring. Hint: 2 px hue ring that pulses, then a hue arrow.
 - Pieces glide between squares (240 ms, `--ease-out`), captured pieces fade and shrink, a dropped piece lands without gliding. Reduced motion: no glide, no shake, no pulse.
-- Squares are about 42 px on a 390 px phone: the board fills the card edge to edge, the card padding drops to 12 px for it. That is under the 44 px target (D-047).
+- Tiles are about 41 px on a 390 px phone: the board fills the card edge to edge, the card padding drops to 12 px for it. That is under the 44 px target (D-047).
 
 ## Lines
 

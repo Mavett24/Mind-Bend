@@ -438,7 +438,7 @@ export function ChessSession({ game, mode, tier, seed, onExit }: ChessSessionPro
             shake={shake}
           />
         ) : (
-          <div className="flex aspect-square w-full items-center justify-center rounded-cell bg-square-dark">
+          <div className="flex aspect-square w-full items-center justify-center rounded-control bg-void shadow-[0_0_0_1px_rgba(255,255,255,0.07)]">
             {phase === "error" ? (
               <div className="flex flex-col items-center gap-3 px-6 text-center text-fog">
                 <p>The puzzle couldn&apos;t load. Check your connection.</p>

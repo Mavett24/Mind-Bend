@@ -269,3 +269,9 @@ chess rates you against each puzzle's own rating, chess.com style: start at 1200
 The chess daily is three puzzles at about 1300, 1700 and 2100, the same for everyone, and each one is rated on your first attempt. It counts as done once all three are played, solved or not.
 **Why:** Mavett wanted the chess.com feel, where the daily matters. Puzzle Elo makes a shared set fair without tailoring it: a strong player gains little on the first and risks a lot, a newer player risks little on the third and gains a lot. A shared set keeps the "did you get all three?" moment.
 **Gave up:** consistency with the other games' unrated dailies, and a daily set tuned to each player's level.
+
+### D-050 · The chess board is built like our other boards
+**2026-11-02** · amends the board look in D-047
+The board is now 64 rounded tiles (6px radius) with a 2px void gap on a void panel, in the app's own neutrals: slate for light tiles, iron for dark. The violet hue only marks the last move and hints. The pieces were redrawn: chunky, low silhouettes on one shared rounded base, drawn as an outer edge with the fill on top so overlapping parts no longer show seams. White is paper with a void edge, black is void with a fog edge.
+**Why:** Mavett found the first pieces stretched and the board not modern enough. The tall, narrow pieces with an outline around every part looked like a classic set traced in vector, and the violet checkerboard read as a theme from another app. Every other Mind Bend board is rounded tiles on black, so the chess board now is too, and the hue goes back to marking state, as it does in path.
+**Gave up:** the violet-tinted squares (the two tokens now alias slate and iron) and the slightly taller, more traditional piece proportions.

@@ -263,7 +263,7 @@ export function ChessBoard({ fen, orientation, lastMove, movable, onMove, hint, 
       key={shake}
       animate={shake && !reduced ? { x: [0, -4, 4, -4, 4, -2, 0] } : undefined}
       transition={{ duration: dur.base }}
-      className="w-full"
+      className="w-full rounded-control bg-void p-[3px] shadow-[0_0_0_1px_rgba(255,255,255,0.07)]"
     >
       <div
         ref={boardRef}
@@ -275,9 +275,10 @@ export function ChessBoard({ fen, orientation, lastMove, movable, onMove, hint, 
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={() => setDrag(null)}
-        className="group/board relative aspect-square w-full touch-none select-none overflow-hidden rounded-cell outline-none shadow-[0_0_0_1px_rgba(255,255,255,0.06)]"
+        className="group/board relative aspect-square w-full touch-none select-none rounded-[11px] outline-none"
       >
-        {/* Squares */}
+        {/* Squares: rounded tiles with a 2px void gap, like the cells on every other board (D-050).
+            Each grid cell is a full eighth so pieces line up exactly; the tile sits 1px inside it. */}
         <div className="absolute inset-0 grid grid-cols-8 grid-rows-8">
           {Array.from({ length: 64 }, (_, i) => {
             const sq = squareFromScreen(i % 8, Math.floor(i / 8), orientation)!;
@@ -291,31 +292,25 @@ export function ChessBoard({ fen, orientation, lastMove, movable, onMove, hint, 
                 role="gridcell"
                 aria-label={squareLabel(sq)}
                 aria-selected={selected === sq}
-                className={`relative ${light ? "bg-square-light" : "bg-square-dark"}`}
+                className="relative"
               >
-                {last && <div className="absolute inset-0 bg-hue-chess opacity-[0.32]" />}
-                {selected === sq && <div className="absolute inset-0 bg-paper opacity-[0.16]" />}
-                {checkSquare === sq && <div className="absolute inset-0 shadow-[inset_0_0_0_3px_var(--color-ember)]" />}
-                {hint && hint.from === sq && (
-                  <motion.div
-                    className="absolute inset-0 shadow-[inset_0_0_0_3px_var(--color-hue-chess)]"
-                    animate={reduced ? undefined : { opacity: [1, 0.35, 1] }}
-                    transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
-                  />
-                )}
-                {cursor === sq && <div className="absolute inset-[2px] hidden rounded-[4px] outline outline-1 outline-paper group-focus-visible/board:block" />}
-                {target && !target.capture && <div className="absolute left-1/2 top-1/2 h-[28%] w-[28%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-void/35" />}
-                {target && target.capture && <div className="absolute inset-[5%] rounded-full shadow-[inset_0_0_0_4px_rgba(0,0,0,0.35)]" />}
-                {col === 0 && (
-                  <span className={`pointer-events-none absolute left-[5%] top-[3%] font-mono text-[10px] leading-none ${light ? "text-square-dark" : "text-square-light"}`}>
-                    {sq[1]}
-                  </span>
-                )}
-                {row === 7 && (
-                  <span className={`pointer-events-none absolute bottom-[3%] right-[6%] font-mono text-[10px] leading-none ${light ? "text-square-dark" : "text-square-light"}`}>
-                    {sq[0]}
-                  </span>
-                )}
+                <div className={`absolute inset-px overflow-hidden rounded-[6px] ${light ? "bg-square-light" : "bg-square-dark"}`}>
+                  {last && <div className="absolute inset-0 bg-hue-chess opacity-[0.34]" />}
+                  {selected === sq && <div className="absolute inset-0 rounded-[6px] bg-paper/[0.08] shadow-[inset_0_0_0_2px_var(--color-paper)]" />}
+                  {checkSquare === sq && <div className="absolute inset-0 rounded-[6px] shadow-[inset_0_0_0_2px_var(--color-ember)]" />}
+                  {hint && hint.from === sq && (
+                    <motion.div
+                      className="absolute inset-0 rounded-[6px] shadow-[inset_0_0_0_2px_var(--color-hue-chess)]"
+                      animate={reduced ? undefined : { opacity: [1, 0.35, 1] }}
+                      transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                  )}
+                  {cursor === sq && <div className="absolute inset-0 hidden rounded-[6px] shadow-[inset_0_0_0_1px_var(--color-paper)] group-focus-visible/board:block" />}
+                  {target && !target.capture && <div className="absolute left-1/2 top-1/2 h-[26%] w-[26%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-void/40" />}
+                  {target && target.capture && <div className="absolute inset-[6%] rounded-full shadow-[inset_0_0_0_3px_rgba(0,0,0,0.45)]" />}
+                  {col === 0 && <span className="pointer-events-none absolute left-[7%] top-[5%] font-mono text-[9px] leading-none text-fog/60">{sq[1]}</span>}
+                  {row === 7 && <span className="pointer-events-none absolute bottom-[5%] right-[8%] font-mono text-[9px] leading-none text-fog/60">{sq[0]}</span>}
+                </div>
               </div>
             );
           })}
@@ -344,7 +339,7 @@ export function ChessBoard({ fen, orientation, lastMove, movable, onMove, hint, 
                 exit={{ opacity: 0, scale: 0.8, transition: { duration: dur.fast, ease: ease.in } }}
                 transition={dragging || instant || reduced ? { duration: 0 } : { duration: dur.base, ease: ease.out }}
               >
-                <Piece type={p.type} color={p.color} className="h-full w-full" />
+                <Piece type={p.type} color={p.color} className="h-full w-full p-[3%]" />
               </motion.div>
             );
           })}
@@ -391,7 +386,7 @@ export function ChessBoard({ fen, orientation, lastMove, movable, onMove, hint, 
                     setSelected(null);
                     onMove({ from: m.from, to: m.to, promotion: t });
                   }}
-                  className="absolute h-[12.5%] w-[12.5%] rounded-full bg-paper/90 p-[6%] shadow-[0_4px_12px_rgba(0,0,0,0.5)] transition-transform duration-[var(--dur-fast)] hover:scale-105"
+                  className="absolute h-[12.5%] w-[12.5%] rounded-[10px] bg-graphite p-[6%] shadow-[0_0_0_1px_rgba(255,255,255,0.12),0_6px_16px_rgba(0,0,0,0.6)] transition-transform duration-[var(--dur-fast)] hover:scale-105"
                   style={{ left: `${col * 12.5}%`, top: `${top * 12.5}%` }}
                 >
                   <Piece type={t} color={movable ?? "w"} className="h-full w-full" />
