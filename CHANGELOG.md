@@ -9,6 +9,7 @@
   - Practice is endless and never repeats a puzzle; tiers are offsets from your rating. One wrong move loses the puzzle, then retry (unrated), see the solution or move on.
   - Daily set of three at about 1300, 1700 and 2100, rated on the first attempt, with a summary at the end (D-049).
   - Challenge links name the exact puzzle. Stats: tactics skill bar, chess rating chart, peak, hardest solved, best run, fastest clean solve.
+- chess board redesign (D-050): rounded neutral tiles with void gaps like every other board, violet only for the last move and hints, and a chunkier, lower piece set with clean outer edges in place of the tall, segmented first version.
 - Home: "Eight games." for new players, the daily set counts eight, chess boards join the hero field, the bento grid fits eight cards.
 - New tokens: `--color-hue-chess`, `--color-square-light`, `--color-square-dark`. New dependency: chess.js (BSD-2-Clause).
 

@@ -20,23 +20,13 @@ const grid = (n: number, fill = "#232323") =>
 const ART: Record<GameId, Art> = {
   chess: (v, h) => {
     const s = 25;
-    const sq = (i: number) => {
-      const x = (i % 4) * s;
-      const y = Math.floor(i / 4) * s;
-      return <rect key={`s${i}`} x={x} y={y} width={s} height={s} fill={(i % 4) % 2 === Math.floor(i / 4) % 2 ? "#5d5672" : "#39334a"} />;
-    };
     const last = v === 0 ? [9, 6] : [13, 10];
     return (
       <>
-        <clipPath id={`chess-art-${v}`}>
-          <rect width="100" height="100" rx="10" />
-        </clipPath>
-        <g clipPath={`url(#chess-art-${v})`}>
-          {Array.from({ length: 16 }, (_, i) => sq(i))}
-          {last.map((i) => (
-            <rect key={`l${i}`} x={(i % 4) * s} y={Math.floor(i / 4) * s} width={s} height={s} fill={h} opacity={0.4} />
-          ))}
-        </g>
+        {Array.from({ length: 16 }, (_, i) =>
+          cell((i % 4) * s, Math.floor(i / 4) * s, s, (i % 4) % 2 === Math.floor(i / 4) % 2 ? "#3a3a3a" : "#202020", `s${i}`),
+        )}
+        {last.map((i) => cell((i % 4) * s, Math.floor(i / 4) * s, s, h, `l${i}`, 0.38))}
         {v === 0 ? (
           <>
             <PieceAt type="k" color="b" x={25} y={0} size={25} />

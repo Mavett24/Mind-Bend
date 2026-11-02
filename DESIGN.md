@@ -81,14 +81,16 @@ Every board cell has a 1px `--color-cell-line` outline. Cell fill and card are b
 
 Recall is the one game where the whole card becomes the stimulus color. That is the game, so it is allowed.
 
-### Chess board (D-047)
+### Chess board (D-047, D-050)
 
 | Token | Value | Use |
 |-------|-------|-----|
-| `--color-square-light` | `#5d5672` | Light squares, and coordinates on dark squares |
-| `--color-square-dark` | `#39334a` | Dark squares, and coordinates on light squares |
+| `--color-square-light` | `var(--color-slate)` (`#3a3a3a`) | Light tiles |
+| `--color-square-dark` | `var(--color-iron)` (`#202020`) | Dark tiles |
 
-Violet-tinted greys, so the board carries the chess hue without competing with the pieces. Pieces are Mind Bend's own flat set: white is paper with a black edge, black is near-black with a chalk edge, both readable on both squares. Last move: hue at 32%. Selected: paper at 16%. Check: 3px ember inset ring. Hint: a pulsing 3px hue ring, then a hue arrow. Legal moves: void dots at 35%, captures as rings. A wrong move gets an ember × badge, a right one a paper ✓ badge. Chess squares have no cell outline: alternating squares already define the grid.
+The board is built like every other board: 64 rounded tiles (6px radius) with a 2px void gap, on a void panel with `--radius-control` and a 7% white ring. The squares stay neutral; the chess hue only marks what matters (last move at 34%, the hint ring and arrow). Selected: 2px paper inset ring. Check: 2px ember inset ring. Legal moves: void dots at 40%, captures as rings. Coordinates: 9px mono, fog at 60%. A wrong move gets an ember × badge, a right one a paper ✓ badge. Tiles have no cell outline: alternating tiles and the gaps already define the grid.
+
+Pieces are Mind Bend's own set: chunky, low silhouettes on one shared rounded base, drawn as a clean outer edge with the fill on top (no seams). White is paper with a void edge, black is void with a fog edge.
 
 ### In-game clock
 
