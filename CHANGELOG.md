@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **Google Analytics behind consent** (D-053): a cookie card asks once, with accept and reject as equal pills, and never blocks play. Nothing from Google loads before accept. Reject after accept deletes the GA cookies. "cookie settings" in the footer reopens it; choices expire after 12 months.
+- **Privacy page** (`/privacy`): what stays in the browser, what GA collects and why, cookies, hosting, rights.
+- **New footer** on every page (D-054): sign-off prompt, "Built to bend minds.", the countdown to the next set, every game as a tile, a giant wordmark, and privacy and cookie settings in small type.
+- New: `src/lib/consent.ts` (rules, tested), `src/lib/analytics.ts`, `ConsentBanner`, `SiteFooter`. Set `NEXT_PUBLIC_GA_ID` (Production only) to turn GA on.
 - **Motion layer** (D-052): sections and game cards reveal as you scroll to them, stat totals count up, tier and activity bars fill in view, the hero's boards drift away as you scroll, and the header bar appears once you scroll. Game cards spring their icon and glow on hover and compress when pressed; card art has a light scroll parallax on desktop. The streak pill bumps when your streak goes up.
 - **Wrong-move shake** on path (a refused step), balance (a row, column or link that breaks), sudoku (a clashing number) and blocks (a rectangle that can't be right). Reduced motion turns it into a short fade.
 - Reduced motion now applies to every Motion animation, not only the components that checked it.
