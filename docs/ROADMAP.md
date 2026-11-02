@@ -50,6 +50,7 @@
 - [x] Cell outlines at 3:1 on every logic board (D-043)
 - [x] Start card hierarchy: eyebrows, stroked controls, one primary action (D-045)
 - [x] Motion pass on every signature moment, plus scroll, press and reveal motion (D-052)
+- [x] Header font with more personality: Doto Black (D-055)
 - [ ] Sound and haptics
 - [ ] Accessibility audit, keyboard play for every board
 - [ ] Performance pass on low-end phones

@@ -25,7 +25,7 @@ export function SiteFooter() {
               ~/mind-bend $ sign-off
               <span aria-hidden className="ml-1 inline-block h-[1.1em] w-[0.55em] translate-y-[2px] animate-blink bg-ember" />
             </p>
-            <h2 className="font-mono text-display font-medium tracking-[-0.04em] text-paper md:text-number md:tracking-[-0.05em]">
+            <h2 className="text-display text-paper md:text-number">
               Built to
               <br />
               <span className="text-steel">bend minds.</span>
@@ -94,7 +94,7 @@ export function SiteFooter() {
 
       {/* The wordmark, huge and sinking into the bottom edge. Decoration only. */}
       <div aria-hidden className="pointer-events-none select-none px-4">
-        <div className="mx-auto -mb-[0.1em] max-w-[1200px] whitespace-nowrap font-mono font-bold leading-none tracking-[-0.06em] text-graphite"
+        <div className="mx-auto -mb-[0.1em] max-w-[1200px] font-display whitespace-nowrap leading-none text-graphite"
           style={{ fontSize: "var(--text-footer-mark)" }}
         >
           mind_bend

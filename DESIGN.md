@@ -8,7 +8,7 @@ This is the single source of truth for every visual and motion decision. The bas
 
 1. **The card is the stage.** Every game lives inside one card with fixed proportions. The page around it stays quiet.
 2. **Cards float, the page stays black.** Cards are raised surfaces (a soft top-to-bottom gradient, a 1px light ring and three layered drop shadows), Dialed style. Inside a card, wells and boards step back down with flat neutrals. (D-037, replaces "flat, layered darkness")
-3. **Two voices, one family.** Geist Mono speaks (headings, labels, numbers, buttons). Geist Sans explains (everything you read). Nothing else.
+3. **Three voices.** Doto shouts (headings, game names, the wordmark, big result numbers). Geist Mono speaks (labels, buttons, small numbers, the running clock). Geist Sans explains (everything you read). Nothing else. (D-055)
 4. **Ember is the brand mark.** Orange is the wordmark cursor, the streak, the pickers and activity. Primary buttons are white pills (D-038).
 5. **Each game owns one hue.** A game's colour appears on its icon tile, its card art, its rating bar and its chart line, always next to the game's name or icon, never alone. Everything else in chrome stays monochrome.
 6. **Motion has mass.** Things overshoot slightly and settle, like they were thrown. Nothing slides linearly.
@@ -102,10 +102,11 @@ Correct, wrong and hint states use symbols and borders, not green or red fills: 
 
 ## 3. Typography
 
-**Geist Mono** (`--font-mono`): headings, captions and tags, numbers, buttons, the wordmark, game names.
+**Doto** (`--font-display`): headings, game names (`.title-card`), the wordmark, the `.text-number*` sizes. Always Black 900 with square dots (`ROND` 0), tracking 0. (D-055)
+**Geist Mono** (`--font-mono`): captions and tags, buttons, small numbers, the running clock, board digits, chart labels.
 **Geist Sans** (`--font-sans`): body copy, descriptions, rules, helper text, navigation links.
 
-Both self-hosted through the `geist` package (SIL OFL 1.1), no runtime font requests. Headings, `.text-caption` and the `.text-number*` sizes switch to mono automatically in `globals.css`; anything else that needs mono uses the `font-mono` utility.
+Geist is self-hosted through the `geist` package and Doto from `src/fonts` (one 6KB variable file, weight and `ROND` axes), all SIL OFL 1.1, no runtime font requests. `h1` to `h4`, `.title-card` and `.text-number*` switch to Doto automatically in `globals.css`, overriding weight and tracking utilities; anything else uses the `font-display` utility. A heading styled `.text-caption` stays Geist Mono: dot letters break up below about 16px, so Doto never goes under `--text-heading-sm`.
 
 **Fallbacks:** `ui-monospace, SFMono-Regular, Menlo, monospace` and `ui-sans-serif, system-ui, sans-serif`.
 
@@ -153,10 +154,10 @@ Nested radii step down (card 24 → control 14 → cell 8) so inner corners neve
 ### Home
 
 - Hero (D-042), full bleed under the header. Behind it, a board field: 14 tilted mini boards from all seven games, drifting slowly (12px bob, 7 to 12s) and following the pointer with depth (springy parallax, mouse only). A void radial keeps the headline readable and the field melts into the page at the bottom. On mobile, five boards sit in a band above the headline.
-- Hero left: terminal prompt with an ember caret, a two-line mono headline at up to 84px (paper, then steel: "Seven boards. / Fresh daily." for a first visit, the streak or boards left for a returning player), a short pitch on first visit, a white pill naming the next daily game with its icon tile, a ghost "practice" pill, and the week ramp (one bar per weekday, height by tier, today in ember).
+- Hero left: terminal prompt with an ember caret, a two-line Doto headline at up to 84px (paper, then steel: "Seven boards. / Fresh daily." for a first visit, the streak or boards left for a returning player), a short pitch on first visit, a white pill naming the next daily game with its icon tile, a ghost "practice" pill, and the week ramp (one bar per weekday, height by tier, today in ember).
 - Hero right: the daily set card. `0/7` at `--text-number` with the fraction dimmed, today's tier pill, one bar per game in its hue, the seven games as rows, and a ticking countdown to the next set. Hovering or focusing a row lights that game's boards in the field (scale up, hue glow) and dims the rest; at rest the next unplayed game is lit.
 - Below the hero, the "you" card runs horizontally: streak, played and best run, the 14-day activity bars, and the "next up" suggestion with progress to the next tier.
-- Game cards, Dialed style: `.surface`, 44px hue icon tile, title in `.title-card` (24px Geist Mono, weight 500, -0.04em), tagline, a white "play <game> →" pill, rating and suggested tier top right (or a "new" pill if never played). Card art fills the bottom: two tilted mini boards in the game's hue that bleed off the edge; the front one straightens and lifts on hover.
+- Game cards, Dialed style: `.surface`, 44px hue icon tile, title in `.title-card` (24px Doto 900), tagline, a white "play <game> →" pill, rating and suggested tier top right (or a "new" pill if never played). Card art fills the bottom: two tilted mini boards in the game's hue that bleed off the edge; the front one straightens and lifts on hover.
 - Grid: 1 column on mobile, 2 on tablet, 3 on desktop with the first and last cards spanning two columns (seven cards fill three rows).
 
 ### Start card
@@ -186,7 +187,7 @@ Totals row, training-days calendar (26 weeks, Monday first, four ember steps), s
 | How-to-play screen | Example illustration on a void panel, numbered steps (iron number badges), a graphite tier box, controls in 13px steel, skip checkbox, back + start. |
 | Toast | Bottom centre, `--color-graphite`, 1px iron border, 14px text, slides up with spring, auto-dismiss 2.4s. |
 | Cookie card | `.surface` card fixed to the bottom, max 520px, 16px gutters on mobile, above the safe area. Caption eyebrow `COOKIES`, two sentences of fog body text with a privacy link, then accept and reject as identical ghost pills in a two-column grid (never one filled and one ghost). Rises 24px and fades in. Never blocks the page (D-053). |
-| Site footer | On every page (D-054). A terminal prompt (`~/mind-bend $ sign-off`, ember caret), the slogan "Built to / bend minds." two-tone like the hero (paper, then steel; `--text-display` on mobile, `--text-number` from md), one line of pitch in fog, and a `.surface` card with the countdown to the next set linking to the daily. Then every game as a 40px icon tile with its name, 4 columns on mobile and 8 from sm; hover lifts and tilts the tile and colours the name in its hue. A hairline, then one caption row: version and credit in steel, privacy and cookie settings in ash. Last, the wordmark in graphite at `--text-footer-mark` (fluid, 56 to 224px) sinking into the page edge, decoration only. |
+| Site footer | On every page (D-054). A terminal prompt (`~/mind-bend $ sign-off`, ember caret), the slogan "Built to / bend minds." in Doto, two-tone like the hero (paper, then steel; `--text-display` on mobile, `--text-number` from md), one line of pitch in fog, and a `.surface` card with the countdown to the next set linking to the daily. Then every game as a 40px icon tile with its name, 4 columns on mobile and 8 from sm; hover lifts and tilts the tile and colours the name in its hue. A hairline, then one caption row: version and credit in steel, privacy and cookie settings in ash. Last, the wordmark in graphite at `--text-footer-mark` (fluid, 50 to 200px, Doto) sinking into the page edge, decoration only. |
 
 ### Charts
 

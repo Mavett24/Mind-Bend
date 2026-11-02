@@ -1,12 +1,22 @@
 import type { Metadata, Viewport } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
+import localFont from "next/font/local";
 import { MotionProvider } from "@/components/MotionProvider";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ConsentBanner } from "@/components/ConsentBanner";
 import "./globals.css";
 
-// Geist Sans (body) and Geist Mono (headings, numbers, labels), self-hosted via the `geist` package (SIL OFL 1.1).
+// Geist Sans (body) and Geist Mono (labels, buttons, small numbers), self-hosted via the `geist` package (SIL OFL 1.1).
+// Doto (headings, game names, the wordmark, big result numbers), self-hosted from src/fonts (SIL OFL 1.1, D-055).
+// One variable file carries both axes: weight 100 to 900 and ROND (dot roundness) 0 to 100.
+const doto = localFont({
+  src: "../fonts/Doto-latin-variable.woff2",
+  variable: "--font-doto",
+  weight: "100 900",
+  display: "swap",
+  fallback: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+});
 
 export const metadata: Metadata = {
   title: { default: "Mind Bend", template: "%s · Mind Bend" },
@@ -23,7 +33,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable} h-full antialiased`}>
+    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable} ${doto.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
         <MotionProvider>
           {children}

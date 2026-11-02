@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **Doto headings** (D-055): headings, game names, the wordmark and big result numbers switch to Doto Black, a dot-matrix monospace, with square dots. Labels, buttons and small numbers stay Geist Mono, body text stays Geist Sans. New: `src/fonts/` (Doto, SIL OFL 1.1), `--font-display` token and `font-display` utility.
 - **Google Analytics behind consent** (D-053): a cookie card asks once, with accept and reject as equal pills, and never blocks play. Nothing from Google loads before accept. Reject after accept deletes the GA cookies. "cookie settings" in the footer reopens it; choices expire after 12 months.
 - **Privacy page** (`/privacy`): what stays in the browser, what GA collects and why, cookies, hosting, rights.
 - **New footer** on every page (D-054): sign-off prompt, "Built to bend minds.", the countdown to the next set, every game as a tile, a giant wordmark, and privacy and cookie settings in small type.

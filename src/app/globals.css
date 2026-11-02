@@ -46,6 +46,7 @@
   /* Type */
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-display: var(--font-doto), var(--font-geist-mono), ui-monospace, monospace;
 
   --text-caption: 12px;
   --text-caption--line-height: 1.5;
@@ -71,7 +72,7 @@
   --text-number-xl--line-height: 0.9;
   --text-number-xl--letter-spacing: -0.06em;
   /* Footer wordmark: fills the page width from phone to 1200px (DESIGN.md §5). */
-  --text-footer-mark: clamp(56px, 17vw, 224px);
+  --text-footer-mark: clamp(50px, 15.3vw, 200px); /* Doto at 0 tracking runs about 10% wider than the old mono mark */
 
   /* Shape: soft, Dialed-style corners */
   --radius-cell: 8px;
@@ -120,7 +121,7 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Geist Mono carries headings, labels and numbers; Geist Sans carries everything you read. */
+/* Geist Mono carries labels, buttons and small numbers; Geist Sans carries everything you read. */
 h1,
 h2,
 h3,
@@ -130,6 +131,22 @@ h4,
 .text-number-lg,
 .text-number-xl {
   font-family: var(--font-mono);
+}
+
+/* Doto carries headings, game names, the wordmark and big result numbers (D-055). Always Black
+   900 with square dots, and no negative tracking: dots touch when letters are pulled together.
+   Unlayered on purpose so it beats weight and tracking utilities on older headings. A heading
+   styled as a caption stays Geist Mono, because dot letters break up below about 16px. */
+:is(h1, h2, h3, h4):not(.text-caption),
+.title-card,
+.font-display,
+.text-number,
+.text-number-lg,
+.text-number-xl {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-variation-settings: "ROND" 0;
+  letter-spacing: 0;
 }
 
 /* Raised card: gradient, light ring, layered drop shadow. */
@@ -144,13 +161,10 @@ h4,
   box-shadow: rgba(255, 255, 255, 0.06) 0 0 0 1px inset;
 }
 
-/* Dialed card titles: medium weight, tight tracking. */
+/* Dialed card titles, set in Doto by the display rule above. */
 .title-card {
-  font-family: var(--font-mono);
   font-size: 24px;
   line-height: 1.15;
-  font-weight: 500;
-  letter-spacing: -0.04em;
 }
 
 @keyframes float {

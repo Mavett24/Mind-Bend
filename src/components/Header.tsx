@@ -10,7 +10,7 @@ const SEEN_STREAK_KEY = "mind-bend:seen-streak";
 
 export function Wordmark() {
   return (
-    <span className="inline-flex items-center gap-1 font-mono text-[16px] font-bold tracking-tight text-paper">
+    <span className="font-display inline-flex items-center gap-1 text-[17px] text-paper">
       mind_bend
       <span aria-hidden className="inline-block h-[1.05em] w-[0.55em] translate-y-[1px] animate-blink bg-ember" />
     </span>
