@@ -8,13 +8,14 @@
  * off under prefers-reduced-motion.
  */
 import Link from "next/link";
-import { useEffect, useRef, useState, type PointerEvent } from "react";
+import { useRef, useState, type PointerEvent } from "react";
 import { motion, useMotionValue, useReducedMotion, useScroll, useSpring, useTransform, type MotionValue } from "motion/react";
 import { GAMES, type GameId } from "@/games/registry";
 import { dailyBoard, utcDateKey, utcIsoWeekday } from "@/engine/seed";
 import { dailyTier, TIERS } from "@/engine/difficulty";
 import type { Profile } from "@/lib/profile";
 import { useToday } from "@/lib/useToday";
+import { untilMidnightUtc, useNow } from "@/lib/useNow";
 import { dur, ease } from "@/lib/motion";
 import { GameIcon, hue } from "./GameIcon";
 import { BoardPanel } from "./GameArt";
@@ -133,24 +134,6 @@ function FieldBoard({
 }
 
 /* ---------- small pieces ---------- */
-
-function useNow(): Date | null {
-  const [now, setNow] = useState<Date | null>(null);
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- the clock must come from the client
-    setNow(new Date());
-    const t = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(t);
-  }, []);
-  return now;
-}
-
-function untilMidnightUtc(now: Date): string {
-  const next = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
-  const s = Math.max(0, Math.floor((next - now.getTime()) / 1000));
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${p(Math.floor(s / 3600))}:${p(Math.floor((s % 3600) / 60))}:${p(s % 60)}`;
-}
 
 function formatDay(date: Date): string {
   return date

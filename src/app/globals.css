@@ -70,6 +70,8 @@
   --text-number-xl: 128px;
   --text-number-xl--line-height: 0.9;
   --text-number-xl--letter-spacing: -0.06em;
+  /* Footer wordmark: fills the page width from phone to 1200px (DESIGN.md §5). */
+  --text-footer-mark: clamp(56px, 17vw, 224px);
 
   /* Shape: soft, Dialed-style corners */
   --radius-cell: 8px;

@@ -186,6 +186,7 @@ Totals row, training-days calendar (26 weeks, Monday first, four ember steps), s
 | How-to-play screen | Example illustration on a void panel, numbered steps (iron number badges), a graphite tier box, controls in 13px steel, skip checkbox, back + start. |
 | Toast | Bottom centre, `--color-graphite`, 1px iron border, 14px text, slides up with spring, auto-dismiss 2.4s. |
 | Cookie card | `.surface` card fixed to the bottom, max 520px, 16px gutters on mobile, above the safe area. Caption eyebrow `COOKIES`, two sentences of fog body text with a privacy link, then accept and reject as identical ghost pills in a two-column grid (never one filled and one ghost). Rises 24px and fades in. Never blocks the page (D-053). |
+| Site footer | On every page (D-054). A terminal prompt (`~/mind-bend $ sign-off`, ember caret), the slogan "Built to / bend minds." two-tone like the hero (paper, then steel; `--text-display` on mobile, `--text-number` from md), one line of pitch in fog, and a `.surface` card with the countdown to the next set linking to the daily. Then every game as a 40px icon tile with its name, 4 columns on mobile and 8 from sm; hover lifts and tilts the tile and colours the name in its hue. A hairline, then one caption row: version and credit in steel, privacy and cookie settings in ash. Last, the wordmark in graphite at `--text-footer-mark` (fluid, 56 to 224px) sinking into the page edge, decoration only. |
 
 ### Charts
 
