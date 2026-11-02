@@ -1,4 +1,4 @@
-export type GameId = "path" | "balance" | "blocks" | "sudoku" | "weave" | "recall" | "trivia";
+export type GameId = "path" | "balance" | "blocks" | "sudoku" | "weave" | "recall" | "trivia" | "chess";
 export type GameStatus = "live" | "building";
 
 export interface GameMeta {
@@ -66,6 +66,14 @@ export const GAMES: readonly GameMeta[] = [
     skill: "knowledge",
     tagline: "Higher or lower, and categories.",
     rules: "Ten questions, against the clock. Pick the bigger number, or the right answer.",
+    status: "live",
+  },
+  {
+    id: "chess",
+    name: "chess",
+    skill: "tactics",
+    tagline: "Find the winning move. Rated like the real thing.",
+    rules: "Find the best move for your side. One wrong move and the puzzle is lost.",
     status: "live",
   },
 ];

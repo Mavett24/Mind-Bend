@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { GAMES, type GameId } from "@/games/registry";
-import { TIERS, suggestTier } from "@/engine/difficulty";
-import { activity, exportCode, importCode, tierProgress, type GameRecord, type Skill } from "@/engine/history";
+import { TIERS } from "@/engine/difficulty";
+import { activity, exportCode, importCode, levelLabel, PUZZLE_RATED, puzzleBests, tierProgress, type GameRecord, type Skill } from "@/engine/history";
 import { getHistory, importHistory, resetHistory } from "@/lib/history";
 import { scoringOf, useProfile, type Profile } from "@/lib/profile";
 import { dur, ease } from "@/lib/motion";
@@ -19,6 +19,7 @@ const SKILL_LABEL: Record<Skill, { name: string; games: string }> = {
   words: { name: "words", games: "weave" },
   memory: { name: "memory", games: "recall" },
   knowledge: { name: "knowledge", games: "trivia" },
+  tactics: { name: "tactics", games: "chess · puzzle rating" },
 };
 
 function fmtDuration(ms: number) {
@@ -118,14 +119,16 @@ function Stats({ profile }: { profile: Profile }) {
           <ul className="flex flex-col gap-4">
             {profile.skills.map((s) => {
               const tp = tierProgress(s.rating);
+              // Tactics is a puzzle rating (400 to 2800); the rest share the 600 to 2000 game scale.
+              const puzzle = s.skill === "tactics";
+              const [lo, span] = puzzle ? [400, 2400] : [600, 1400];
               return (
                 <li key={s.skill} className="flex flex-col gap-1.5">
                   <div className="flex items-baseline justify-between">
                     <span className="font-mono">{SKILL_LABEL[s.skill].name}</span>
-                    <span className="font-mono text-caption text-ash">{s.played ? `${s.rating} · ${tp.current}` : "not played"}</span>
+                    <span className="font-mono text-caption text-ash">{s.played ? (puzzle ? `${s.rating}` : `${s.rating} · ${tp.current}`) : "not played"}</span>
                   </div>
-                  {/* Bar spans the rating range 600 to 2000 so skills compare on one scale. */}
-                  <TierBar progress={s.played ? Math.min(1, Math.max(0.02, (s.rating - 600) / 1400)) : 0} />
+                  <TierBar progress={s.played ? Math.min(1, Math.max(0.02, (s.rating - lo) / span)) : 0} />
                   <span className="text-caption text-steel">{SKILL_LABEL[s.skill].games}</span>
                 </li>
               );
@@ -173,7 +176,7 @@ function Stats({ profile }: { profile: Profile }) {
                     <td className="px-3 py-2">
                       <Sparkline points={s.ratingSeries.slice(-20).map((p) => p.rating)} color={hue(g.id)} width={96} height={24} />
                     </td>
-                    <td className="px-3 py-2 font-mono text-fog">{s.played ? suggestTier(s.rating) : "--"}</td>
+                    <td className="px-3 py-2 font-mono text-fog">{s.played ? levelLabel(s) : "--"}</td>
                     <td className="rounded-r-[12px] px-3 py-2 text-right font-mono text-fog">{s.played}</td>
                   </tr>
                 );
@@ -203,27 +206,31 @@ function GameDetail({ profile, id }: { profile: Profile; id: GameId }) {
           {game.name} rating
         </p>
         {s.ratingSeries.length > 1 ? (
-          <RatingChart series={s.ratingSeries} color={hue(id)} label={game.name} />
+          <RatingChart series={s.ratingSeries} color={hue(id)} label={game.name} tiers={!PUZZLE_RATED.has(id)} />
         ) : (
           <p className="py-10 text-center text-fog">Play a practice board of {game.name} to start its rating line.</p>
         )}
       </div>
       <div className="flex flex-col gap-4">
-        <div>
-          <p className="pb-2 text-caption uppercase text-ash">{scored ? "best score per tier" : "fastest per tier"}</p>
-          <dl className="grid grid-cols-2 gap-2">
-            {TIERS.map((t) => (
-              <div key={t} className="well flex flex-col gap-0.5 rounded-[14px] px-3 py-2.5">
-                <dt className="text-caption text-ash">
-                  {t} · {s.solvesByTier[t] ?? 0}
-                </dt>
-                <dd className="font-mono text-heading-sm">
-                  {s.best[t] === undefined ? "--" : scored ? <PointsDisplay points={s.best[t]!} /> : <TimeDisplay ms={s.best[t]!} />}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </div>
+        {PUZZLE_RATED.has(id) ? (
+          <PuzzleBestsBlock profile={profile} id={id} />
+        ) : (
+          <div>
+            <p className="pb-2 text-caption uppercase text-ash">{scored ? "best score per tier" : "fastest per tier"}</p>
+            <dl className="grid grid-cols-2 gap-2">
+              {TIERS.map((t) => (
+                <div key={t} className="well flex flex-col gap-0.5 rounded-[14px] px-3 py-2.5">
+                  <dt className="text-caption text-ash">
+                    {t} · {s.solvesByTier[t] ?? 0}
+                  </dt>
+                  <dd className="font-mono text-heading-sm">
+                    {s.best[t] === undefined ? "--" : scored ? <PointsDisplay points={s.best[t]!} /> : <TimeDisplay ms={s.best[t]!} />}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        )}
         <dl className="grid grid-cols-3 gap-2 font-mono">
           <div>
             <dt className="text-caption text-ash">solved</dt>
@@ -245,6 +252,29 @@ function GameDetail({ profile, id }: { profile: Profile; id: GameId }) {
           play {game.name} →
         </Link>
       </div>
+    </div>
+  );
+}
+
+function PuzzleBestsBlock({ profile, id }: { profile: Profile; id: GameId }) {
+  const b = puzzleBests(profile.data, id);
+  const cells: [string, React.ReactNode][] = [
+    ["peak rating", b.peak],
+    ["hardest solved", b.hardest ?? "--"],
+    ["best run", b.bestRun ? `${b.bestRun} in a row` : "--"],
+    ["fastest clean", b.fastestMs === null ? "--" : <TimeDisplay ms={b.fastestMs} />],
+  ];
+  return (
+    <div>
+      <p className="pb-2 text-caption uppercase text-ash">bests</p>
+      <dl className="grid grid-cols-2 gap-2">
+        {cells.map(([label, value]) => (
+          <div key={label} className="well flex flex-col gap-0.5 rounded-[14px] px-3 py-2.5">
+            <dt className="text-caption text-ash">{label}</dt>
+            <dd className="font-mono text-heading-sm">{value}</dd>
+          </div>
+        ))}
+      </dl>
     </div>
   );
 }
@@ -274,7 +304,7 @@ function RecentRow({ r, delta, now }: { r: GameRecord; delta: number | undefined
       <div className="flex min-w-0 flex-1 flex-col">
         <span className="font-mono">{game.name}</span>
         <span className="truncate text-caption text-ash">
-          {r.tier} · {r.mode} · {fmtWhen(r.at, now)}
+          {r.opponent !== undefined ? `puzzle ${r.opponent}` : r.tier} · {r.mode} · {fmtWhen(r.at, now)}
         </span>
       </div>
       <span className="font-mono">

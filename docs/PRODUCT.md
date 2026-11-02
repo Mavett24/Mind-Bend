@@ -14,7 +14,7 @@ People who already play daily puzzles and want more of them: more boards, harder
 
 ## Product principles
 
-1. **Never the same board twice.** Every puzzle is generated, not authored. Variance is the product.
+1. **Never the same board twice.** Every puzzle is generated, not authored. Variance is the product. The exception is chess, where puzzles come from the Lichess database because a fair tactic needs an engine-checked line (D-046).
 2. **Every puzzle is fair.** Logic puzzles always have exactly one solution, reachable by deduction without guessing. A generator that cannot prove uniqueness throws the board away.
 3. **Difficulty you can feel.** Tiers change the reasoning required, not just the grid size.
 4. **Improvement is visible.** Each game tracks a skill rating and suggests your next difficulty, so you stay in the zone between bored and overwhelmed.
@@ -52,12 +52,13 @@ A per-game skill rating (Elo-style, starting at 1000) moves after every practice
 | Weave | Word finding | LinkedIn Wend | Live |
 | Recall | Sensory memory | Dialed | Live |
 | Trivia | Knowledge | Lessgames | Live |
+| Chess | Tactics | chess.com puzzles | Live |
 
 Names are working titles. Mechanics are inspired by these games; names, visuals and content are our own. Each game has a spec in `docs/games/`.
 
 ## Scope
 
-**In v1:** seven games, daily + practice + challenge links, four tiers, local stats and skill rating, desktop and mobile web, sound and haptics on supported devices.
+**In v1:** eight games, daily + practice + challenge links, four tiers, local stats and skill rating, desktop and mobile web, sound and haptics on supported devices.
 
 **Not in v1:** accounts, global leaderboards, multiplayer, native apps, monetisation. Leaderboards can come later through a free backend tier if the app earns it.
 

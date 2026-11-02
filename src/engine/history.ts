@@ -7,6 +7,7 @@
  */
 import { TIERS, TIER_RATING, suggestTier, type Tier } from "./difficulty";
 import { START_RATING, updateRating } from "./rating";
+import { applyPuzzle, PUZZLE_START_RATING } from "./puzzle-rating";
 import type { Mode } from "./seed";
 
 export interface GameRecord {
@@ -26,6 +27,14 @@ export interface GameRecord {
   hints?: number;
   /** 0..1 result for rating. Absent on daily boards and quits, which don't move the rating. */
   outcome?: number;
+  /**
+   * Puzzle games (chess): the rating of the puzzle you faced. When set, the record is rated with
+   * puzzle Elo (your rating against the puzzle's) instead of against the tier, and `outcome` only
+   * marks that it was rated.
+   */
+  opponent?: number;
+  /** Puzzle games: speed bonus earned on this solve, in rating points. */
+  bonus?: number;
 }
 
 /** Progress from before history existed (v0.1 to v0.6 stored totals only). */
@@ -49,6 +58,15 @@ export const emptyHistory = (): HistoryData => ({ version: 2, records: [], legac
 export const dayKey = (at: number) => new Date(at).toISOString().slice(0, 10);
 
 const DAY = 86_400_000;
+
+/** Games whose daily is a set of several boards: the day counts as done once every one is played. */
+export const DAILY_SIZE: Record<string, number> = { chess: 3 };
+
+/** Games rated on the puzzle scale (puzzle Elo, wider range). Their ratings don't compare with the rest. */
+export const PUZZLE_RATED = new Set(["chess"]);
+
+/** Rating a new player starts from, per game. */
+export const startRating = (gameId: string) => (PUZZLE_RATED.has(gameId) ? PUZZLE_START_RATING : START_RATING);
 
 export type Scoring = "time" | "points";
 /** Higher is better for points, lower is better for time. */
@@ -76,6 +94,8 @@ export interface GameSummary {
   lastPlayed: number | null;
   dailyDone: Set<string>;
   hints: number;
+  /** Highest rating ever reached. */
+  peak: number;
   /** Rating change caused by each rated record, by record id. */
   deltas: Map<string, number>;
 }
@@ -83,7 +103,11 @@ export interface GameSummary {
 export function gameSummary(data: HistoryData, gameId: string, scoring: Scoring): GameSummary {
   const legacy = data.legacy[gameId];
   const records = data.records.filter((r) => r.gameId === gameId).sort((a, b) => a.at - b.at);
-  let rating = legacy?.rating ?? START_RATING;
+  let rating = legacy?.rating ?? startRating(gameId);
+  let peak = rating;
+  let ratedPuzzles = 0;
+  const dailySize = DAILY_SIZE[gameId] ?? 1;
+  const dailyPlays = new Map<string, number>();
   const ratingSeries: RatingPoint[] = [{ at: records[0]?.at ?? 0, rating }];
   const best: GameSummary["best"] = { ...(scoring === "points" ? legacy?.bestPoints : legacy?.bestMs) };
   const solvesByTier: GameSummary["solvesByTier"] = {};
@@ -101,13 +125,24 @@ export function gameSummary(data: HistoryData, gameId: string, scoring: Scoring)
       const v = valueOf(r, scoring);
       const prev = best[r.tier];
       if (prev === undefined || better(scoring, v, prev)) best[r.tier] = v;
-      if (r.mode === "daily") dailyDone.add(dayKey(r.at));
+      if (r.mode === "daily" && dailySize === 1) dailyDone.add(dayKey(r.at));
+    }
+    // A daily set counts once every board in it has been played, solved or not.
+    if (r.mode === "daily" && dailySize > 1 && !r.quit) {
+      const k = dayKey(r.at);
+      const n = (dailyPlays.get(k) ?? 0) + 1;
+      dailyPlays.set(k, n);
+      if (n >= dailySize) dailyDone.add(k);
     }
     hints += r.hints ?? 0;
     if (r.outcome !== undefined) {
-      const next = updateRating(rating, r.tier, r.outcome);
+      const next =
+        r.opponent !== undefined
+          ? applyPuzzle(rating, { solved: r.solved, puzzleRating: r.opponent, hints: r.hints ?? 0, bonus: r.bonus ?? 0 }, ratedPuzzles++)
+          : updateRating(rating, r.tier, r.outcome);
       deltas.set(r.id, next - rating);
       rating = next;
+      peak = Math.max(peak, rating);
       ratingSeries.push({ at: r.at, rating });
     }
   }
@@ -123,6 +158,7 @@ export function gameSummary(data: HistoryData, gameId: string, scoring: Scoring)
     lastPlayed: records.at(-1)?.at ?? null,
     dailyDone,
     hints,
+    peak,
     deltas,
   };
 }
@@ -217,6 +253,46 @@ export function tierProgress(rating: number): TierProgress {
   return { current, next, progress: Math.min(1, Math.max(0, (rating - from) / (to - from))), nextAt: to };
 }
 
+export interface PuzzleBests {
+  peak: number;
+  /** Hardest puzzle solved without a hint. */
+  hardest: number | null;
+  /** Longest run of puzzles solved in a row. */
+  bestRun: number;
+  fastestMs: number | null;
+}
+
+/** Bests for puzzle-rated games, where "fastest per tier" means little. */
+export function puzzleBests(data: HistoryData, gameId: string): PuzzleBests {
+  const records = data.records.filter((r) => r.gameId === gameId && !r.quit).sort((a, b) => a.at - b.at);
+  let run = 0;
+  let bestRun = 0;
+  let hardest: number | null = null;
+  let fastestMs: number | null = null;
+  for (const r of records) {
+    run = r.solved ? run + 1 : 0;
+    bestRun = Math.max(bestRun, run);
+    if (r.solved && !r.hints && r.opponent !== undefined) hardest = Math.max(hardest ?? 0, r.opponent);
+    if (r.solved && !r.hints) fastestMs = Math.min(fastestMs ?? Infinity, r.timeMs);
+  }
+  return { peak: gameSummary(data, gameId, "time").peak, hardest, bestRun, fastestMs };
+}
+
+/** What sits next to a rating in lists: the suggested tier, or the peak for puzzle-rated games. */
+export function levelLabel(s: GameSummary): string {
+  return PUZZLE_RATED.has(s.gameId) ? `peak ${s.peak}` : suggestTier(s.rating);
+}
+
+/** Progress bar and caption under a rating: towards the next tier, or the next 100 for puzzle-rated games. */
+export function levelProgress(gameId: string, rating: number): { progress: number; caption: string | null } {
+  if (PUZZLE_RATED.has(gameId)) {
+    const to = Math.floor(rating / 100) * 100 + 100;
+    return { progress: (rating % 100) / 100, caption: `${to - rating} to ${to}` };
+  }
+  const tp = tierProgress(rating);
+  return { progress: tp.next ? tp.progress : 1, caption: tp.next ? `${tp.nextAt! - rating} to ${tp.next}` : null };
+}
+
 // ---------------------------------------------------------------- overall
 
 export interface DayActivity {
@@ -287,7 +363,7 @@ export function activity(data: HistoryData, now: number, days: number): DayActiv
 
 // ---------------------------------------------------------------- skills and focus
 
-export type Skill = "logic" | "words" | "memory" | "knowledge";
+export type Skill = "logic" | "words" | "memory" | "knowledge" | "tactics";
 
 export const SKILL_OF: Record<string, Skill> = {
   path: "logic",
@@ -297,6 +373,7 @@ export const SKILL_OF: Record<string, Skill> = {
   weave: "words",
   recall: "memory",
   trivia: "knowledge",
+  chess: "tactics",
 };
 
 export interface SkillScore {
@@ -307,9 +384,9 @@ export interface SkillScore {
 }
 
 export function skills(summaries: GameSummary[]): SkillScore[] {
-  const out: SkillScore[] = (["logic", "words", "memory", "knowledge"] as Skill[]).map((skill) => {
+  const out: SkillScore[] = (["logic", "words", "memory", "knowledge", "tactics"] as Skill[]).map((skill) => {
     const own = summaries.filter((s) => SKILL_OF[s.gameId] === skill && s.played > 0);
-    const rating = own.length ? Math.round(own.reduce((n, s) => n + s.rating, 0) / own.length) : START_RATING;
+    const rating = own.length ? Math.round(own.reduce((n, s) => n + s.rating, 0) / own.length) : skill === "tactics" ? PUZZLE_START_RATING : START_RATING;
     return { skill, rating, played: own.reduce((n, s) => n + s.played, 0) };
   });
   return out;
@@ -335,9 +412,11 @@ export function focus(summaries: GameSummary[], names: Record<string, string>, n
   if (startedDaily && dailyLeft) return { gameId: dailyLeft.gameId, reason: `Finish today's daily set: ${names[dailyLeft.gameId]} is next.` };
   const unplayed = summaries.find((s) => s.played === 0);
   if (unplayed) return { gameId: unplayed.gameId, reason: `You haven't tried ${names[unplayed.gameId]} yet.` };
-  const avg = summaries.reduce((n, s) => n + s.rating, 0) / summaries.length;
-  const weakest = [...summaries].sort((a, b) => a.rating - b.rating)[0];
-  if (avg - weakest.rating >= 50) {
+  // Puzzle ratings sit on a different scale, so only compare games rated the same way.
+  const comparable = summaries.filter((s) => !PUZZLE_RATED.has(s.gameId));
+  const avg = comparable.reduce((n, s) => n + s.rating, 0) / Math.max(1, comparable.length);
+  const weakest = [...comparable].sort((a, b) => a.rating - b.rating)[0];
+  if (weakest && avg - weakest.rating >= 50) {
     return { gameId: weakest.gameId, reason: `${names[weakest.gameId]} is your lowest rating (${weakest.rating}). Close the gap.` };
   }
   const stale = [...summaries].sort((a, b) => (a.lastPlayed ?? 0) - (b.lastPlayed ?? 0))[0];
@@ -376,6 +455,8 @@ export function sanitize(raw: unknown): HistoryData | null {
     ...x,
     outcome: typeof x.outcome === "number" && x.outcome >= 0 && x.outcome <= 1 ? x.outcome : undefined,
     points: typeof x.points === "number" ? Math.min(10, Math.max(0, x.points)) : undefined,
+    opponent: typeof x.opponent === "number" && x.opponent > 0 && x.opponent < 4000 ? x.opponent : undefined,
+    bonus: typeof x.bonus === "number" ? Math.min(10, Math.max(0, Math.round(x.bonus))) : undefined,
   }));
   const legacy: Record<string, Legacy> = {};
   if (r.legacy && typeof r.legacy === "object") {

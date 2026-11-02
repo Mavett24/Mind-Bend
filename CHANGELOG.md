@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- **chess**, the eighth game: tactics puzzles rated like chess.com (spec in `docs/games/chess.md`).
+  - 16,522 puzzles from the Lichess database (CC0), 600 to 2800, loaded by rating band. Every solution is played through in the tests (D-046).
+  - Own board and piece set in the design language: drag or tap, legal-move dots, last move in violet, opponent replies auto-play, promotion picker, keyboard play, transform-only motion (D-047).
+  - Puzzle rating from 1200, Elo against each puzzle's rating, bigger swings while provisional. Hints cut the win (half, then none) but never cost rating. Speed bonus up to +4, shown live by the clock (D-048).
+  - Practice is endless and never repeats a puzzle; tiers are offsets from your rating. One wrong move loses the puzzle, then retry (unrated), see the solution or move on.
+  - Daily set of three at about 1300, 1700 and 2100, rated on the first attempt, with a summary at the end (D-049).
+  - Challenge links name the exact puzzle. Stats: tactics skill bar, chess rating chart, peak, hardest solved, best run, fastest clean solve.
+- Home: "Eight games." for new players, the daily set counts eight, chess boards join the hero field, the bento grid fits eight cards.
+- New tokens: `--color-hue-chess`, `--color-square-light`, `--color-square-dark`. New dependency: chess.js (BSD-2-Clause).
+
 - **Clearer start screens** (D-045): numbered eyebrows for mode and difficulty, segmented controls with a visible stroke and a filled active chip, a compact one-row record panel, and "how to play" as a ghost pill beside the play button. The tier control dims when daily or a challenge fixes it.
 - **Cell outlines** on path, balance, blocks and sudoku: every cell now has a 1px outline at 3.3:1 so empty cells read on the card. The selected sudoku cell and a hint's related cells swap the outline colour instead of adding a second ring (D-043). New token `--color-cell-line`.
 - **Sudoku is 6×6 at every tier** (D-044). Difficulty now comes from the starting numbers: 18 on easy, 14 on medium, 12 on hard, 9 on expert, all solvable with simple steps only. Pars are 45s, 75s, 2 min and 3 min. Daily and challenge boards for sudoku change from this release.

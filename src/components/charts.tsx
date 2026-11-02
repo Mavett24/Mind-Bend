@@ -36,7 +36,7 @@ export function Sparkline({ points, color, width = 120, height = 32 }: { points:
 
 const fmtDate = (at: number) => new Date(at).toLocaleDateString("en-GB", { day: "numeric", month: "short" }).toLowerCase();
 
-export function RatingChart({ series, color, label }: { series: RatingPoint[]; color: string; label: string }) {
+export function RatingChart({ series, color, label, tiers = true }: { series: RatingPoint[]; color: string; label: string; tiers?: boolean }) {
   // Draw at the real pixel width so text stays 11px on a phone instead of scaling down.
   const wrap = useRef<HTMLDivElement>(null);
   const [W, setW] = useState(640);
@@ -58,7 +58,7 @@ export function RatingChart({ series, color, label }: { series: RatingPoint[]; c
     let lo = Math.min(...vals) - 40;
     let hi = Math.max(...vals) + 40;
     // Include the next threshold above, so you can see how far the next tier is.
-    const above = TIERS.map((t) => TIER_THRESHOLD[t]).find((v) => v > Math.max(...vals));
+    const above = tiers ? TIERS.map((t) => TIER_THRESHOLD[t]).find((v) => v > Math.max(...vals)) : undefined;
     if (above && above - hi < 200) hi = above + 20;
     lo = Math.floor(lo / 50) * 50;
     hi = Math.ceil(hi / 50) * 50;
@@ -66,14 +66,15 @@ export function RatingChart({ series, color, label }: { series: RatingPoint[]; c
     const t: number[] = [];
     for (let v = Math.ceil(lo / step) * step; v <= hi; v += step) t.push(v);
     return { min: lo, max: hi, ticks: t };
-  }, [series]);
+  }, [series, tiers]);
 
   const n = series.length;
   const x = (i: number) => pad.l + (n === 1 ? 0.5 : i / (n - 1)) * (W - pad.l - pad.r);
   const y = (v: number) => pad.t + (1 - (v - min) / (max - min)) * (H - pad.t - pad.b);
   const d = series.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p.rating).toFixed(1)}`).join("");
   const area = `${d}L${x(n - 1)},${H - pad.b}L${x(0)},${H - pad.b}Z`;
-  const thresholds = TIERS.slice(1).filter((t) => TIER_THRESHOLD[t] > min && TIER_THRESHOLD[t] < max);
+  // Puzzle ratings (chess) have no tiers, so no tier lines.
+  const thresholds = tiers ? TIERS.slice(1).filter((t) => TIER_THRESHOLD[t] > min && TIER_THRESHOLD[t] < max) : [];
 
   function onMove(e: React.PointerEvent) {
     const box = ref.current?.getBoundingClientRect();
