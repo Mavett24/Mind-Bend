@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, type HTMLMotionProps } from "motion/react";
-import { dur, ease } from "@/lib/motion";
+import { dur, ease, press } from "@/lib/motion";
 
 type Variant = "primary" | "ghost" | "ember";
 
@@ -19,7 +19,7 @@ interface ButtonProps extends HTMLMotionProps<"button"> {
 export function Button({ variant = "primary", arrow = true, className = "", children, ...rest }: ButtonProps) {
   return (
     <motion.button
-      whileTap={{ scale: 0.97 }}
+      whileTap={{ scale: press.button }}
       transition={{ duration: dur.fast, ease: ease.spring }}
       className={`group inline-flex h-12 items-center justify-center gap-2 whitespace-nowrap rounded-full px-5 font-mono text-[15px] transition-colors duration-[var(--dur-fast)] disabled:cursor-not-allowed ${styles[variant]} ${className}`}
       {...rest}

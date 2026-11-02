@@ -4,10 +4,15 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import type { BoardProps } from "@/games/types";
 import { dur, ease } from "@/lib/motion";
+import { shakeKeys } from "@/lib/shake";
 import { HintButton } from "@/components/HintButton";
 import { adjacency, canExtend, isSolved, pathHint, type PathPuzzle } from "./engine";
 
 const PAD = 0.06; // gap around each cell, in cell units
+
+/** Orthogonal neighbours on the grid, walls ignored. */
+const isNeighbour = (size: number, a: number, b: number) =>
+  (Math.abs(a - b) === 1 && Math.floor(a / size) === Math.floor(b / size)) || Math.abs(a - b) === size;
 
 export function PathBoard({ puzzle, onSolved }: BoardProps<PathPuzzle>) {
   const { size, numbers, walls } = puzzle;
@@ -25,6 +30,8 @@ export function PathBoard({ puzzle, onSolved }: BoardProps<PathPuzzle>) {
   const reduced = useReducedMotion();
   // Mirrors `line` for event handlers; every setLine call updates it too.
   const lineRef = useRef(line);
+  /** The last refused step as "head>cell", so pushing against a wall shakes once, not on every pointer move. */
+  const refused = useRef<string | null>(null);
 
   const maxNumber = useMemo(() => Math.max(...numbers), [numbers]);
   const nextNumber = line.reduce((n, cell) => (numbers[cell] === n ? n + 1 : n), 1);
@@ -35,7 +42,10 @@ export function PathBoard({ puzzle, onSolved }: BoardProps<PathPuzzle>) {
       if (solved) return;
       const current = lineRef.current;
       const head = current[current.length - 1];
-      if (cell === head) return;
+      if (cell === head) {
+        refused.current = null; // back on the head: the next push against a wall is a new attempt
+        return;
+      }
       let next: number[] | null = null;
       if (current.length >= 2 && cell === current[current.length - 2]) {
         next = current.slice(0, -1);
@@ -46,6 +56,12 @@ export function PathBoard({ puzzle, onSolved }: BoardProps<PathPuzzle>) {
       } else if (canExtend(puzzle, current, cell, adj)) {
         next = [...current, cell];
         if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate?.(6);
+      } else if (isNeighbour(size, head, cell) && refused.current !== `${head}>${cell}`) {
+        // A real attempt the rules refuse (a wall, or a number out of order) shakes that cell once (D-052).
+        // Skipped and diagonal cells from a fast drag never get here, and holding on it doesn't repeat.
+        refused.current = `${head}>${cell}`;
+        const width = svgRef.current?.clientWidth;
+        if (width) shakeKeys(svgRef.current, [cell], { reduced: !!reduced, unit: size / width });
       }
       if (next) {
         lineRef.current = next;
@@ -55,7 +71,7 @@ export function PathBoard({ puzzle, onSolved }: BoardProps<PathPuzzle>) {
         setHintNote(null);
       }
     },
-    [adj, puzzle, solved],
+    [adj, puzzle, reduced, size, solved],
   );
 
   const giveHint = () => {
@@ -124,6 +140,7 @@ export function PathBoard({ puzzle, onSolved }: BoardProps<PathPuzzle>) {
 
   const onPointerUp = () => {
     dragging.current = false;
+    refused.current = null;
     lastPoint.current = null;
   };
 
@@ -185,6 +202,7 @@ export function PathBoard({ puzzle, onSolved }: BoardProps<PathPuzzle>) {
               className={`stroke-cell-line ${visited.has(cell) ? "fill-ember-wash" : "fill-graphite"}`}
               strokeWidth={1}
               vectorEffect="non-scaling-stroke"
+              data-shake={cell}
               style={{ transformBox: "fill-box", transformOrigin: "center" }}
               animate={solved && !reduced ? { scale: [1, 1.1, 1] } : { scale: 1 }}
               transition={
@@ -248,7 +266,7 @@ export function PathBoard({ puzzle, onSolved }: BoardProps<PathPuzzle>) {
           const { x, y } = center(cell);
           const reached = visited.has(cell);
           return (
-            <g key={`n-${cell}`}>
+            <g key={`n-${cell}`} data-shake={cell}>
               <circle cx={x} cy={y} r={0.3} className={reached ? "fill-paper" : "fill-chalk"} />
               <text
                 x={x}

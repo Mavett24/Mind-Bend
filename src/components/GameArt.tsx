@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * Card illustrations: two tilted mini boards per game that bleed off the bottom of the card,
  * the way Dialed stacks its game cards. The front board lifts and straightens on hover.
@@ -5,6 +7,7 @@
  * under prefers-reduced-motion (global rule in globals.css).
  */
 import type { ReactNode } from "react";
+import { motion, type MotionValue } from "motion/react";
 import type { GameId } from "@/games/registry";
 import { hue } from "./GameIcon";
 import { PieceAt } from "@/games/chess/pieces";
@@ -238,11 +241,14 @@ function Panel({ id, v, className }: { id: GameId; v: 0 | 1; className: string }
 }
 
 /** Put inside a `group` element; the art fills its parent and is clipped by it. */
-export function GameArt({ id, className = "" }: { id: GameId; className?: string }) {
+export function GameArt({ id, className = "", y = 0 }: { id: GameId; className?: string; y?: MotionValue<number> | number }) {
   return (
     <div aria-hidden className={`pointer-events-none relative overflow-hidden ${className}`}>
-      <Panel id={id} v={1} className="bottom-[-52px] left-1/2 -translate-x-[95%] -rotate-[9deg] opacity-60 group-hover:-translate-x-[105%] group-hover:-rotate-[13deg]" />
-      <Panel id={id} v={0} className="bottom-[-64px] left-1/2 -translate-x-[30%] rotate-[6deg] group-hover:-translate-y-2 group-hover:rotate-[2deg]" />
+      {/* `y` is the scroll parallax (D-052): the boards move inside the clip, so the card edge never shows a gap */}
+      <motion.div className="absolute inset-0" style={{ y }}>
+        <Panel id={id} v={1} className="bottom-[-52px] left-1/2 -translate-x-[95%] -rotate-[9deg] opacity-60 group-hover:-translate-x-[105%] group-hover:-rotate-[13deg]" />
+        <Panel id={id} v={0} className="bottom-[-64px] left-1/2 -translate-x-[30%] rotate-[6deg] group-hover:-translate-y-2 group-hover:rotate-[2deg]" />
+      </motion.div>
     </div>
   );
 }

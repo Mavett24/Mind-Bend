@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import type { BoardProps } from "@/games/types";
+import { shakeKeys } from "@/lib/shake";
 import { HintButton } from "@/components/HintButton";
 import { dur, ease } from "@/lib/motion";
 import { conflicts, geometry, isSolved, sudokuHint, type SudokuHint, type SudokuPuzzle } from "./engine";
@@ -53,7 +54,10 @@ export function SudokuBoard({ puzzle, onSolved }: BoardProps<SudokuPuzzle>) {
     }
     const value = grid[cell] === digit ? 0 : digit; // tapping the same number again clears it
     lastChanged.current = cell;
-    setGrid((gr) => gr.map((v, i) => (i === cell ? value : v)));
+    const nextGrid = grid.map((v, i) => (i === cell ? value : v));
+    setGrid(nextGrid);
+    // A number that clashes shakes, and only that number: the one already on the board stays put (D-052).
+    if (value && conflicts(size, nextGrid).has(cell)) shakeKeys(gridRef.current, [cell], { reduced: !!reduced });
     if (value) {
       // Placing a number clears it from the notes of every cell it sees.
       setNotes((n) => n.map((m, i) => (i === cell ? 0 : g.peers[cell].includes(i) ? m & ~bit(value) : m)));
@@ -142,6 +146,7 @@ export function SudokuBoard({ puzzle, onSolved }: BoardProps<SudokuPuzzle>) {
                 return (
                   <motion.button
                     key={cell}
+                    data-shake={cell}
                     type="button"
                     role="gridcell"
                     tabIndex={-1}

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useReducedMotion } from "motion/react";
+import { useInView, useReducedMotion } from "motion/react";
+import { dur } from "@/lib/motion";
 
 /** "42.31" under a minute, "1:42.31" above. Returns the significant part and the dimmed fraction separately. */
 export function splitTime(ms: number): [string, string] {
@@ -25,12 +26,13 @@ export function TimeDisplay({ ms, className = "" }: { ms: number; className?: st
   );
 }
 
-/** Animates 0 → value, decelerating. Instant with reduced motion. */
-export function useCountUp(target: number, durationMs: number): number {
+/** Animates 0 → value, decelerating, once `active` is true. Instant with reduced motion. */
+export function useCountUp(target: number, durationMs: number, active = true): number {
   const reduced = useReducedMotion();
   const [value, setValue] = useState(reduced ? target : 0);
   const frame = useRef(0);
   useEffect(() => {
+    if (!active) return;
     if (reduced) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- reduced motion skips the animation
       setValue(target);
@@ -44,7 +46,7 @@ export function useCountUp(target: number, durationMs: number): number {
     };
     frame.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame.current);
-  }, [target, durationMs, reduced]);
+  }, [target, durationMs, reduced, active]);
   return value;
 }
 
@@ -82,6 +84,18 @@ export function GameClock({ startedAt, stoppedAt }: { startedAt: number; stopped
   return (
     <span className="font-mono text-heading-lg tabular-nums" aria-label={`time ${shown}`}>
       {shown}
+    </span>
+  );
+}
+
+/** A stat that counts up from zero the first time it scrolls into view (D-052). */
+export function CountUpStat({ value, format, className = "" }: { value: number; format: (v: number) => string; className?: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const seen = useInView(ref, { once: true, amount: 0.6 });
+  const shown = useCountUp(value, dur.count * 1000, seen);
+  return (
+    <span ref={ref} className={`tabular-nums ${className}`} aria-label={format(value)}>
+      <span aria-hidden>{format(shown)}</span>
     </span>
   );
 }

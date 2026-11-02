@@ -15,6 +15,7 @@ import {
   type Shape,
 } from "./engine";
 import { BLOCKS_PALETTE } from "./palette";
+import { shakeKeys } from "@/lib/shake";
 
 /** Shape hint beside a clue's area. "any" is a dashed square, so a missing hint never looks like a missing glyph. */
 function ShapeGlyph({ shape }: { shape: Shape }) {
@@ -37,6 +38,8 @@ function ShapeGlyph({ shape }: { shape: Shape }) {
   );
 }
 
+const rectKey = (r: Rect) => `${r.r}-${r.c}-${r.h}-${r.w}`;
+
 const SHAPE_WORD: Record<Shape, string> = { square: "square", wide: "wide", tall: "tall", any: "any shape" };
 
 export function BlocksBoard({ puzzle, onSolved }: BoardProps<BlocksPuzzle>) {
@@ -50,6 +53,13 @@ export function BlocksBoard({ puzzle, onSolved }: BoardProps<BlocksPuzzle>) {
   const moved = useRef(false);
   const gridRef = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
+  const pendingShake = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (pendingShake.current === null) return;
+    shakeKeys(gridRef.current, [pendingShake.current], { reduced: !!reduced });
+    pendingShake.current = null;
+  }, [placed, reduced]);
 
   useEffect(() => {
     if (!solved && isSolved(puzzle, placed)) {
@@ -65,6 +75,10 @@ export function BlocksBoard({ puzzle, onSolved }: BoardProps<BlocksPuzzle>) {
     if (result.placed.length === placed.length && result.removed === 0) return; // a tap on empty space
     redraws.current += result.removed;
     setPlaced(result.placed);
+    // A drawn rectangle that can't be right (no clue, two clues, wrong size or shape) shakes once
+    // as it lands, then keeps its dashed outline (D-052). It shakes after it has rendered.
+    const drawn = didMove && anchor !== current ? result.placed[result.placed.length - 1] : null;
+    pendingShake.current = drawn && drawn.clue < 0 ? rectKey(drawn.rect) : null;
     if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate?.(8);
   };
 
@@ -187,7 +201,8 @@ export function BlocksBoard({ puzzle, onSolved }: BoardProps<BlocksPuzzle>) {
             const colour = p.clue >= 0 ? BLOCKS_PALETTE[clues[p.clue].color] : null;
             return (
               <motion.div
-                key={`${p.rect.r}-${p.rect.c}-${p.rect.h}-${p.rect.w}`}
+                key={rectKey(p.rect)}
+                data-shake={rectKey(p.rect)}
                 initial={{ opacity: 0, scale: 0.92 }}
                 animate={solved && !reduced ? { opacity: 1, scale: [1, 1.05, 1] } : { opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.92, transition: { duration: dur.fast, ease: ease.in } }}
