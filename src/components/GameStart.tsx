@@ -5,10 +5,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { GAMES, type GameMeta } from "@/games/registry";
-import { MODULES } from "@/games/modules";
+import { MODULES, OWN_SESSION, playable } from "@/games/modules";
+import { ChessSession } from "@/games/chess/Session";
+import { DAILY_TARGETS } from "@/games/chess/engine";
 import { isTier, suggestTier, TIERS, TIER_LABEL, type Tier } from "@/engine/difficulty";
 import { boardSeed, dailyBoard, isValidSeed, randomSeed, type BoardKey, type Mode } from "@/engine/seed";
-import { tierProgress } from "@/engine/history";
+import { levelProgress, PUZZLE_RATED, startRating } from "@/engine/history";
 import { useProfile } from "@/lib/profile";
 import { useToday } from "@/lib/useToday";
 import { dur, ease } from "@/lib/motion";
@@ -36,9 +38,11 @@ export function GameStart({ game }: { game: GameMeta }) {
   const [mode, setMode] = useState<Mode>(challenge ? "challenge" : params.get("m") === "daily" ? "daily" : "practice");
   const profile = useProfile();
   const summary = profile?.games[game.id] ?? null;
-  const rating = summary?.rating ?? 1000;
-  const suggested = suggestTier(rating);
-  const progress = tierProgress(rating);
+  const puzzleRated = PUZZLE_RATED.has(game.id);
+  const rating = summary?.rating ?? startRating(game.id);
+  // Puzzle-rated games pick puzzles around your rating, so "medium" (at your level) is always the suggestion.
+  const suggested = puzzleRated ? "medium" : suggestTier(rating);
+  const progress = levelProgress(game.id, rating);
   const [tier, setTier] = useState<Tier>(challenge?.tier ?? "medium");
   const [board, setBoard] = useState<BoardKey | null>(null);
   /** Board waiting behind the how-to-play screen. */
@@ -58,7 +62,8 @@ export function GameStart({ game }: { game: GameMeta }) {
   const solveRate = summary && summary.played > 0 ? Math.round((summary.solved / summary.played) * 100) : null;
 
   const gameModule = MODULES[game.id];
-  const nextDaily = GAMES.slice(GAMES.findIndex((g) => g.id === game.id) + 1).find((g) => MODULES[g.id]);
+  const nextDaily = GAMES.slice(GAMES.findIndex((g) => g.id === game.id) + 1).find((g) => playable(g.id));
+  const dailyDoneToday = !!(today && summary?.dailyDone.has(today.toISOString().slice(0, 10)));
   const nextDailyHref = nextDaily ? `/play/${nextDaily.id}?m=daily` : "/";
 
   function backToMenu() {
@@ -102,7 +107,9 @@ export function GameStart({ game }: { game: GameMeta }) {
         </header>
 
         <AnimatePresence mode="wait" initial={false}>
-          {board && gameModule ? (
+          {board && OWN_SESSION.has(game.id) ? (
+            <ChessSession key={boardSeed(board)} game={game} mode={mode} tier={board.tier} seed={board.seed} onExit={backToMenu} />
+          ) : board && gameModule ? (
             <PlaySession
               key={boardSeed(board)}
               game={game}
@@ -159,11 +166,15 @@ export function GameStart({ game }: { game: GameMeta }) {
               <div className="well flex flex-col gap-3 rounded-[18px] p-4">
                 <dl className="grid grid-cols-4 gap-3">
                   <Stat label="rating" value={summary ? String(rating) : "--"} />
-                  <Stat
-                    label="best"
-                    title={`best on ${effectiveTier}`}
-                    value={best === undefined ? "--" : gameModule?.scoring === "points" ? <PointsDisplay points={best} /> : <TimeDisplay ms={best} />}
-                  />
+                  {puzzleRated ? (
+                    <Stat label="peak" value={summary?.played ? String(summary.peak) : "--"} />
+                  ) : (
+                    <Stat
+                      label="best"
+                      title={`best on ${effectiveTier}`}
+                      value={best === undefined ? "--" : gameModule?.scoring === "points" ? <PointsDisplay points={best} /> : <TimeDisplay ms={best} />}
+                    />
+                  )}
                   <Stat label="played" value={summary ? String(summary.played) : "0"} />
                   <Stat label="solved" value={solveRate === null ? "--" : `${solveRate}%`} />
                 </dl>
@@ -176,7 +187,11 @@ export function GameStart({ game }: { game: GameMeta }) {
                   )}
                 </div>
                 <span className="font-mono text-caption text-ash">
-                  {progress.next ? `${suggested} now · ${progress.nextAt! - rating} to ${progress.next}` : "expert. the top tier."}
+                  {puzzleRated
+                    ? `puzzle rating · ${progress.caption}`
+                    : progress.caption
+                      ? `${suggested} now · ${progress.caption}`
+                      : "expert. the top tier."}
                 </span>
               </div>
 
@@ -189,7 +204,11 @@ export function GameStart({ game }: { game: GameMeta }) {
                 </section>
 
                 <section className="flex flex-col gap-2" aria-labelledby="start-tier">
-                  <Eyebrow id="start-tier" step="02" note={mode === "daily" ? "fixed today" : mode === "challenge" ? "set by the link" : undefined}>
+                  <Eyebrow
+                    id="start-tier"
+                    step="02"
+                    note={mode === "daily" ? (puzzleRated ? "three puzzles, ramping up" : "fixed today") : mode === "challenge" ? "set by the link" : undefined}
+                  >
                     difficulty
                   </Eyebrow>
                   <Segmented
@@ -201,9 +220,20 @@ export function GameStart({ game }: { game: GameMeta }) {
                     disabled={mode !== "practice"}
                   />
                   <div className="flex min-h-[44px] flex-col gap-0.5 pt-1">
-                    <p className="text-body text-paper">{INTRO[game.id].tiers[effectiveTier]}</p>
+                    <p className="text-body text-paper">
+                      {puzzleRated && mode === "daily"
+                        ? `three puzzles at about ${DAILY_TARGETS.join(", ").replace(/, (\d+)$/, " and $1")}`
+                        : puzzleRated && mode === "challenge"
+                          ? "the exact puzzle your friend played"
+                          : INTRO[game.id].tiers[effectiveTier]}
+                    </p>
                     <p className="text-caption text-ash">
-                      {mode === "daily" && "everyone plays this board today."}
+                      {mode === "daily" &&
+                        (puzzleRated
+                          ? dailyDoneToday
+                            ? "done today. replays don't change your rating."
+                            : "the same three for everyone, rated against each puzzle."
+                          : "everyone plays this board today.")}
                       {mode === "practice" &&
                         (effectiveTier === suggested ? (
                           <>

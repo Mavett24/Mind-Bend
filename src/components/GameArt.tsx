@@ -7,6 +7,7 @@
 import type { ReactNode } from "react";
 import type { GameId } from "@/games/registry";
 import { hue } from "./GameIcon";
+import { PieceAt } from "@/games/chess/pieces";
 
 type Art = (v: 0 | 1, h: string) => ReactNode;
 
@@ -17,6 +18,47 @@ const grid = (n: number, fill = "#232323") =>
   Array.from({ length: n * n }, (_, i) => cell((i % n) * (100 / n), Math.floor(i / n) * (100 / n), 100 / n, fill, `g${i}`));
 
 const ART: Record<GameId, Art> = {
+  chess: (v, h) => {
+    const s = 25;
+    const sq = (i: number) => {
+      const x = (i % 4) * s;
+      const y = Math.floor(i / 4) * s;
+      return <rect key={`s${i}`} x={x} y={y} width={s} height={s} fill={(i % 4) % 2 === Math.floor(i / 4) % 2 ? "#5d5672" : "#39334a"} />;
+    };
+    const last = v === 0 ? [9, 6] : [13, 10];
+    return (
+      <>
+        <clipPath id={`chess-art-${v}`}>
+          <rect width="100" height="100" rx="10" />
+        </clipPath>
+        <g clipPath={`url(#chess-art-${v})`}>
+          {Array.from({ length: 16 }, (_, i) => sq(i))}
+          {last.map((i) => (
+            <rect key={`l${i}`} x={(i % 4) * s} y={Math.floor(i / 4) * s} width={s} height={s} fill={h} opacity={0.4} />
+          ))}
+        </g>
+        {v === 0 ? (
+          <>
+            <PieceAt type="k" color="b" x={25} y={0} size={25} />
+            <PieceAt type="p" color="b" x={0} y={25} size={25} />
+            <PieceAt type="n" color="w" x={50} y={25} size={25} />
+            <PieceAt type="q" color="w" x={75} y={75} size={25} />
+            <path d="M87.5 75L87.5 47" stroke={h} strokeWidth={4} strokeLinecap="round" />
+            <path d="M80 50L87.5 38L95 50Z" fill={h} />
+          </>
+        ) : (
+          <>
+            <PieceAt type="r" color="b" x={75} y={0} size={25} />
+            <PieceAt type="k" color="w" x={0} y={75} size={25} />
+            <PieceAt type="b" color="w" x={50} y={50} size={25} />
+            <circle cx={37.5} cy={37.5} r={4} fill="#000" opacity={0.35} />
+            <circle cx={12.5} cy={12.5} r={4} fill="#000" opacity={0.35} />
+            <circle cx={87.5} cy={87.5} r={4} fill="#000" opacity={0.35} />
+          </>
+        )}
+      </>
+    );
+  },
   path: (v, h) => {
     const n = 5;
     const s = 100 / n;

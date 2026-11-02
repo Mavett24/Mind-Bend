@@ -42,7 +42,8 @@ export function randomSeed(length = 6): string {
   return out;
 }
 
-const SEED_PATTERN = /^[a-z0-9-]{1,32}$/;
+// Mixed case so a chess challenge link can name a Lichess puzzle id (1400-00K8j).
+const SEED_PATTERN = /^[A-Za-z0-9-]{1,32}$/;
 
 export function isValidSeed(seed: unknown): seed is string {
   return typeof seed === "string" && SEED_PATTERN.test(seed);

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { motion } from "motion/react";
 import { GAMES } from "@/games/registry";
-import { activity, tierProgress } from "@/engine/history";
+import { activity, levelProgress } from "@/engine/history";
 import { useProfile, type Profile } from "@/lib/profile";
 import { dur, ease } from "@/lib/motion";
 import { Hero } from "./Hero";
@@ -31,8 +31,8 @@ export function HomeContent() {
             {GAMES.map((game, i) => (
               <motion.div
                 key={game.id}
-                // Bento on wide screens: the first and last cards span two columns so seven cards fill three rows.
-                className={i === 0 || i === GAMES.length - 1 ? "lg:col-span-2" : ""}
+                // Bento on wide screens: the first card spans two columns so eight cards fill three rows.
+                className={i === 0 ? "lg:col-span-2" : ""}
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{
@@ -55,7 +55,7 @@ function YouCard({ profile }: { profile: Profile | null }) {
   const f = profile?.focus;
   const game = f ? GAMES.find((g) => g.id === f.gameId) : null;
   const summary = game && profile ? profile.games[game.id] : null;
-  const tp = summary ? tierProgress(summary.rating) : null;
+  const tp = summary && game ? levelProgress(game.id, summary.rating) : null;
   const days = profile ? activity(profile.data, profile.now, 14) : null;
 
   return (
@@ -104,11 +104,11 @@ function YouCard({ profile }: { profile: Profile | null }) {
             </span>
           </div>
           <p className="text-fog">{f.reason}</p>
-          {tp.next && (
+          {tp.caption && (
             <div className="flex flex-col gap-1.5">
               <TierBar progress={tp.progress} color={`var(--color-hue-${game.id})`} />
               <span className="font-mono text-caption text-ash">
-                {summary!.rating} · {tp.nextAt! - summary!.rating} to {tp.next}
+                {summary!.rating} · {tp.caption}
               </span>
             </div>
           )}

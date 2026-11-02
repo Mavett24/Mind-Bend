@@ -50,6 +50,8 @@ const FIELD: Spot[] = [
   { id: "balance", v: 1, x: 99, y: 22, w: 140, r: -6, d: 0.75 },
   { id: "trivia", v: 1, x: 52, y: 88, w: 124, r: 4, d: 0.3 },
   { id: "recall", v: 1, x: 60, y: 30, w: 118, r: -14, d: 0.25, m: true },
+  { id: "chess", v: 0, x: 49, y: 58, w: 150, r: -7, d: 0.95 },
+  { id: "chess", v: 1, x: 36, y: 6, w: 120, r: 11, d: 0.45, m: true },
 ];
 
 function FieldBoard({
@@ -201,7 +203,7 @@ function WeekRamp({ today }: { today: Date | null }) {
 /* ---------- hero ---------- */
 
 function headline(p: Profile | null, left: number): [string, string] {
-  if (!p?.returning) return ["Seven boards.", "Fresh daily."];
+  if (!p?.returning) return ["Eight games.", "Fresh daily."];
   const s = p.overall.streak;
   if (left === 0) return [s >= 2 ? `Day ${s}. Done.` : "Set cleared.", "Back at 00:00."];
   const rest = `${left} ${left === 1 ? "board" : "boards"} left.`;
@@ -336,7 +338,7 @@ export function Hero({ profile }: { profile: Profile | null }) {
               </Link>
             ) : (
               <span className="inline-flex h-12 items-center rounded-full bg-white/[0.06] px-5 font-mono text-[15px] text-paper shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]">
-                ✓ all seven done
+                ✓ all eight done
               </span>
             )}
             <Link

@@ -245,3 +245,27 @@ Every tier is a 6×6 grid, solvable with singles only. Tiers differ by how many 
 The start card now has three clear zones. Your record shrinks into one panel (rating, best, played, solved in one row, then the tier bar). The two choices get numbered eyebrows, `01 mode` and `02 difficulty`, and sit on segmented controls with a visible slate stroke and a filled chip on the active option. "How to play" becomes a ghost pill next to the white play pill, so there is one obvious primary action and one secondary one. When daily or a challenge fixes the tier, the tier control dims and its eyebrow says so.
 **Why:** playtesting found it unclear what to click. The stats panel was the loudest thing on the card, the controls had near-invisible iron strokes so they read as plain text, and the only selection cue was a 2px underline. Eyebrows, strokes and fills put the weight on the choices and the play button.
 **Gave up:** the ember underline as the active-segment marker (ember now marks step numbers and the suggested tier instead), the large rating number on the start card, and the tier name in the "best" label (the picker already shows it).
+
+### D-046 · chess puzzles come from the Lichess database, not a generator
+**2026-11-02** · an exception to "never the same board twice" in PRODUCT.md
+chess serves a curated set of 16,522 puzzles from the Lichess puzzle database (CC0), filtered for settled ratings, popularity and play count, every move checked with chess.js and every solution tested. Bands of 200 rating points ship as static files and load on demand.
+**Why:** a fair tactic needs an engine-verified line with exactly one winning move at each step, and a rating that reflects how real players fare on it. Generating that means running Stockfish over real games, which is a project in itself and would still need human play data to rate the puzzles. Lichess has done both for millions of puzzles and released them into the public domain. The licence-free source also keeps the private repo clean.
+**Gave up:** generation for this one game, and with it infinite variety. With about 2,000 puzzles in each 200-point band, a player meets new puzzles for months, and the build script takes the full database when we want more.
+
+### D-047 · chess gets its own board, pieces and session
+**2026-11-02** · amends DESIGN.md §2 (board palette), §9 (touch targets)
+The board is built in house: violet-tinted squares (two new tokens), our own flat piece set, transform-only piece glides, hue for the last move and hints, ember only for check and a wrong move, chess.js for the rules. chess runs its own session instead of the shared board flow: puzzle after puzzle on one board, with the result beside it.
+**Why:** a stock board and Staunton pieces would look pasted in. Tinting the squares with the game's hue makes the board belong to chess the way the orange path belongs to path. chessground, the usual board library, is GPL, so it was out. The shared flow's separate result screen is right for a two-minute board and wrong for a ten-second puzzle; chess.com's loop works because the next puzzle is one tap away.
+**Gave up:** the 44 px touch target on small phones (squares are about 42 px at 390 px wide, the board already runs edge to edge in the card) and the uniform result screen across games.
+
+### D-048 · Puzzle Elo for chess, on its own scale
+**2026-11-02**
+chess rates you against each puzzle's own rating, chess.com style: start at 1200, K of 64, then 40, then 24 as you settle, ratings 100 to 3300. A clean solve always gains at least 1. The piece hint halves the gain and the move hint removes it, but hints never cost rating. A speed bonus of up to 4 points is earned by solving within the puzzle's target time, which scales with its rating and length. The record stores the puzzle rating and the bonus, and the rating is still derived from history (D-039).
+**Why:** the other games rate you against a tier's nominal rating because their boards have no rating of their own. Lichess puzzles do, which is what makes chess.com's system feel fair: hard puzzles pay more and cost less. Hints are scaled on the gain, not the result, so using one on an easy puzzle can't push you down, which matches Mavett's brief that hints affect how much you win. The bonus is small next to K so speed rewards rather than dominates.
+**Gave up:** one shared rating scale. Chess sits on its own tactics skill bar (400 to 2800), its rating chart has no tier lines, and the "lowest rating" suggestion leaves it out because 1500 in chess and 1500 in path mean different things. The 15% hint rule (D-041) does not apply to chess.
+
+### D-049 · The chess daily is three rated puzzles that ramp
+**2026-11-02** · an exception to "daily boards don't move your rating" (D-039)
+The chess daily is three puzzles at about 1300, 1700 and 2100, the same for everyone, and each one is rated on your first attempt. It counts as done once all three are played, solved or not.
+**Why:** Mavett wanted the chess.com feel, where the daily matters. Puzzle Elo makes a shared set fair without tailoring it: a strong player gains little on the first and risks a lot, a newer player risks little on the third and gains a lot. A shared set keeps the "did you get all three?" moment.
+**Gave up:** consistency with the other games' unrated dailies, and a daily set tuned to each player's level.

@@ -55,8 +55,9 @@ Ember rules: primary buttons, progress bars, step numbers in start-card eyebrows
 | `--color-hue-weave` | `#4ade80` | weave |
 | `--color-hue-recall` | `#ffcc33` | recall |
 | `--color-hue-trivia` | `#38bdf8` | trivia |
+| `--color-hue-chess` | `#c084fc` | chess |
 
-Black glyphs and text on every hue pass 4.5:1. All pass 3:1 against the card surface. They are identity colours, not a chart palette: two hues (pink and teal) sit close for deuteranopes, so a hue is always paired with the game's name or icon and charts show one game at a time.
+Black glyphs and text on every hue pass 4.5:1. All pass 3:1 against the card surface. They are identity colours, not a chart palette: two hues (pink and teal) sit close for deuteranopes, and violet sits near indigo (chess and sudoku), so a hue is always paired with the game's name or icon and charts show one game at a time.
 
 ### Surfaces
 
@@ -79,6 +80,15 @@ Inside a game board, color is information: regions in Blocks, symbols in Balance
 Every board cell has a 1px `--color-cell-line` outline. Cell fill and card are both near `#191919`, so the outline is what defines the grid. State outlines (selected, hint, related) replace it instead of stacking on top of it: selected is paper, a hint's related cells are fog.
 
 Recall is the one game where the whole card becomes the stimulus color. That is the game, so it is allowed.
+
+### Chess board (D-047)
+
+| Token | Value | Use |
+|-------|-------|-----|
+| `--color-square-light` | `#5d5672` | Light squares, and coordinates on dark squares |
+| `--color-square-dark` | `#39334a` | Dark squares, and coordinates on light squares |
+
+Violet-tinted greys, so the board carries the chess hue without competing with the pieces. Pieces are Mind Bend's own flat set: white is paper with a black edge, black is near-black with a chalk edge, both readable on both squares. Last move: hue at 32%. Selected: paper at 16%. Check: 3px ember inset ring. Hint: a pulsing 3px hue ring, then a hue arrow. Legal moves: void dots at 35%, captures as rings. A wrong move gets an ember × badge, a right one a paper ✓ badge. Chess squares have no cell outline: alternating squares already define the grid.
 
 ### In-game clock
 
@@ -235,6 +245,6 @@ Short, dry, a little cheeky. Every score band gets a line, the way Dialed does i
 ## 9. Accessibility
 
 - Every board is fully keyboard playable: arrow keys move focus, Enter or Space acts, Backspace undoes.
-- Touch targets at least 44px. Boards scale cell size down to that limit, then reduce grid size options on very small screens.
+- Touch targets at least 44px. Boards scale cell size down to that limit, then reduce grid size options on very small screens. Exception: chess squares are about 42px on a 390px phone, since an 8×8 board can't shrink its grid (D-047).
 - Text contrast at least 4.5:1. Paper on void is 18.1:1, fog on carbon 9.1:1, ash on carbon 4.7:1, void on ember 5.6:1. Steel on carbon is 3.0:1, so steel is only for non-essential labels and large numbers.
 - Game state is announced through an `aria-live` region.

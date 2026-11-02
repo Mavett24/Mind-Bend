@@ -37,6 +37,12 @@ const glyphs: Record<GameId, React.ReactNode> = {
       <rect x="12.6" y="3.6" width="3.8" height="3.8" fill="currentColor" />
     </>
   ),
+  chess: (
+    <path
+      d="M5 17.2h10.2v-1.6c.2-4.6-1.4-9.2-6-9.8L8.6 3.6 7.4 5.9 3.6 9.8c-.6.9-.1 2.1 1 2.3 1.3.2 2.6-.5 3.7-1.1-1.9 1.4-3.3 3-3.3 4.9z"
+      fill="currentColor"
+    />
+  ),
   trivia: (
     <>
       <path d="M6.5 7a3.5 3.5 0 1 1 5 3.2c-1 .5-1.5 1.1-1.5 2.3v.5" fill="none" stroke="currentColor" strokeWidth="1.6" />

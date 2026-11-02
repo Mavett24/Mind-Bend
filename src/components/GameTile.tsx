@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import type { GameMeta } from "@/games/registry";
-import type { GameSummary } from "@/engine/history";
-import { suggestTier } from "@/engine/difficulty";
+import { levelLabel, type GameSummary } from "@/engine/history";
 import { GameIcon } from "./GameIcon";
 import { GameArt } from "./GameArt";
 
@@ -20,7 +19,7 @@ export function GameTile({ game, summary }: { game: GameMeta; summary: GameSumma
           {summary && !played && <span className="rounded-full bg-paper px-2.5 py-0.5 font-mono text-caption font-medium text-void">new</span>}
           {played && (
             <span className="font-mono text-caption text-ash">
-              {summary.rating} · {suggestTier(summary.rating)}
+              {summary.rating} · {levelLabel(summary)}
             </span>
           )}
         </div>

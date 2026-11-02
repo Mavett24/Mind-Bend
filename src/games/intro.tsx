@@ -8,6 +8,8 @@ import type { Tier } from "@/engine/difficulty";
 import type { GameId } from "./registry";
 import { BLOCKS_PALETTE } from "./blocks/palette";
 import { SUDOKU_GIVENS } from "./sudoku/engine";
+import { PRACTICE_OFFSET } from "./chess/engine";
+import { PieceAt } from "./chess/pieces";
 
 export interface GameIntro {
   /** Three or four numbered steps. */
@@ -20,6 +22,24 @@ export interface GameIntro {
 }
 
 // ---------------------------------------------------------------- example drawings (static SVG, monochrome + accent)
+
+/** A back-rank mate in one: the rook slides up the file. */
+function ChessExample() {
+  return (
+    <svg viewBox="0 0 4 3" className="h-28 w-[150px]" aria-hidden>
+      {Array.from({ length: 12 }, (_, i) => (
+        <rect key={i} x={i % 4} y={Math.floor(i / 4)} width={1} height={1} className={(i % 4 + Math.floor(i / 4)) % 2 === 0 ? "fill-square-light" : "fill-square-dark"} />
+      ))}
+      <PieceAt type="k" color="b" x={2} y={0} size={1} />
+      <PieceAt type="p" color="b" x={1} y={1} size={1} />
+      <PieceAt type="p" color="b" x={2} y={1} size={1} />
+      <PieceAt type="p" color="b" x={3} y={1} size={1} />
+      <PieceAt type="r" color="w" x={0} y={2} size={1} />
+      <line x1={0.5} y1={2.25} x2={0.5} y2={0.72} className="stroke-hue-chess" strokeWidth={0.12} strokeLinecap="round" />
+      <path d="M0.5 0.5L0.32 0.8H0.68Z" className="fill-hue-chess" />
+    </svg>
+  );
+}
 
 const cellBg = "fill-graphite";
 
@@ -303,6 +323,21 @@ export const INTRO: Record<GameId, GameIntro> = {
       expert: "4 colours, shown for 3 seconds, rebuild 2",
     },
     Example: RecallExample,
+  },
+  chess: {
+    steps: [
+      "You play the side to move, from the bottom of the board. The last move is lit.",
+      "Find the best move. If the line goes on, your opponent replies and you find the next one.",
+      "One wrong move loses the puzzle. Solve fast for a speed bonus. Hints cut what you win.",
+    ],
+    controls: "Drag a piece, or tap it and then a square. Keys: arrows move, enter picks up and drops.",
+    tiers: {
+      easy: `puzzles about ${-PRACTICE_OFFSET.easy} below your rating`,
+      medium: "puzzles at your rating",
+      hard: `puzzles about ${PRACTICE_OFFSET.hard} above your rating`,
+      expert: `puzzles about ${PRACTICE_OFFSET.expert} above. Expect to lose a few`,
+    },
+    Example: ChessExample,
   },
   trivia: {
     steps: [

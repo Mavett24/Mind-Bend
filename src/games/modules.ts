@@ -95,6 +95,12 @@ const sudoku: GameModule<ReturnType<typeof generateSudoku>> = {
   },
 };
 
+/** Games with their own session instead of the shared board flow (chess runs puzzle after puzzle). */
+export const OWN_SESSION = new Set<GameId>(["chess"]);
+
+/** Whether a game can be played: a shared-flow module or its own session. */
+export const playable = (id: GameId) => !!MODULES[id] || OWN_SESSION.has(id);
+
 // Each module has its own puzzle type; the shared flow only passes puzzles back to the board that made them.
 export const MODULES: Partial<Record<GameId, GameModule<unknown>>> = {
   path: path as GameModule<unknown>,

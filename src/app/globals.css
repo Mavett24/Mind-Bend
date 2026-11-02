@@ -33,6 +33,11 @@
   --color-hue-weave: #4ade80;
   --color-hue-recall: #ffcc33;
   --color-hue-trivia: #38bdf8;
+  --color-hue-chess: #c084fc;
+
+  /* Chess board squares: violet-tinted greys so the board belongs to the chess hue (D-047). */
+  --color-square-light: #5d5672;
+  --color-square-dark: #39334a;
 
   /* Dialed-style raised surface */
   --color-surface-top: #0e0e0e;

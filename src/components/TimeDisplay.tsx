@@ -26,7 +26,7 @@ export function TimeDisplay({ ms, className = "" }: { ms: number; className?: st
 }
 
 /** Animates 0 → value, decelerating. Instant with reduced motion. */
-function useCountUp(target: number, durationMs: number): number {
+export function useCountUp(target: number, durationMs: number): number {
   const reduced = useReducedMotion();
   const [value, setValue] = useState(reduced ? target : 0);
   const frame = useRef(0);
