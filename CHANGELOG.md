@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **Motion layer** (D-052): sections and game cards reveal as you scroll to them, stat totals count up, tier and activity bars fill in view, the hero's boards drift away as you scroll, and the header bar appears once you scroll. Game cards spring their icon and glow on hover and compress when pressed; card art has a light scroll parallax on desktop. The streak pill bumps when your streak goes up.
+- **Wrong-move shake** on path (a refused step), balance (a row, column or link that breaks), sudoku (a clashing number) and blocks (a rectangle that can't be right). Reduced motion turns it into a short fade.
+- Reduced motion now applies to every Motion animation, not only the components that checked it.
+- New: `src/lib/shake.ts`, `src/components/Reveal.tsx`, scroll and press tokens in `src/lib/motion.ts`.
 - **trivia countdown** (D-051): every question shows the seconds left in tenths next to the running score, with a thicker time bar driven by the same clock. Both freeze when you answer. Fixes the bar snapping to empty instead of shrinking.
 - **chess**, the eighth game: tactics puzzles rated like chess.com (spec in `docs/games/chess.md`).
   - 16,522 puzzles from the Lichess database (CC0), 600 to 2800, loaded by rating band. Every solution is played through in the tests (D-046).

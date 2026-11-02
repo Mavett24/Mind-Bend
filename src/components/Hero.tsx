@@ -9,7 +9,7 @@
  */
 import Link from "next/link";
 import { useEffect, useRef, useState, type PointerEvent } from "react";
-import { motion, useMotionValue, useReducedMotion, useSpring, useTransform, type MotionValue } from "motion/react";
+import { motion, useMotionValue, useReducedMotion, useScroll, useSpring, useTransform, type MotionValue } from "motion/react";
 import { GAMES, type GameId } from "@/games/registry";
 import { dailyBoard, utcDateKey, utcIsoWeekday } from "@/engine/seed";
 import { dailyTier, TIERS } from "@/engine/difficulty";
@@ -20,6 +20,9 @@ import { GameIcon, hue } from "./GameIcon";
 import { BoardPanel } from "./GameArt";
 
 /* ---------- board field ---------- */
+
+/** px a depth-1 board travels upward, on top of the page scroll, as the hero scrolls out */
+const SCROLL_DRIFT = 140;
 
 type Spot = {
   id: GameId;
@@ -60,15 +63,19 @@ function FieldBoard({
   focus,
   mx,
   my,
+  scroll,
 }: {
   spot: Spot;
   i: number;
   focus: GameId | null;
   mx: MotionValue<number>;
   my: MotionValue<number>;
+  /** 0 with the hero at the top of the page, 1 once it has scrolled out (0 under reduced motion) */
+  scroll: MotionValue<number>;
 }) {
   const x = useTransform(mx, (v) => v * spot.d * -28);
-  const y = useTransform(my, (v) => v * spot.d * -20);
+  // Pointer parallax plus scroll drift (D-052): deeper boards leave faster than the headline does.
+  const y = useTransform(() => my.get() * spot.d * -20 - scroll.get() * spot.d * SCROLL_DRIFT);
   const active = focus === spot.id;
   const dim = focus !== null && !active;
 
@@ -230,6 +237,12 @@ export function Hero({ profile }: { profile: Profile | null }) {
   const my = useSpring(rawY, { stiffness: 60, damping: 18, mass: 0.6 });
   const ref = useRef<HTMLElement>(null);
 
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
+  const still = useMotionValue(0);
+  const scroll = reduce ? still : scrollYProgress;
+  // The field fades out as you leave the hero (opacity only, so it stays on under reduced motion).
+  const fieldOpacity = useTransform(scrollYProgress, [0, 0.85], [1, 0.15]);
+
   function onMove(e: PointerEvent<HTMLElement>) {
     if (reduce || e.pointerType !== "mouse" || !ref.current) return;
     const r = ref.current.getBoundingClientRect();
@@ -252,9 +265,11 @@ export function Hero({ profile }: { profile: Profile | null }) {
     >
       {/* the board field */}
       <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-full max-md:h-[420px]">
-        {FIELD.map((spot, i) => (
-          <FieldBoard key={`${spot.id}-${spot.v}`} spot={spot} i={i} focus={focus} mx={mx} my={my} />
-        ))}
+        <motion.div className="absolute inset-0" style={{ opacity: fieldOpacity }}>
+          {FIELD.map((spot, i) => (
+            <FieldBoard key={`${spot.id}-${spot.v}`} spot={spot} i={i} focus={focus} mx={mx} my={my} scroll={scroll} />
+          ))}
+        </motion.div>
         {/* keep the headline readable and melt the field into the page */}
         <div className="absolute inset-0 z-20 bg-[radial-gradient(70%_75%_at_22%_48%,var(--color-void)_30%,transparent_75%)] max-md:bg-[radial-gradient(110%_55%_at_20%_95%,var(--color-void)_40%,transparent_85%)]" />
         <div className="absolute inset-x-0 bottom-0 z-20 h-40 bg-gradient-to-b from-transparent to-void" />

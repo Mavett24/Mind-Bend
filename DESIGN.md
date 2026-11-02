@@ -217,15 +217,43 @@ Motion is the part that should feel like Dialed: physical, slightly springy, qui
 1. **Title reveal.** On a game's start screen, the title enters letter by letter, 24ms stagger, rising 8px with `--ease-out`.
 2. **Commit press.** The primary action compresses to 0.97 on press and springs back on release.
 3. **Cell placement.** A placed symbol or path segment scales from 0.6 to 1 with `--ease-spring`. Removing reverses with `--ease-in` at `--dur-fast`.
-4. **Solve.** When a board is solved, cells ripple from the last placed cell outward (16ms per cell of distance), each doing a small scale bounce, then the board settles.
+4. **Solve.** When a board is solved, cells ripple from the last placed cell outward (30 to 40ms per cell of distance, so the biggest boards finish in under a second), each doing a small scale bounce, then the board settles.
 5. **Result split.** For comparison games (Recall), the card splits horizontally: your answer on top, the target below, over `--dur-slow`.
 6. **Score count-up.** The score counts from 0 to its value over `--dur-count`, decelerating, then the score-band line fades in 200ms after.
-7. **Wrong move.** The offending cell shakes horizontally 4px, three cycles, 240ms total.
+7. **Wrong move.** The offending cell shakes horizontally 4px, three cycles, 240ms total. What counts as offending, per game (D-052):
+   - path: the cell you tried to step into when the rules refuse it (a wall, or a number out of order). Cells skipped by a fast drag stay still, and pushing against the same wall shakes once.
+   - balance: every cell of a row, column or link the moment its ember mark appears, after the usual 600ms wait.
+   - sudoku: only the number you just entered when it clashes, never the one already on the board.
+   - blocks: a rectangle you release that can't be right (no clue, two clues, wrong size or shape), before it settles into its dashed outline.
+   - weave: the message line on a word that is not a word. trivia: the option you picked when it is wrong. chess: the whole board on a wrong move. recall has no wrong moves.
+
+   Board cells shake through `src/lib/shake.ts`, which adds the shake on top of any transform the cell already has, so it never fights a placement or solve animation.
+
+### Scroll and interaction
+
+Added with the motion layer (D-052). Tokens live in `src/lib/motion.ts` next to the easing and duration tokens.
+
+| Token | Value | Use |
+|-------|-------|-----|
+| `reveal.rise` | 16px | How far a section rises as it fades in on scroll |
+| `reveal.rowStagger` | 160ms | Delay across one full row, spread by each item's horizontal position |
+| `reveal.amount` | 20% | Share of an element on screen before it reveals |
+| `press.button` | 0.97 | Pill buttons while held |
+| `press.card` | 0.98 | Game cards while held |
+| `parallax.cardArt` | 14px | Card art travel across one viewport of scroll, desktop with a mouse only |
+
+- **Reveal on scroll.** Cards and sections rise and fade in once, the first time they come on screen (`<Reveal>`). Items in a row stagger left to right. Anything on screen at load plays straight away.
+- **Count-ups and fills.** Stat totals count up from zero when they come into view. Tier bars fill and the activity bars grow from the baseline the same way.
+- **Hero on scroll.** The board field drifts upward faster than the page as you scroll past the hero, deeper boards faster, and fades to 15%.
+- **Header.** Transparent at the top of the page. Its bar, blur and hairline fade in once you scroll.
+- **Game cards.** Hover lifts the card 2px, springs the icon tile (tilt and scale with `--ease-spring-strong`) and brings up a soft glow in the game's hue behind the boards. Press compresses to `press.card`.
+- **Streak.** The header pill springs and its ember dot pulses the first time you see your streak go up.
+
 
 ### Rules
 
 - Animate only `transform` and `opacity`.
-- Respect `prefers-reduced-motion`: replace movement with opacity fades, keep the count-up instant.
+- Respect `prefers-reduced-motion`: replace movement with opacity fades, keep the count-up instant. A global `MotionConfig` applies this to every Motion animation; scroll drift and parallax switch off, and the wrong-move shake becomes a short opacity dip.
 - Input is never blocked by animation. A user can place the next cell while the last one is still settling.
 
 ## 7. Voice

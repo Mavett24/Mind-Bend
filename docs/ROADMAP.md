@@ -49,7 +49,7 @@
 ## Phase 6 · Polish
 - [x] Cell outlines at 3:1 on every logic board (D-043)
 - [x] Start card hierarchy: eyebrows, stroked controls, one primary action (D-045)
-- [ ] Motion pass on every signature moment (see DESIGN.md §6)
+- [x] Motion pass on every signature moment, plus scroll, press and reveal motion (D-052)
 - [ ] Sound and haptics
 - [ ] Accessibility audit, keyboard play for every board
 - [ ] Performance pass on low-end phones

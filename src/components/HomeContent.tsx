@@ -1,11 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "motion/react";
 import { GAMES } from "@/games/registry";
 import { activity, levelProgress } from "@/engine/history";
 import { useProfile, type Profile } from "@/lib/profile";
-import { dur, ease } from "@/lib/motion";
+import { Reveal } from "./Reveal";
 import { Hero } from "./Hero";
 import { GameTile } from "./GameTile";
 import { GameIcon } from "./GameIcon";
@@ -18,7 +17,9 @@ export function HomeContent() {
     <>
       <Hero profile={profile} />
       <main className="mx-auto flex w-full max-w-[1200px] flex-1 flex-col gap-10 px-4 pb-16 md:gap-14">
-        <YouCard profile={profile} />
+        <Reveal>
+          <YouCard profile={profile} />
+        </Reveal>
 
         <section id="games" aria-labelledby="games-title" className="flex flex-col gap-5">
           <div className="flex items-baseline justify-between">
@@ -29,20 +30,13 @@ export function HomeContent() {
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {GAMES.map((game, i) => (
-              <motion.div
+              <Reveal
                 key={game.id}
                 // Bento on wide screens: the first card spans two columns so eight cards fill three rows.
                 className={i === 0 ? "lg:col-span-2" : ""}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  duration: dur.slow,
-                  ease: ease.out,
-                  delay: 0.05 * i,
-                }}
               >
                 <GameTile game={game} summary={profile?.games[game.id] ?? null} />
-              </motion.div>
+              </Reveal>
             ))}
           </div>
         </section>

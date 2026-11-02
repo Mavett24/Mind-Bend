@@ -11,7 +11,8 @@ import { scoringOf, useProfile, type Profile } from "@/lib/profile";
 import { dur, ease } from "@/lib/motion";
 import { GameIcon, hue } from "./GameIcon";
 import { ActivityCalendar, RatingChart, Sparkline, TierBar } from "./charts";
-import { PointsDisplay, TimeDisplay } from "./TimeDisplay";
+import { CountUpStat, PointsDisplay, TimeDisplay } from "./TimeDisplay";
+import { Reveal } from "./Reveal";
 import { Button } from "./Button";
 
 const SKILL_LABEL: Record<Skill, { name: string; games: string }> = {
@@ -68,12 +69,13 @@ function Stats({ profile }: { profile: Profile }) {
   const o = profile.overall;
   const days = useMemo(() => activity(profile.data, profile.now, 26 * 7), [profile]);
 
-  const totals = [
-    { label: "games", value: String(o.games) },
-    { label: "solved", value: o.games ? `${Math.round((o.solved / o.games) * 100)}%` : "--" },
-    { label: "time played", value: fmtDuration(o.timeMs) },
-    { label: "streak", value: `${o.streak}d` },
-    { label: "longest", value: `${o.longestStreak}d` },
+  // Each total counts up from zero (D-052). `format` takes the in-between value, so it rounds.
+  const totals: { label: string; value: number; format: (v: number) => string }[] = [
+    { label: "games", value: o.games, format: (v) => String(Math.round(v)) },
+    { label: "solved", value: o.games ? (o.solved / o.games) * 100 : 0, format: (v) => (o.games ? `${Math.round(v)}%` : "--") },
+    { label: "time played", value: o.timeMs, format: fmtDuration },
+    { label: "streak", value: o.streak, format: (v) => `${Math.round(v)}d` },
+    { label: "longest", value: o.longestStreak, format: (v) => `${Math.round(v)}d` },
   ];
 
   return (
@@ -96,13 +98,15 @@ function Stats({ profile }: { profile: Profile }) {
             className={`surface flex flex-col gap-1 rounded-[20px] px-5 py-4 ${i === 4 ? "col-span-2 md:col-span-1" : ""}`}
           >
             <dt className="text-caption uppercase text-ash">{t.label}</dt>
-            <dd className="font-mono text-heading-lg">{t.value}</dd>
+            <dd className="font-mono text-heading-lg">
+              <CountUpStat value={t.value} format={t.format} />
+            </dd>
           </motion.div>
         ))}
       </dl>
 
       <div className="grid gap-4 md:gap-5 lg:grid-cols-[1.4fr_1fr]">
-        <section className="surface flex flex-col gap-4 rounded-card p-6 md:p-8" aria-labelledby="cal-title">
+        <Reveal as="section" className="surface flex flex-col gap-4 rounded-card p-6 md:p-8" aria-labelledby="cal-title">
           <div className="flex items-baseline justify-between">
             <h2 id="cal-title" className="title-card">
               training days
@@ -110,9 +114,9 @@ function Stats({ profile }: { profile: Profile }) {
             <span className="text-caption text-ash">last 26 weeks</span>
           </div>
           <ActivityCalendar days={days} />
-        </section>
+        </Reveal>
 
-        <section className="surface flex flex-col gap-4 rounded-card p-6 md:p-8" aria-labelledby="skills-title">
+        <Reveal as="section" className="surface flex flex-col gap-4 rounded-card p-6 md:p-8" aria-labelledby="skills-title">
           <h2 id="skills-title" className="title-card">
             skills
           </h2>
@@ -134,10 +138,10 @@ function Stats({ profile }: { profile: Profile }) {
               );
             })}
           </ul>
-        </section>
+        </Reveal>
       </div>
 
-      <section className="surface flex flex-col gap-5 rounded-card p-6 md:p-8" aria-labelledby="games-stats-title">
+      <Reveal as="section" className="surface flex flex-col gap-5 rounded-card p-6 md:p-8" aria-labelledby="games-stats-title">
         <div className="flex flex-col gap-1">
           <h2 id="games-stats-title" className="title-card">
             by game
@@ -186,7 +190,7 @@ function Stats({ profile }: { profile: Profile }) {
         </div>
 
         <GameDetail profile={profile} id={selected} />
-      </section>
+      </Reveal>
 
       <RecentCard profile={profile} />
       <DataCard />
@@ -282,7 +286,7 @@ function PuzzleBestsBlock({ profile, id }: { profile: Profile; id: GameId }) {
 function RecentCard({ profile }: { profile: Profile }) {
   const recent = [...profile.data.records].sort((a, b) => b.at - a.at).slice(0, 12);
   return (
-    <section className="surface flex flex-col gap-4 rounded-card p-6 md:p-8" aria-labelledby="recent-title">
+    <Reveal as="section" className="surface flex flex-col gap-4 rounded-card p-6 md:p-8" aria-labelledby="recent-title">
       <h2 id="recent-title" className="title-card">
         recent
       </h2>
@@ -291,7 +295,7 @@ function RecentCard({ profile }: { profile: Profile }) {
           <RecentRow key={r.id} r={r} delta={profile.games[r.gameId as GameId]?.deltas.get(r.id)} now={profile.now} />
         ))}
       </ol>
-    </section>
+    </Reveal>
   );
 }
 
@@ -341,7 +345,7 @@ function DataCard() {
   }
 
   return (
-    <section className="surface flex flex-col gap-4 rounded-card p-6 md:p-8" aria-labelledby="data-title">
+    <Reveal as="section" className="surface flex flex-col gap-4 rounded-card p-6 md:p-8" aria-labelledby="data-title">
       <div className="flex flex-col gap-1">
         <h2 id="data-title" className="title-card">
           your data
@@ -400,6 +404,6 @@ function DataCard() {
           </button>
         )}
       </div>
-    </section>
+    </Reveal>
   );
 }

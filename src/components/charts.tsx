@@ -8,7 +8,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { RatingPoint } from "@/engine/history";
 import { TIER_THRESHOLD } from "@/engine/history";
 import { TIERS } from "@/engine/difficulty";
-import { motion } from "motion/react";
+import { motion, useInView } from "motion/react";
 import { dur, ease } from "@/lib/motion";
 
 const SURFACE = "#1a1a19";
@@ -212,13 +212,19 @@ export function ActivityCalendar({ days }: { days: { day: string; games: number 
 
 export function ActivityBars({ days, height = 40 }: { days: { day: string; games: number }[]; height?: number }) {
   const max = Math.max(1, ...days.map((d) => d.games));
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, amount: 0.5 });
   return (
-    <div className="flex items-end gap-[3px]" style={{ height }} role="img" aria-label={`Games per day, last ${days.length} days`}>
+    <div ref={ref} className="flex items-end gap-[3px]" style={{ height }} role="img" aria-label={`Games per day, last ${days.length} days`}>
       {days.map((d, i) => (
-        <span
+        <motion.span
           key={d.day}
           title={`${d.day}: ${d.games}`}
           className="flex-1 origin-bottom rounded-t-[3px] rounded-b-[1px]"
+          // The bars grow up from the baseline, left to right, the first time they are on screen.
+          initial={{ scaleY: 0 }}
+          animate={{ scaleY: inView ? 1 : 0 }}
+          transition={{ duration: dur.slow, ease: ease.spring, delay: i * 0.02 }}
           style={{
             height: `${Math.max(8, (d.games / max) * 100)}%`,
             background: d.games ? (i === days.length - 1 ? "#da5c2c" : "rgba(238,238,238,0.55)") : "rgba(255,255,255,0.07)",
@@ -232,13 +238,16 @@ export function ActivityBars({ days, height = 40 }: { days: { day: string; games
 // ---------------------------------------------------------------- tier progress
 
 export function TierBar({ progress, color = "#eeeeee", from, delay = 0 }: { progress: number; color?: string; from?: number; delay?: number }) {
+  // Fills the first time it is on screen (D-052), so bars further down the stats page still play.
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, amount: 0.5 });
   return (
-    <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-white/[0.08]">
+    <div ref={ref} className="relative h-1.5 w-full overflow-hidden rounded-full bg-white/[0.08]">
       <motion.span
         className="absolute inset-y-0 left-0 w-full origin-left rounded-full"
         style={{ background: color }}
         initial={{ scaleX: from ?? 0 }}
-        animate={{ scaleX: progress }}
+        animate={{ scaleX: inView ? progress : (from ?? 0) }}
         transition={{ duration: dur.count, ease: ease.out, delay }}
       />
     </div>

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import type { BoardProps } from "@/games/types";
 import { dur, ease } from "@/lib/motion";
+import { shakeKeys } from "@/lib/shake";
 import { HintButton } from "@/components/HintButton";
 import { balanceHint, DOT, EMPTY, findViolations, isSolved, lines, RING, type BalanceHint, type BalancePuzzle, type Cell } from "./engine";
 
@@ -47,6 +48,12 @@ export function BalanceBoard({ puzzle, onSolved }: BoardProps<BalancePuzzle>) {
   const reduced = useReducedMotion();
   const allLines = useMemo(() => lines(size), [size]);
   const lastChanged = useRef(0);
+  const boardRef = useRef<HTMLDivElement>(null);
+  /** Mirrors `shown` so the debounced check can tell which violations are new. */
+  const shownRef = useRef(shown);
+  useEffect(() => {
+    shownRef.current = shown;
+  }, [shown]);
 
   // Debounced rule check, plus the solve check (immediate).
   useEffect(() => {
@@ -61,13 +68,22 @@ export function BalanceBoard({ puzzle, onSolved }: BoardProps<BalancePuzzle>) {
     }
     const id = setTimeout(() => {
       const v = findViolations(size, grid, links);
-      setShown((prev) => {
-        if (v.lines.size + v.links.size > prev.lines.size + prev.links.size) mistakes.current++;
-        return v;
+      const prev = shownRef.current;
+      if (v.lines.size + v.links.size > prev.lines.size + prev.links.size) mistakes.current++;
+      // A row, column or link that just broke shakes its cells once, as its ember mark appears (D-052).
+      const fresh = new Set<number>();
+      v.lines.forEach((li) => {
+        if (!prev.lines.has(li)) allLines[li].forEach((c) => fresh.add(c));
       });
+      v.links.forEach((i) => {
+        if (!prev.links.has(i)) [links[i].a, links[i].b].forEach((c) => fresh.add(c));
+      });
+      shownRef.current = v;
+      setShown(v);
+      if (fresh.size) shakeKeys(boardRef.current, fresh, { reduced: !!reduced });
     }, VIOLATION_DELAY_MS);
     return () => clearTimeout(id);
-  }, [grid, hintsUsed, links, onSolved, size]);
+  }, [allLines, grid, hintsUsed, links, onSolved, reduced, size]);
 
   const set = (cell: number, value: Cell) => {
     if (solved || givens[cell] !== EMPTY) return;
@@ -124,6 +140,7 @@ export function BalanceBoard({ puzzle, onSolved }: BoardProps<BalancePuzzle>) {
   return (
     <div className="w-full max-w-[400px]">
       <div
+        ref={boardRef}
         role="grid"
         aria-label={`balance board, ${size} by ${size}`}
         className="relative grid aspect-square w-full"
@@ -134,7 +151,7 @@ export function BalanceBoard({ puzzle, onSolved }: BoardProps<BalancePuzzle>) {
           const row = Math.floor(cell / size) + 1;
           const col = (cell % size) + 1;
           return (
-            <div key={cell} className="p-[3px]" role="gridcell">
+            <div key={cell} className="p-[3px]" role="gridcell" data-shake={cell}>
               <motion.button
                 ref={(el) => {
                   cellRefs.current[cell] = el;
