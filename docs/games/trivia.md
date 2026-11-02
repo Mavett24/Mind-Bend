@@ -27,9 +27,9 @@ Ten multiple-choice questions from one category, or mixed.
 
 ## Scoring
 
-Each answer is worth 0 if wrong or out of time, otherwise 0.7 plus up to 0.3 for speed. Ten instant correct answers make 10.00. The running total shows top right, and each answer shows its points.
+Each answer is worth 0 if wrong or out of time, otherwise 0.7 plus up to 0.3 for speed. Ten instant correct answers make 10.00. The running total shows in the header, and each answer shows its points.
 
-A time bar runs under the header and freezes where it was when you answer.
+The header shows the seconds left on the question, counting down in tenths ("12.4 s"), with a time bar under it. Both read from the same clock and freeze where they were when you answer; the number turns fog once it stops. The running score sits on the left of the same row (D-051).
 
 ## Difficulty
 
