@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import type { BoardProps } from "@/games/types";
 import { dur, ease } from "@/lib/motion";
@@ -9,6 +9,7 @@ import {
   buildHigherLower,
   buildQuiz,
   CATEGORIES,
+  countdownParts,
   formatValue,
   loadHigherLower,
   loadQuestions,
@@ -27,33 +28,64 @@ type Round =
 
 const FEEDBACK_MS = 1300;
 
-/** Shrinking time bar. Animates scaleX only, and freezes where it was when the player answers. */
-function TimeBar({ ms, running, onTimeout }: { ms: number; running: boolean; onTimeout: () => void }) {
+/**
+ * The clock for one question: a ticking seconds readout and a shrinking bar under it, both read from one value
+ * that ticks every 100ms. The bar moves by scaleX only. Both freeze where they were when the player answers.
+ */
+function QuestionClock({
+  ms,
+  running,
+  onTimeout,
+  children,
+}: {
+  ms: number;
+  running: boolean;
+  onTimeout: () => void;
+  children: ReactNode;
+}) {
   const done = useRef(onTimeout);
   const startedAt = useRef(0);
-  const [frozenAt, setFrozenAt] = useState<number | null>(null);
+  const [left, setLeft] = useState(ms);
+  const [frozen, setFrozen] = useState(false);
   useEffect(() => {
     done.current = onTimeout;
   }, [onTimeout]);
   useEffect(() => {
     if (!running) return;
     startedAt.current = performance.now();
-    const id = setTimeout(() => done.current(), ms);
+    const remaining = () => Math.max(0, ms - (performance.now() - startedAt.current));
+    const tick = window.setInterval(() => setLeft(remaining()), 100);
+    const out = window.setTimeout(() => done.current(), ms);
     return () => {
-      clearTimeout(id);
-      // Remaining share of time at the moment the question stopped.
-      setFrozenAt(Math.max(0, 1 - (performance.now() - startedAt.current) / ms));
+      clearInterval(tick);
+      clearTimeout(out);
+      setLeft(remaining());
+      setFrozen(true);
     };
   }, [ms, running]);
+  const [whole, fraction] = countdownParts(left);
   return (
-    <div className="h-1 w-full overflow-hidden rounded-full bg-iron">
-      <motion.div
-        className="h-full origin-left rounded-full bg-ember"
-        initial={{ scaleX: 1 }}
-        animate={{ scaleX: frozenAt ?? 0 }}
-        transition={frozenAt !== null ? { duration: 0 } : { duration: ms / 1000, ease: "linear" }}
-      />
-    </div>
+    <>
+      <div className="flex items-end justify-between gap-4">
+        {children}
+        <span
+          role="timer"
+          aria-label={`${Math.ceil(left / 1000)} seconds left`}
+          className={`font-mono text-heading-lg font-bold leading-none tabular-nums transition-colors duration-[var(--dur-base)] ${frozen ? "text-fog" : "text-paper"}`}
+        >
+          {whole}
+          <span className="text-ash">{fraction}</span>
+          <span className="ml-1 text-caption font-normal uppercase tracking-wide text-steel">s</span>
+        </span>
+      </div>
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-iron">
+        {/* Driven by the same tick as the number. The short linear transition smooths the 100ms steps. */}
+        <div
+          className="h-full origin-left rounded-full bg-ember transition-transform duration-100 ease-linear motion-reduce:transition-none"
+          style={{ transform: `scaleX(${left / ms})` }}
+        />
+      </div>
+    </>
   );
 }
 
@@ -166,17 +198,24 @@ export function TriviaBoard({ puzzle, onSolved }: BoardProps<TriviaPuzzle>) {
   const correctIndex = round.mode === "higher-lower" ? (item as HLPair).answer : (item as QuizQuestion).answer;
   const lastPoints = answered ? points[points.length - 1] : 0;
   const shake = !reduced ? { x: [0, -5, 5, -5, 5, 0] } : {};
+  const [scoreWhole, scoreFraction] = totalPoints(points).toFixed(2).split(".");
+  const score = [scoreWhole, `.${scoreFraction}`];
 
   return (
     <div className="flex w-full max-w-[400px] flex-col gap-4">
-      <div className="flex items-center justify-between text-caption uppercase tracking-wide text-steel">
-        <span>
-          {index + 1} / {QUESTIONS_PER_GAME} ·{" "}
-          {round.mode === "higher-lower" ? "higher or lower" : CATEGORIES.find((c) => c.id === round.category)?.label}
-        </span>
-        <span className="font-mono normal-case">{totalPoints(points).toFixed(2)}</span>
-      </div>
-      <TimeBar key={index} ms={totalMs} running={!answered} onTimeout={() => answer(-1)} />
+      <QuestionClock key={index} ms={totalMs} running={!answered} onTimeout={() => answer(-1)}>
+        <div className="flex min-w-0 flex-col gap-1">
+          <span className="truncate text-caption uppercase tracking-wide text-steel">
+            {index + 1} / {QUESTIONS_PER_GAME} ·{" "}
+            {round.mode === "higher-lower" ? "higher or lower" : CATEGORIES.find((c) => c.id === round.category)?.label}
+          </span>
+          <span className="font-mono text-heading-sm leading-none tabular-nums">
+            {score[0]}
+            <span className="text-ash">{score[1]}</span>
+            <span className="ml-1 text-caption uppercase tracking-wide text-steel">pts</span>
+          </span>
+        </div>
+      </QuestionClock>
 
       <AnimatePresence mode="wait" initial={false}>
         <motion.div

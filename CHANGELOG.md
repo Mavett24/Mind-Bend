@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **trivia countdown** (D-051): every question shows the seconds left in tenths next to the running score, with a thicker time bar driven by the same clock. Both freeze when you answer. Fixes the bar snapping to empty instead of shrinking.
 - **chess**, the eighth game: tactics puzzles rated like chess.com (spec in `docs/games/chess.md`).
   - 16,522 puzzles from the Lichess database (CC0), 600 to 2800, loaded by rating band. Every solution is played through in the tests (D-046).
   - Own board and piece set in the design language: drag or tap, legal-move dots, last move in violet, opponent replies auto-play, promotion picker, keyboard play, transform-only motion (D-047).

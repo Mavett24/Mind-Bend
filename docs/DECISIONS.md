@@ -275,3 +275,10 @@ The chess daily is three puzzles at about 1300, 1700 and 2100, the same for ever
 The board is now 64 rounded tiles (6px radius) with a 2px void gap on a void panel, in the app's own neutrals: slate for light tiles, iron for dark. The violet hue only marks the last move and hints. The pieces were redrawn: chunky, low silhouettes on one shared rounded base, drawn as an outer edge with the fill on top so overlapping parts no longer show seams. White is paper with a void edge, black is void with a fog edge.
 **Why:** Mavett found the first pieces stretched and the board not modern enough. The tall, narrow pieces with an outline around every part looked like a classic set traced in vector, and the violet checkerboard read as a theme from another app. Every other Mind Bend board is rounded tiles on black, so the chess board now is too, and the hue goes back to marking state, as it does in path.
 **Gave up:** the violet-tinted squares (the two tokens now alias slate and iron) and the slightly taller, more traditional piece proportions.
+
+### D-051 · trivia shows the seconds left, not just a bar
+**2026-11-02** · amends the time bar in docs/games/trivia.md
+Each question now shows a countdown in the header, whole seconds in paper and the tenth dimmed in ash, at the size of the chess clock. The 4px bar under it grows to 6px and is driven by the same 100ms tick as the number, so the two always agree. Both freeze when you answer, and the number turns fog. The running score moves to the left of the row, under the question count, with the same split treatment.
+**Why:** playtesting found players couldn't tell how much time was left. A thin bar shows the share of time gone, but not whether 4 seconds is enough to read four options. A number answers that at a glance, and the design rule is that timers are the hero of the screen. One clock for both also removes the bar's own 15 second tween, which in testing could snap straight to empty.
+**Gave up:** the quieter header where the bar was the only time cue, and the score in the top right corner.
+

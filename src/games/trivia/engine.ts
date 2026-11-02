@@ -69,6 +69,15 @@ const CONFIG: Record<Tier, TierConfig> = {
 export const TRIVIA_PAR_MS: Record<Tier, number> = { easy: 0, medium: 0, hard: 0, expert: 0 };
 export const secondsFor = (tier: Tier) => CONFIG[tier].seconds;
 
+/**
+ * Countdown readout for the time left on a question, in tenths: "12" and ".4".
+ * Rounds up, so a fresh 15 second question reads 15.0 and 0.0 only shows once time is up.
+ */
+export function countdownParts(msLeft: number): [string, string] {
+  const tenths = Math.max(0, Math.ceil(msLeft / 100));
+  return [String(Math.floor(tenths / 10)), `.${tenths % 10}`];
+}
+
 // ---------------------------------------------------------------- building a game
 
 export interface QuizQuestion {

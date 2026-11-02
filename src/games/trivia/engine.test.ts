@@ -7,6 +7,7 @@ import {
   buildHigherLower,
   buildQuiz,
   CATEGORIES,
+  countdownParts,
   formatValue,
   QUESTIONS_PER_GAME,
   totalPoints,
@@ -104,5 +105,20 @@ describe("trivia scoring and formatting", () => {
     expect(formatValue(27_360_000_000_000, "US$ GDP")).toBe("$27.4 trillion");
     expect(formatValue(41_543, "km²")).toBe("41,543 km²");
     expect(formatValue(512_000, "people")).toBe("512,000 people");
+  });
+});
+
+describe("countdown readout", () => {
+  it("rounds up to the tenth so a fresh question shows its full time", () => {
+    expect(countdownParts(15000)).toEqual(["15", ".0"]);
+    expect(countdownParts(14999)).toEqual(["15", ".0"]);
+    expect(countdownParts(14901)).toEqual(["15", ".0"]);
+    expect(countdownParts(14900)).toEqual(["14", ".9"]);
+    expect(countdownParts(8050)).toEqual(["8", ".1"]);
+  });
+  it("only reads zero once time is up, and never goes negative", () => {
+    expect(countdownParts(1)).toEqual(["0", ".1"]);
+    expect(countdownParts(0)).toEqual(["0", ".0"]);
+    expect(countdownParts(-250)).toEqual(["0", ".0"]);
   });
 });
