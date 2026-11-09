@@ -25,8 +25,8 @@ function Symbol({ value }: { value: Cell }) {
           transition={{ duration: dur.base, ease: ease.spring }}
           className={
             value === DOT
-              ? "block h-[44%] w-[44%] rounded-full bg-paper"
-              : "block h-[44%] w-[44%] rounded-full border-[3px] border-paper"
+              ? "block h-[44%] w-[44%] rounded-full bg-balance-dot"
+              : "block h-[44%] w-[44%] rounded-full border-[3px] border-balance-ring"
           }
         />
       )}

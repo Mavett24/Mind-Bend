@@ -10,8 +10,10 @@ Instruction copy: "Connect the numbers in order. Fill every cell."
 
 ## Interaction
 
-- Press on cell 1 (or the current line end) and drag through neighbouring cells. Moving back over the previous cell undoes it.
-- Tap any cell already on the line to cut the line back to that cell.
+- Press on cell 1 (or the current line end) and drag through neighbouring cells. Moving back over the previous cell undoes it, one cell at a time.
+- A drag that crosses the line anywhere else leaves it alone: the line is never erased by passing over it (D-056). Keep dragging from the line end.
+- Tap (press on) any cell already on the line to cut the line back to that cell. Pressing on cell 1 starts over.
+- Arrow keys behave like a drag: an arrow onto the line does nothing unless it is the previous cell.
 - Keyboard: arrows extend the line, Backspace undoes.
 - The line is drawn in ember, 36% of cell width, rounded joins. Covered cells fill with `--color-ember-wash`. Numbered cells are chalk circles that turn paper once reached. Walls are paper strokes on the cell edge.
 
