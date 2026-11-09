@@ -10,11 +10,15 @@ Instruction copy: "Draw a rectangle around every clue. Match its size and shape.
 
 ## Interaction
 
-- Drag from any cell to any cell to draw a rectangle. A dashed preview shows its area while you drag. Release to place it. Dragging past the board edge stretches the rectangle to the edge.
-- Drawing over placed rectangles replaces them.
+- Drag from any cell to any cell to draw a rectangle. Release to place it. Dragging past the board edge stretches the rectangle to the edge.
+- While you drag, a label above the preview gives a live verdict (D-058): the area and a ✓ on a pill in the clue's colour when it fits the one number inside (the preview takes that colour too), otherwise a paper pill with the reason: `4 of 6` (wrong area), `needs ▭` (right area, wrong shape), `no number`, `2 numbers`.
+- A drag never erases a rectangle that fits its clue (D-057). If the new rectangle would overlap one, the preview turns ember with `in the way`, the finished rectangle gets an ember outline, and on release nothing changes: the finished rectangle shakes and the line under the board says "Tap a finished rectangle to remove it."
+- A drag does replace rectangles that don't fit a clue, since they can never be part of the answer. While you draw over one, it dims to show it will go.
 - Tap a placed rectangle to remove it. A tap on an empty cell does nothing (no clue has area 1).
-- A rectangle that matches exactly one clue fills with that clue's colour (22% fill, 2px border). Anything else gets a dashed fog border with its area in the corner, so you can see what you drew.
-- Gesture rules live in `applyGesture` in the engine and are unit tested.
+- Clue cells sit on a raised fill (`--color-slate` at 60%, like given cells in balance) with the number in paper. Colour only appears once a rectangle fits, so colour means done.
+- A rectangle that fits exactly one clue becomes a solid piece: 2px border in the clue's colour and an opaque fill of that colour at 24% over graphite, so the cell grid inside it disappears and it reads as one block. Anything else gets a dashed fog border and a tab across its top edge with the same reason as the preview, so it never covers a number.
+- Under the board: a one-line note (how to start on an empty board, or why a drag was refused) and `placed 5/9`, the rectangles that fit out of the total.
+- Gesture rules live in `applyGesture`, `blockersOf` and `verdict` in the engine and are unit tested.
 - On 7×7 and 8×8, two-digit clues stack the number over the glyph so they fit the cell.
 - Keyboard: arrows move a cursor, Enter starts a rectangle and Enter again places it, Delete removes the one under the cursor, Escape cancels.
 
@@ -44,6 +48,8 @@ Measured over 100 seeds per tier. Generation is under 1ms median and under 7ms w
 ## Board palette
 
 Eight hues based on the Okabe-Ito colour-blind-safe set, lifted for a dark board. Every hue clears 5.9:1 against `--color-graphite`. Each clue also carries its shape glyph, so colour is never the only signal. Defined in `src/games/blocks/palette.ts`.
+
+The hues mark placed pieces only: borders at full strength, fills mixed to 24% into graphite with `color-mix`. Clue numbers stay paper whether placed or not.
 
 ## Scoring
 

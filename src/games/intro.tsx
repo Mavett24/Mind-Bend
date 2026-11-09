@@ -112,8 +112,8 @@ function BlocksExample() {
         const col = BLOCKS_PALETTE[r.colour];
         return (
           <g key={i}>
-            <rect x={r.c + 0.06} y={r.r + 0.06} width={r.w - 0.12} height={r.h - 0.12} rx={0.14} fill={col} fillOpacity={0.22} stroke={col} strokeWidth={0.05} />
-            <text x={r.clue[1] + 0.5} y={r.clue[0] + 0.5} textAnchor="middle" dominantBaseline="central" fontSize={0.34} fill={col} className="font-mono font-bold">
+            <rect x={r.c + 0.06} y={r.r + 0.06} width={r.w - 0.12} height={r.h - 0.12} rx={0.14} fill={`color-mix(in srgb, ${col} 24%, var(--color-graphite))`} stroke={col} strokeWidth={0.05} />
+            <text x={r.clue[1] + 0.5} y={r.clue[0] + 0.5} textAnchor="middle" dominantBaseline="central" fontSize={0.34} className="fill-paper font-mono font-bold">
               {r.area}
             </text>
           </g>
@@ -270,7 +270,7 @@ export const INTRO: Record<GameId, GameIntro> = {
       "Each rectangle holds exactly one number, and its area matches that number.",
       "The small icon shows the shape: square, wide or tall. A dashed icon means any shape.",
     ],
-    controls: "Drag from corner to corner to draw. Tap a rectangle to remove it. Keys: arrows, enter, delete.",
+    controls: "Drag from corner to corner to draw. The label says if it fits. Tap a rectangle to remove it. Keys: arrows, enter, delete.",
     tiers: {
       easy: "5×5 grid, every shape shown",
       medium: "6×6 grid, a quarter of shapes hidden",

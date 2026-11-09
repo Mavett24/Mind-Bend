@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **blocks: dragging never erases a finished rectangle** (D-057). A drag that would overlap a rectangle that fits its clue is refused: the preview says "in the way", the finished one shakes, and a tap removes it. Dashed (wrong) rectangles are still replaced by drawing over them, and dim while you do.
+- **blocks: clearer board** (D-058). Clues are paper on a raised cell until solved; a fitting rectangle becomes a solid piece in its colour; the drag preview gives a live verdict ("fits", "4 of 6", "needs" plus a shape, "no number", "2 numbers"); a wrong rectangle keeps that reason on a tab that never covers a number; a row under the board shows how to start, why a drag was refused, and "placed 5/9". New: `verdict` and `blockersOf` in the blocks engine, with tests.
 - **path: dragging over the line no longer erases it** (D-056). A drag only extends the line or steps back one cell; crossing another part of the line is ignored. To cut back to an earlier cell, press on it. Arrow keys follow the same rule. New: `stepLine` in the path engine, with tests.
 - **balance: coloured symbols** (D-055). Dots are amber and rings blue, on the board and in how to play, with the shapes unchanged so they still read without colour. New tokens: `--color-balance-dot`, `--color-balance-ring`.
 - **Google Analytics behind consent** (D-053): a cookie card asks once, with accept and reject as equal pills, and never blocks play. Nothing from Google loads before accept. Reject after accept deletes the GA cookies. "cookie settings" in the footer reopens it; choices expire after 12 months.
