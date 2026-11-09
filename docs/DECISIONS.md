@@ -39,7 +39,7 @@ Same base as the portfolio. Deployed on Vercel's free Hobby plan from a private 
 
 ### D-007 · Axiom as the visual base
 **2026-10-30**
-The Axiom style reference (terminal-grade dark, monospaced, flat, one orange accent) is the visual base. Stored at `docs/reference/axiom-style-reference.md`.
+The Axiom style reference (terminal-grade dark, monospaced, flat, one orange accent) is the visual base. It was stored at `docs/reference/axiom-style-reference.md` and removed before the repo went public (D-059), since it described another product's interface; DESIGN.md is the system now.
 **Why:** chosen by Mavett. Fits the "train your brain like an engineer" angle and his black and orange preference.
 
 ### D-008 · Axiom geometry wins over Dialed geometry (superseded by D-014)
@@ -324,3 +324,10 @@ A drag still places a rectangle and still replaces rectangles that don't fit a c
 Clue numbers are paper on a raised cell instead of each in its own colour. A rectangle that fits becomes a solid piece in its clue's colour (opaque 24% fill, so the grid inside disappears). While you drag, a label gives a live verdict: fits, wrong area ("4 of 6"), wrong shape ("needs" plus the shape), no number or two numbers. A wrong rectangle keeps that label on a tab across its top edge. A row under the board says how to start, why a drag was refused, and how many rectangles fit ("placed 5/9").
 **Why:** Mavett found the board unintuitive with no visual hierarchy. Every clue was coloured from the start, so a fresh board looked as busy as a finished one and colour said nothing about progress. Placed rectangles were tints over the cell grid, so they read as coloured cells rather than pieces. A wrong rectangle showed only its area, in a badge that could sit on top of a clue, and the preview only showed the area, so you learned whether a rectangle fit after letting go. Blocks also had no status row while path and balance do. The verdict never reveals more than a placed rectangle already did, just earlier, so it doesn't make the puzzle easier.
 **Gave up:** the colour-coded clues, which gave each number an identity before it was solved, and the lighter, more transparent pieces.
+
+### D-059 · Getting the repo ready to be public
+**2026-11-09** · adds `/credits`, licence notices and SECURITY.md
+Before the repo goes public, the whole history was checked for secrets and personal data (nothing found), and the open-data licences are now met where the data is shown, not only in the README. The app has a `/credits` page linked from the footer, and trivia and chess credit their sources on the how-to-play screen. The trivia folder carries its own licence file (questions under CC BY-SA 4.0, `higher-lower.json` under the ODbL because it uses mledoze/countries), the SCOWL copyright notice ships with the word lists, and `THIRD_PARTY_NOTICES.md` lists every data source and shipped package. The README states that Mind Bend is not affiliated with the products that inspired it. The Axiom style reference was removed from `docs/reference/`.
+**Why:** CC BY-SA, CC BY and the ODbL all ask for credit where the material is used, and the app showed questions and figures with no credit at all. The ODbL also covers the higher or lower file as a whole, which the docs didn't say. A public repo is a showcase, so it should show the product handled like a real one: clear licences, a way to report security issues, and no third-party material that isn't ours to publish. The Axiom file was a reconstruction of another product's interface; the decisions that credit it as the starting point stay.
+**Gave up:** a footer with only privacy in it, and the style reference as a working file.
+
