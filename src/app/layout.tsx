@@ -11,7 +11,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: { default: "Mind Bend", template: "%s · Mind Bend" },
   description:
-    "Logic puzzles, memory games and trivia in one app, with daily challenges, infinite practice and adaptive difficulty.",
+    "Logic puzzles, memory games, trivia and chess tactics in one app, with daily challenges, infinite practice and adaptive difficulty.",
 };
 
 export const viewport: Viewport = {

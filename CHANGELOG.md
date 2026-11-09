@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Ready for a public repo** (D-059): history checked for secrets and personal data. New `/credits` page (linked in the footer) crediting the Lichess, OpenTriviaQA, World Bank, mledoze/countries, GeoNames, SCOWL and LDNOOBW data; trivia and chess credit their sources on the how-to-play screen. Licence notices next to the data (`public/data/trivia/LICENSE.md`, `public/data/weave/SCOWL-COPYRIGHT.txt`), plus `THIRD_PARTY_NOTICES.md` and `SECURITY.md`.
+- README: eight games everywhere, new hero and board screenshots, chess in the tests table, a clearer licence section and a not-affiliated note. The hero line and site description now mention chess.
+- Removed `docs/reference/axiom-style-reference.md`.
 - **blocks: dragging never erases a finished rectangle** (D-057). A drag that would overlap a rectangle that fits its clue is refused: the preview says "in the way", the finished one shakes, and a tap removes it. Dashed (wrong) rectangles are still replaced by drawing over them, and dim while you do.
 - **blocks: clearer board** (D-058). Clues are paper on a raised cell until solved; a fitting rectangle becomes a solid piece in its colour; the drag preview gives a live verdict ("fits", "4 of 6", "needs" plus a shape, "no number", "2 numbers"); a wrong rectangle keeps that reason on a tab that never covers a number; a row under the board shows how to start, why a drag was refused, and "placed 5/9". New: `verdict` and `blockersOf` in the blocks engine, with tests.
 - **path: dragging over the line no longer erases it** (D-056). A drag only extends the line or steps back one cell; crossing another part of the line is ignored. To cut back to an earlier cell, press on it. Arrow keys follow the same rule. New: `stepLine` in the path engine, with tests.

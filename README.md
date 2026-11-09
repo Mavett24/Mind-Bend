@@ -2,7 +2,7 @@
 
 # mind_bend
 
-Logic puzzles, memory games and trivia in one app.<br>
+Logic puzzles, memory games, trivia and chess tactics in one app.<br>
 Daily challenges, infinite practice, difficulty that adapts to you.
 
 [![CI](https://github.com/Mavett24/Mind-Bend/actions/workflows/ci.yml/badge.svg)](https://github.com/Mavett24/Mind-Bend/actions/workflows/ci.yml)
@@ -13,7 +13,7 @@ Daily challenges, infinite practice, difficulty that adapts to you.
 
 **[Play it](https://mind-bend.vercel.app)** · [Design system](DESIGN.md) · [Decision log](docs/DECISIONS.md) · [Changelog](CHANGELOG.md)
 
-<img src="docs/assets/hero.png" alt="Mind Bend home screen: the daily set of seven games over a field of floating mini boards" width="100%">
+<img src="docs/assets/hero.png" alt="Mind Bend home screen: the daily set of eight games over a field of floating mini boards" width="100%">
 
 </div>
 
@@ -72,7 +72,7 @@ The split is strict: anything that decides what a board *is* lives in pure TypeS
 
 ## Testing
 
-Over 140 tests across the engine and all eight games. Each generator test runs many seeds per tier and asserts the result:
+Over 150 tests across the engine and all eight games. Each generator test runs many seeds per tier and asserts the result:
 
 | Game | Boards checked per run | Guarantee |
 |------|-----------------------:|-----------|
@@ -81,8 +81,9 @@ Over 140 tests across the engine and all eight games. Each generator test runs m
 | blocks | 400 | one solution (exact-cover solver) |
 | sudoku | 170 | unique, logic-solvable, graded by technique |
 | weave | 400 | words tile every letter exactly once |
+| chess | every puzzle shipped | each solution replays as legal moves in chess.js |
 
-Recall's colour scoring (CIEDE2000) is checked against published reference pairs, and the rating, history and transfer logic have their own suites. CI runs lint, typecheck, tests and a production build on every push and pull request.
+Gesture rules for path and blocks (a drag never erases finished work) are tested in the engines too. Recall's colour scoring (CIEDE2000) is checked against published reference pairs, and the rating, history and transfer logic have their own suites. CI runs lint, typecheck, tests and a production build on every push and pull request.
 
 ## Getting started
 
@@ -119,9 +120,18 @@ npm run dev        # http://localhost:3000
 
 ## Content and licence
 
-Code is [MIT](LICENSE). Word lists and trivia data are built by `scripts/build-data.mjs` into `public/data/` from openly licensed sources: SCOWL word lists, OpenTriviaQA questions (CC BY-SA 4.0, so the question files are shared under the same licence), World Bank data (CC BY 4.0), mledoze/countries (ODbL), GeoNames (CC BY 4.0) and the LDNOOBW offensive-word list (CC BY 4.0). Details in [`scripts/DATA_SOURCES.md`](scripts/DATA_SOURCES.md).
+Code is [MIT](LICENSE). The data in `public/data/` is not: it is built from openly licensed sources and keeps their licences.
 
-Game mechanics are inspired by LinkedIn Games (Zip, Tango, Patches, Mini Sudoku, Wend), Dialed and Lessgames. All names, visuals, puzzles and code here are original.
+- **Chess puzzles:** Lichess puzzle database, CC0.
+- **Trivia questions:** adapted from OpenTriviaQA, shared under CC BY-SA 4.0.
+- **Higher or lower:** World Bank and GeoNames (CC BY 4.0) and mledoze/countries, so the file is shared under the ODbL.
+- **Weave words:** SCOWL, with its copyright notice kept beside the data. Offensive words are filtered with the LDNOOBW list (CC BY 4.0).
+
+Licence files sit next to the data, the full list is in [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md), the build steps are in [`scripts/DATA_SOURCES.md`](scripts/DATA_SOURCES.md), and the app credits every source at [`/credits`](https://mind-bend.vercel.app/credits).
+
+Game mechanics are inspired by LinkedIn Games (Zip, Tango, Patches, Mini Sudoku, Wend), Dialed, Lessgames and chess.com puzzles. Mind Bend is independent and not affiliated with or endorsed by any of them; their names are trademarks of their owners. All names, visuals, puzzles and code here are original.
+
+Found a security or privacy issue? See [`SECURITY.md`](SECURITY.md).
 
 ---
 

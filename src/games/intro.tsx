@@ -16,6 +16,8 @@ export interface GameIntro {
   steps: string[];
   /** One line on how to play with touch and keys. */
   controls: string;
+  /** Where the content comes from, for games that ship third-party data (also on /credits). */
+  credit?: string;
   /** What each difficulty actually changes, one short line each. */
   tiers: Record<Tier, string>;
   Example: () => ReactNode;
@@ -331,6 +333,7 @@ export const INTRO: Record<GameId, GameIntro> = {
       "One wrong move loses the puzzle. Solve fast for a speed bonus. Hints cut what you win.",
     ],
     controls: "Drag a piece, or tap it and then a square. Keys: arrows move, enter picks up and drops.",
+    credit: "Puzzles from the Lichess puzzle database (CC0).",
     tiers: {
       easy: `puzzles about ${-PRACTICE_OFFSET.easy} below your rating`,
       medium: "puzzles at your rating",
@@ -346,6 +349,7 @@ export const INTRO: Record<GameId, GameIntro> = {
       "Right answers score more the faster you are. Top score is 10.",
     ],
     controls: "Tap an answer. The bar shows how much time is left.",
+    credit: "Questions adapted from OpenTriviaQA (CC BY-SA 4.0). Facts from the World Bank, GeoNames and mledoze/countries.",
     tiers: {
       easy: "20 seconds each, 3 options, numbers far apart",
       medium: "15 seconds each, 4 options",

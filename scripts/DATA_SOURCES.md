@@ -40,7 +40,7 @@ The script also reads ndjson (one puzzle per line, bare or as `{ "puzzle": {...}
 | City populations | [GeoNames](https://www.geonames.org/) via npm `all-the-cities` | CC BY 4.0 | higher or lower |
 | Chess puzzles | [Lichess puzzle database](https://database.lichess.org/#puzzles) | CC0 | chess |
 
-The trivia question files in `public/data/trivia/` are an adaptation of OpenTriviaQA and are shared under CC BY-SA 4.0.
+The trivia question files in `public/data/trivia/` are an adaptation of OpenTriviaQA and are shared under CC BY-SA 4.0. `higher-lower.json` draws on mledoze/countries, so as a whole it is shared under the ODbL 1.0, with the World Bank and GeoNames figures credited under CC BY 4.0. Both notices live in `public/data/trivia/LICENSE.md`; the SCOWL notice ships as `public/data/weave/SCOWL-COPYRIGHT.txt`. The app credits all sources at `/credits`. Keep these files when rebuilding the data.
 
 ## Filtering
 

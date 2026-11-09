@@ -83,6 +83,9 @@ export function SiteFooter() {
             <Link href="/privacy" className={quiet}>
               privacy
             </Link>
+            <Link href="/credits" className={quiet}>
+              credits
+            </Link>
             {analyticsEnabled && (
               <button type="button" onClick={openConsentSettings} className={quiet}>
                 cookie settings

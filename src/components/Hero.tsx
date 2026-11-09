@@ -307,7 +307,7 @@ export function Hero({ profile }: { profile: Profile | null }) {
               transition={{ duration: dur.slow, ease: ease.out, delay: 0.3 }}
               className="max-w-md text-[15px] leading-relaxed text-fog"
             >
-              Logic, memory and trivia, one board each, rebuilt every midnight. Play the set, then train any game on endless boards that
+              Logic, memory, trivia and chess, a fresh set every midnight. Play the set, then train any game on endless boards that
               learn your level.
             </motion.p>
           )}

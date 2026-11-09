@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { motion } from "motion/react";
 import type { GameMeta } from "@/games/registry";
 import { INTRO } from "@/games/intro";
@@ -80,6 +81,14 @@ export function GameIntroScreen({ game, tier, mode, onStart, onBack }: GameIntro
       </div>
 
       <p className="text-[13px] leading-snug text-steel">{intro.controls}</p>
+      {intro.credit && (
+        <p className="text-caption text-steel">
+          {intro.credit}{" "}
+          <Link href="/credits" className="underline decoration-slate underline-offset-2 hover:text-fog">
+            credits
+          </Link>
+        </p>
+      )}
 
       <div className="mt-auto flex flex-col gap-3">
         <label className="flex cursor-pointer items-center gap-2 self-start text-caption text-fog">
