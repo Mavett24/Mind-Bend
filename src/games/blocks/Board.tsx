@@ -6,12 +6,15 @@ import type { BoardProps } from "@/games/types";
 import { dur, ease } from "@/lib/motion";
 import {
   applyGesture,
+  blockersOf,
   clampedCell,
   isSolved,
   rectFromCorners,
+  verdict,
   type BlocksPuzzle,
   type Placed,
   type Rect,
+  type RectVerdict,
   type Shape,
 } from "./engine";
 import { BLOCKS_PALETTE } from "./palette";
@@ -39,8 +42,48 @@ function ShapeGlyph({ shape }: { shape: Shape }) {
 }
 
 const rectKey = (r: Rect) => `${r.r}-${r.c}-${r.h}-${r.w}`;
+const overlaps = (a: Rect, b: Rect) => a.r < b.r + b.h && b.r < a.r + a.h && a.c < b.c + b.w && b.c < a.c + a.w;
 
 const SHAPE_WORD: Record<Shape, string> = { square: "square", wide: "wide", tall: "tall", any: "any shape" };
+
+/** Opaque tint of a clue colour over a board cell, so a placed piece reads as one block, not tinted cells. */
+const pieceFill = (colour: string) => `color-mix(in srgb, ${colour} 24%, var(--color-graphite))`;
+
+/** The short reason on a drag preview or a wrong rectangle: "2 of 3", "no number", "needs ▭". */
+function VerdictLabel({ v }: { v: RectVerdict }) {
+  switch (v.kind) {
+    case "fits":
+      return <>fits ✓</>;
+    case "empty":
+      return <>no number</>;
+    case "crowded":
+      return <>{v.clues} numbers</>;
+    case "area":
+      return (
+        <>
+          {v.area}
+          <span className="opacity-60"> of {v.need}</span>
+        </>
+      );
+    case "shape":
+      return (
+        <span className="inline-flex items-center gap-1">
+          needs <ShapeGlyph shape={v.need} />
+        </span>
+      );
+  }
+}
+
+const verdictWords = (v: RectVerdict) =>
+  v.kind === "fits"
+    ? "fits"
+    : v.kind === "empty"
+      ? "no number inside"
+      : v.kind === "crowded"
+        ? `${v.clues} numbers inside`
+        : v.kind === "area"
+          ? `${v.area} cells, needs ${v.need}`
+          : `needs ${SHAPE_WORD[v.need]}`;
 
 export function BlocksBoard({ puzzle, onSolved }: BoardProps<BlocksPuzzle>) {
   const { size, clues } = puzzle;
@@ -54,6 +97,8 @@ export function BlocksBoard({ puzzle, onSolved }: BoardProps<BlocksPuzzle>) {
   const gridRef = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
   const pendingShake = useRef<string | null>(null);
+  /** One line under the board: how to start, why a drag was refused, or nothing (progress shows instead). */
+  const [note, setNote] = useState<string | null>(null);
 
   useEffect(() => {
     if (pendingShake.current === null) return;
@@ -72,7 +117,14 @@ export function BlocksBoard({ puzzle, onSolved }: BoardProps<BlocksPuzzle>) {
   /** Every press-drag-release goes through the tested rules in engine.ts (applyGesture). */
   const commit = (anchor: number, current: number, didMove: boolean) => {
     const result = applyGesture(puzzle, placed, anchor, current, didMove);
+    if (result.blocked.length) {
+      // A drag never erases a rectangle that fits its clue (D-057): the ones in the way shake instead.
+      shakeKeys(gridRef.current, result.blocked.map(rectKey), { reduced: !!reduced });
+      setNote("Tap a finished rectangle to remove it.");
+      return;
+    }
     if (result.placed.length === placed.length && result.removed === 0) return; // a tap on empty space
+    setNote(null);
     redraws.current += result.removed;
     setPlaced(result.placed);
     // A drawn rectangle that can't be right (no clue, two clues, wrong size or shape) shakes once
@@ -147,6 +199,16 @@ export function BlocksBoard({ puzzle, onSolved }: BoardProps<BlocksPuzzle>) {
       : keyAnchor !== null
         ? rectFromCorners(size, keyAnchor, cursor)
         : null;
+  const previewVerdict = preview ? verdict(preview, puzzle) : null;
+  const previewBlockers = preview ? blockersOf(placed, preview) : [];
+  const previewFits = previewVerdict?.kind === "fits" && previewBlockers.length === 0 ? BLOCKS_PALETTE[clues[previewVerdict.clue].color] : null;
+  const blockerKeys = new Set(previewBlockers.map((p) => rectKey(p.rect)));
+  /** Wrong rectangles the preview would replace: they dim and drop their label while you draw. */
+  const replacing = new Set(
+    preview && !previewBlockers.length ? placed.filter((p) => p.clue < 0 && overlaps(p.rect, preview)).map((p) => rectKey(p.rect)) : [],
+  );
+  const done = placed.filter((p) => p.clue >= 0).length;
+  const cellsLeft = size * size - placed.reduce((n, p) => n + p.rect.h * p.rect.w, 0);
   const pct = (n: number) => `${(n / size) * 100}%`;
   const clueIndexAt = new Map(clues.map((clue, i) => [clue.cell, i]));
   const lastPlaced = placed[placed.length - 1]?.rect;
@@ -175,17 +237,17 @@ export function BlocksBoard({ puzzle, onSolved }: BoardProps<BlocksPuzzle>) {
           return (
             <div key={cell} className="p-[3px]">
               <div
-                className={`flex h-full w-full items-center justify-center gap-[2px] rounded-cell border border-cell-line bg-graphite ${
+                className={`flex h-full w-full items-center justify-center gap-[2px] rounded-cell border border-cell-line ${clue ? "bg-slate/60" : "bg-graphite"} ${
                   cell === cursor ? "group-focus-visible/board:outline group-focus-visible/board:outline-1 group-focus-visible/board:outline-paper" : ""
                 }`}
               >
                 {clue && (
                   <span
                     aria-label={`clue ${clue.area}, ${SHAPE_WORD[clue.shape]}`}
-                    className={`relative z-10 flex items-center justify-center font-mono font-bold leading-none ${
+                    className={`relative z-10 flex items-center justify-center font-mono font-bold leading-none text-paper ${
                       clue.area >= 10 && size >= 7 ? "flex-col gap-[1px]" : "gap-[2px]"
                     }`}
-                    style={{ color: BLOCKS_PALETTE[clue.color], fontSize: `clamp(10px, ${26 / size}vw, 16px)` }}
+                    style={{ fontSize: `clamp(10px, ${26 / size}vw, 16px)` }}
                   >
                     {clue.area}
                     <ShapeGlyph shape={clue.shape} />
@@ -204,50 +266,85 @@ export function BlocksBoard({ puzzle, onSolved }: BoardProps<BlocksPuzzle>) {
                 key={rectKey(p.rect)}
                 data-shake={rectKey(p.rect)}
                 initial={{ opacity: 0, scale: 0.92 }}
-                animate={solved && !reduced ? { opacity: 1, scale: [1, 1.05, 1] } : { opacity: 1, scale: 1 }}
+                animate={
+                  solved && !reduced ? { opacity: 1, scale: [1, 1.05, 1] } : { opacity: replacing.has(rectKey(p.rect)) ? 0.35 : 1, scale: 1 }
+                }
                 exit={{ opacity: 0, scale: 0.92, transition: { duration: dur.fast, ease: ease.in } }}
                 transition={
                   solved ? { duration: 0.42, ease: ease.spring, delay: rippleDistance(p.rect) * 0.04 } : { duration: dur.base, ease: ease.spring }
                 }
-                className={`pointer-events-none absolute rounded-cell border-2 ${colour ? "" : "border-dashed border-fog"}`}
+                className={`pointer-events-none absolute rounded-cell border-2 ${colour ? "" : "border-dashed border-fog bg-paper/[0.04]"}`}
                 style={{
                   left: `calc(${pct(p.rect.c)} + 3px)`,
                   top: `calc(${pct(p.rect.r)} + 3px)`,
                   width: `calc(${pct(p.rect.w)} - 6px)`,
                   height: `calc(${pct(p.rect.h)} - 6px)`,
-                  ...(colour ? { borderColor: colour, backgroundColor: `${colour}38` } : {}),
+                  ...(colour ? { borderColor: colour, backgroundColor: pieceFill(colour) } : {}),
                 }}
               >
-                {!colour && (
-                  <span className="absolute left-1 top-1 rounded-full bg-carbon px-1.5 font-mono text-[11px] leading-[18px] text-fog">
-                    {p.rect.h * p.rect.w}
+                {/* A wrong rectangle says why, on a tab across its top edge so it never covers a number. */}
+                {!colour && !replacing.has(rectKey(p.rect)) && (
+                  <span className="absolute -top-[10px] left-2 whitespace-nowrap rounded-full border border-slate bg-carbon px-1.5 font-mono text-[11px] leading-[18px] text-fog">
+                    <VerdictLabel v={verdict(p.rect, puzzle)} />
                   </span>
+                )}
+                {blockerKeys.has(rectKey(p.rect)) && (
+                  <span aria-hidden className="absolute -inset-[2px] rounded-cell border-2 border-ember" />
                 )}
               </motion.div>
             );
           })}
         </AnimatePresence>
 
-        {preview && (
+        {preview && previewVerdict && (
           <div
-            className="pointer-events-none absolute rounded-cell border-2 border-dashed border-paper bg-paper/10"
+            className={`pointer-events-none absolute z-20 rounded-cell border-2 ${
+              previewBlockers.length ? "border-dashed border-ember bg-ember/10" : previewFits ? "" : "border-dashed border-paper bg-paper/10"
+            }`}
             style={{
               left: `calc(${pct(preview.c)} + 3px)`,
               top: `calc(${pct(preview.r)} + 3px)`,
               width: `calc(${pct(preview.w)} - 6px)`,
               height: `calc(${pct(preview.h)} - 6px)`,
+              ...(previewFits ? { borderColor: previewFits, backgroundColor: `color-mix(in srgb, ${previewFits} 30%, transparent)` } : {}),
             }}
           >
-            <span className="absolute -top-6 left-0 rounded-full bg-paper px-2 font-mono text-caption font-bold text-void">
-              {preview.h * preview.w}
+            {/* Live verdict while drawing: the area, and whether it fits the number inside. */}
+            <span
+              className={`absolute -top-7 left-0 whitespace-nowrap rounded-full px-2 font-mono text-caption font-bold leading-[22px] text-void ${
+                previewBlockers.length ? "bg-ember" : previewFits ? "" : "bg-paper"
+              }`}
+              style={previewFits ? { backgroundColor: previewFits } : undefined}
+            >
+              {previewBlockers.length ? (
+                "in the way"
+              ) : previewVerdict.kind === "fits" ? (
+                <>{preview.h * preview.w} ✓</>
+              ) : (
+                <VerdictLabel v={previewVerdict} />
+              )}
             </span>
           </div>
         )}
       </div>
+      <div className="mt-4 flex min-h-10 items-center justify-between gap-3">
+        <p className="text-body text-fog" aria-live="polite">
+          {note ?? (placed.length === 0 && !solved ? "Drag across the cells to draw a rectangle." : "\u00a0")}
+        </p>
+        <p className="flex shrink-0 items-baseline gap-2 font-mono text-body tabular-nums" aria-hidden>
+          <span className="text-caption uppercase tracking-wide text-steel">placed</span>
+          <span>
+            <span className="text-paper">{done}</span>
+            <span className="text-ash">/{clues.length}</span>
+          </span>
+        </p>
+      </div>
       <p className="sr-only" aria-live="polite">
         {solved
           ? "Solved."
-          : `${placed.filter((p) => p.clue >= 0).length} of ${clues.length} rectangles placed. ${size * size - placed.reduce((n, p) => n + p.rect.h * p.rect.w, 0)} cells left.`}
+          : preview && previewVerdict
+            ? `${preview.h * preview.w} cells, ${previewBlockers.length ? "a finished rectangle is in the way" : verdictWords(previewVerdict)}.`
+            : `${done} of ${clues.length} rectangles fit. ${cellsLeft} cells left.`}
       </p>
     </div>
   );

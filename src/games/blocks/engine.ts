@@ -312,23 +312,54 @@ export interface GestureResult {
   placed: Placed[];
   /** Rectangles removed by this gesture (counted as redraws). */
   removed: number;
+  /** Rectangles that fit their clue and stopped a drag from landing. Empty unless the drag was refused. */
+  blocked: Rect[];
+}
+
+/** Placed rectangles a drawn rectangle may not replace: any that fits its clue. */
+export function blockersOf(placed: readonly Placed[], rect: Rect): Placed[] {
+  return placed.filter((p) => p.clue >= 0 && overlapsRect(p.rect, rect));
 }
 
 /**
  * What one press-drag-release does to the board.
- * - A tap (no movement) on a placed rectangle removes it.
+ * - A tap (no movement, or a drag that ends where it started) on a placed rectangle removes it.
  * - A tap on an empty cell does nothing: no clue has area 1, so a 1×1 is never what the player meant.
- * - A drag places the rectangle between the two corners, replacing anything it overlaps.
+ * - A drag places the rectangle between the two corners. It replaces rectangles that don't fit a clue
+ *   (they can never be part of the answer), but never one that does: if it would overlap one, nothing
+ *   changes and that rectangle is reported as `blocked` (D-057). Removing a good rectangle takes a tap.
  */
 export function applyGesture(puzzle: BlocksPuzzle, placed: readonly Placed[], anchor: number, current: number, moved: boolean): GestureResult {
   const { size } = puzzle;
   if (!moved || anchor === current) {
     const hit = placed.find((p) => rectContains(p.rect, size, anchor));
-    return hit ? { placed: placed.filter((p) => p !== hit), removed: 1 } : { placed: placed.slice(), removed: 0 };
+    return hit ? { placed: placed.filter((p) => p !== hit), removed: 1, blocked: [] } : { placed: placed.slice(), removed: 0, blocked: [] };
   }
   const rect = rectFromCorners(size, anchor, current);
+  const blockers = blockersOf(placed, rect);
+  if (blockers.length) return { placed: placed.slice(), removed: 0, blocked: blockers.map((p) => p.rect) };
   const kept = placed.filter((p) => !overlapsRect(p.rect, rect));
-  return { placed: [...kept, { rect, clue: matchClue(rect, puzzle) }], removed: placed.length - kept.length };
+  return { placed: [...kept, { rect, clue: matchClue(rect, puzzle) }], removed: placed.length - kept.length, blocked: [] };
+}
+
+/** Why a drawn rectangle does or doesn't fit, for the label on the preview and on a wrong rectangle. */
+export type RectVerdict =
+  | { kind: "fits"; clue: number }
+  | { kind: "empty" }
+  | { kind: "crowded"; clues: number }
+  | { kind: "area"; clue: number; area: number; need: number }
+  | { kind: "shape"; clue: number; need: Exclude<Shape, "any"> };
+
+export function verdict(rect: Rect, puzzle: BlocksPuzzle): RectVerdict {
+  const inside = puzzle.clues.map((clue, i) => (rectContains(rect, puzzle.size, clue.cell) ? i : -1)).filter((i) => i >= 0);
+  if (inside.length === 0) return { kind: "empty" };
+  if (inside.length > 1) return { kind: "crowded", clues: inside.length };
+  const i = inside[0];
+  const clue = puzzle.clues[i];
+  const area = rect.h * rect.w;
+  if (area !== clue.area) return { kind: "area", clue: i, area, need: clue.area };
+  if (clue.shape !== "any" && shapeOf(rect) !== clue.shape) return { kind: "shape", clue: i, need: clue.shape };
+  return { kind: "fits", clue: i };
 }
 
 /** Cell under a point in board units, clamped to the edge so a drag past the board stretches to it. */
