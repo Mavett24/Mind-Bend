@@ -312,6 +312,40 @@ export function canExtend(puzzle: PathPuzzle, line: readonly number[], next: num
   return num === 0 || num === expected;
 }
 
+/**
+ * How the player reached a cell. A drag (or an arrow key) moves the head one cell at a time; a tap is a
+ * deliberate press on a cell.
+ */
+export type LineInput = "drag" | "tap";
+
+export interface LineStep {
+  line: number[];
+  kind: "extend" | "back" | "cut";
+}
+
+/**
+ * The line after one step of input towards `cell`, or null if the line stays as it is.
+ *
+ * A drag only ever extends the line or steps back onto the previous cell. Crossing any other part of the
+ * line is ignored, so a drag can never erase work the player already placed. Cutting the line back to an
+ * earlier cell takes a tap on that cell (docs/games/path.md).
+ */
+export function stepLine(
+  puzzle: PathPuzzle,
+  line: readonly number[],
+  cell: number,
+  adj: number[][],
+  input: LineInput,
+): LineStep | null {
+  const head = line[line.length - 1];
+  if (cell === head) return null;
+  if (line.length >= 2 && cell === line[line.length - 2]) return { line: line.slice(0, -1), kind: "back" };
+  const at = line.indexOf(cell);
+  if (at !== -1) return input === "tap" ? { line: line.slice(0, at + 1), kind: "cut" } : null;
+  if (canExtend(puzzle, line, cell, adj)) return { line: [...line, cell], kind: "extend" };
+  return null;
+}
+
 export function isSolved(puzzle: PathPuzzle, line: readonly number[]): boolean {
   if (line.length !== puzzle.size * puzzle.size) return false;
   const max = Math.max(...puzzle.numbers);

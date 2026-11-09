@@ -71,13 +71,20 @@ Black glyphs and text on every hue pass 4.5:1. All pass 3:1 against the card sur
 
 ### Board palette (games only)
 
-Inside a game board, color is information: regions in Blocks, symbols in Balance, the stimulus in Recall. These palettes live in each game's spec and must:
+Inside a game board, color is information: regions in Blocks, symbols in Balance, the stimulus in Recall. These palettes live in each game's spec (tokens in `globals.css` when a board uses them) and must:
 
 - pass 3:1 contrast against `--color-graphite` for any filled cell
 - stay distinguishable for deuteranopia and protanopia (pair hue with a symbol or pattern where meaning depends on it)
 - never leak outside the board onto chrome
 
 Every board cell has a 1px `--color-cell-line` outline. Cell fill and card are both near `#191919`, so the outline is what defines the grid. State outlines (selected, hint, related) replace it instead of stacking on top of it: selected is paper, a hint's related cells are fog.
+
+| Token | Value | Role |
+|-------|-------|------|
+| `--color-balance-dot` | `#ffcf4a` | Balance dot (filled circle), amber. 12:1 on graphite, 9.4:1 on a given cell |
+| `--color-balance-ring` | `#4f9dff` | Balance ring (3px outline), blue. 6.4:1 on graphite, 5:1 on a given cell |
+
+Balance pairs a warm and a cool colour because yellow against blue is the contrast that survives deuteranopia and protanopia, and the dot is also much lighter than the ring, so the two still separate in greyscale. The shapes stay: colour speeds up reading, the shape is what carries the meaning (D-055).
 
 Recall is the one game where the whole card becomes the stimulus color. That is the game, so it is allowed.
 

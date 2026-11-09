@@ -72,9 +72,9 @@ function BalanceExample() {
       <g key={`${y}-${i}`}>
         <rect x={i + 0.06} y={y + 0.06} width={0.88} height={0.88} rx={0.14} className={cellBg} />
         {v === "d" ? (
-          <circle cx={i + 0.5} cy={y + 0.5} r={0.22} className="fill-paper" />
+          <circle cx={i + 0.5} cy={y + 0.5} r={0.22} className="fill-balance-dot" />
         ) : (
-          <circle cx={i + 0.5} cy={y + 0.5} r={0.19} fill="none" className="stroke-paper" strokeWidth={0.07} />
+          <circle cx={i + 0.5} cy={y + 0.5} r={0.19} fill="none" className="stroke-balance-ring" strokeWidth={0.07} />
         )}
         {bad && i < 3 && <rect x={i + 0.2} y={y + 0.86} width={0.6} height={0.05} rx={0.02} className="fill-ember" />}
       </g>

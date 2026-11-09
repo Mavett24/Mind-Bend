@@ -14,6 +14,15 @@ Instruction copy: "Equal dots and rings per line, never three in a row. = joins 
 
 Symbols are our own (dot and ring), not suns and moons.
 
+## Palette
+
+| Symbol | Shape | Colour | Token | Contrast on graphite |
+|--------|-------|--------|-------|----------------------|
+| dot | filled circle | amber `#ffcf4a` | `--color-balance-dot` | 12:1 |
+| ring | 3px outline circle | blue `#4f9dff` | `--color-balance-ring` | 6.4:1 |
+
+Checked with a colour vision simulation (Machado 2009, full severity): the two stay about 60 ΔE2000 apart for deuteranopia and protanopia, 44 for tritanopia and 15 in greyscale, on top of the shape difference. Givens use the same colours on the lighter given cell. The ember rule-break underline and broken-link badge are shapes of their own, so amber never has to be told apart from ember by colour alone (D-055).
+
 ## Interaction
 
 - Tap cycles a cell: empty → dot → ring → empty.

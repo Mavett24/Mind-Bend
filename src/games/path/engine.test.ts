@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { TIERS } from "@/engine/difficulty";
-import { adjacency, canExtend, generatePath, isSolved, pathHint, randomHamiltonianPath, solvePath, type PathPuzzle } from "./engine";
+import { adjacency, canExtend, generatePath, isSolved, pathHint, randomHamiltonianPath, solvePath, stepLine, type PathPuzzle } from "./engine";
 import { createRng } from "@/engine/rng";
 
 const SEEDS_PER_TIER = 60;
@@ -75,6 +75,55 @@ describe("path move rules", () => {
     const lastNumberCell = p.numbers.indexOf(Math.max(...p.numbers));
     if (adj[p.solution[1]].includes(lastNumberCell)) expect(canExtend(p, line, lastNumberCell, adj)).toBe(false);
     expect(isSolved(p, line)).toBe(false);
+  });
+});
+
+describe("path line input", () => {
+  const p = generatePath({ gameId: "path", tier: "medium", seed: "line-input" });
+  const adj = adjacency(p.size, p.walls);
+  /** The line one move from the solution: the case where losing work hurts most. */
+  const almost = p.solution.slice(0, -1);
+  const lastCell = p.solution[p.solution.length - 1];
+
+  /** Feeds cells to `stepLine` the way the board does during one drag. */
+  const drag = (line: number[], cells: number[]) =>
+    cells.reduce((l, cell) => stepLine(p, l, cell, adj, "drag")?.line ?? l, line);
+
+  it("never removes the line when a drag crosses it", () => {
+    // Dragging over every cell already on the line, in any order, leaves it as it was,
+    // except the previous cell, which is a deliberate step back.
+    for (let i = 0; i < almost.length - 2; i++) {
+      expect(stepLine(p, almost, almost[i], adj, "drag")).toBeNull();
+    }
+    const crossing = [...almost].reverse().slice(2);
+    expect(drag(almost, crossing)).toEqual(almost);
+  });
+
+  it("finishes the board after a drag wanders across the line", () => {
+    const head = almost[almost.length - 1];
+    const wander = [...adj[head].filter((n) => almost.includes(n)), almost[3], almost[1], head, lastCell];
+    const line = drag(almost, wander.filter((c) => c !== almost[almost.length - 2]));
+    expect(line).toEqual(p.solution);
+    expect(isSolved(p, line)).toBe(true);
+  });
+
+  it("steps back one cell at a time when the drag retraces the line", () => {
+    const back = [almost[almost.length - 2], almost[almost.length - 3], almost[almost.length - 4]];
+    expect(drag(almost, back)).toEqual(almost.slice(0, -3));
+    expect(stepLine(p, almost, almost[almost.length - 2], adj, "drag")?.kind).toBe("back");
+  });
+
+  it("cuts the line only on a tap", () => {
+    const cut = stepLine(p, almost, almost[5], adj, "tap");
+    expect(cut).toEqual({ line: almost.slice(0, 6), kind: "cut" });
+    expect(stepLine(p, almost, p.solution[0], adj, "tap")?.line).toEqual([p.solution[0]]);
+  });
+
+  it("extends the same way for a drag and a tap", () => {
+    for (const input of ["drag", "tap"] as const) {
+      expect(stepLine(p, almost, lastCell, adj, input)).toEqual({ line: p.solution, kind: "extend" });
+    }
+    expect(stepLine(p, almost, almost[almost.length - 1], adj, "tap")).toBeNull();
   });
 });
 

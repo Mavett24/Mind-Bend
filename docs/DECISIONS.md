@@ -300,3 +300,15 @@ The footer is now on every page and has a job: a terminal sign-off prompt, the s
 **Why:** Mavett found the old footer too minimal for an app with this much character. The bottom of a page is where someone who scrolled all the way decides what to do next, so it should send them back into a game, not just list credits. The old line, "Inspired by LinkedIn Games, Dialed and Lessgames. Everything here is original.", undersold the app by naming other products at the exact moment it should be selling its own; the credit to those products lives in the README and the case study. The legal links stay small on purpose: they need to be findable, not featured.
 **Gave up:** the quiet single line, and naming the inspirations in the product itself.
 
+
+### D-055 · balance symbols get a colour each
+**2026-11-09** · adds a board palette to DESIGN.md §2 and docs/games/balance.md
+Dots are now amber (`#ffcf4a`) and rings blue (`#4f9dff`), on the board, on given cells and in the how-to-play example. The shapes stay exactly as they were: a filled circle and a 3px ring.
+**Why:** players found the two symbols hard to tell apart at a glance. Both were paper on graphite and close in size, so telling them apart meant reading each cell's shape, which slows down the counting the game is built on (three in a row, equal per line). Colour lets the eye group a row before reading it. Yellow against blue is the pair that survives red-green colour blindness, and the dot is much lighter than the ring, so the difference holds in greyscale too. Keeping the shapes means colour is never the only cue, as DESIGN.md requires.
+**Gave up:** the all-monochrome board, and the teal game hue on the board itself (it would have been one colour for two meanings). Card art keeps its teal and paper look, since it is identity, not play.
+
+### D-056 · Dragging over the path line never erases it
+**2026-11-09** · amends the interaction in docs/games/path.md
+During a drag, the line only grows or steps back onto the previous cell. Passing over any other part of the line is ignored, so the player keeps dragging from the line end. Cutting the line back to an earlier cell now takes a press on that cell. Arrow keys follow the drag rule. The rule lives in the engine as `stepLine` and is tested.
+**Why:** a drag that crossed the line cut it back to the crossing point, so one slip near the end could wipe most of a nearly solved board, and the player had to remember and redraw the route to finish. That punishes speed, the very thing the game scores. A deliberate step back is still one cell at a time, so undoing stays as easy as before.
+**Gave up:** cutting the line with a sweep through it mid-drag. It was a fast way to undo a lot at once, and it now takes a lift and a press.

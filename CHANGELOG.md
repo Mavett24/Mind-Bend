@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **path: dragging over the line no longer erases it** (D-056). A drag only extends the line or steps back one cell; crossing another part of the line is ignored. To cut back to an earlier cell, press on it. Arrow keys follow the same rule. New: `stepLine` in the path engine, with tests.
+- **balance: coloured symbols** (D-055). Dots are amber and rings blue, on the board and in how to play, with the shapes unchanged so they still read without colour. New tokens: `--color-balance-dot`, `--color-balance-ring`.
 - **Google Analytics behind consent** (D-053): a cookie card asks once, with accept and reject as equal pills, and never blocks play. Nothing from Google loads before accept. Reject after accept deletes the GA cookies. "cookie settings" in the footer reopens it; choices expire after 12 months.
 - **Privacy page** (`/privacy`): what stays in the browser, what GA collects and why, cookies, hosting, rights.
 - **New footer** on every page (D-054): sign-off prompt, "Built to bend minds.", the countdown to the next set, every game as a tile, a giant wordmark, and privacy and cookie settings in small type.

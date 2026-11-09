@@ -6,7 +6,7 @@ import type { BoardProps } from "@/games/types";
 import { dur, ease } from "@/lib/motion";
 import { shakeKeys } from "@/lib/shake";
 import { HintButton } from "@/components/HintButton";
-import { adjacency, canExtend, isSolved, pathHint, type PathPuzzle } from "./engine";
+import { adjacency, isSolved, pathHint, stepLine, type LineInput, type PathPuzzle } from "./engine";
 
 const PAD = 0.06; // gap around each cell, in cell units
 
@@ -36,9 +36,12 @@ export function PathBoard({ puzzle, onSolved }: BoardProps<PathPuzzle>) {
   const maxNumber = useMemo(() => Math.max(...numbers), [numbers]);
   const nextNumber = line.reduce((n, cell) => (numbers[cell] === n ? n + 1 : n), 1);
 
-  /** One step of input towards `cell`: extend, back up, or cut the line. */
+  /**
+   * One step of input towards `cell`: extend, step back, or (on a tap) cut the line.
+   * A drag that crosses the line leaves it alone (`stepLine` in the engine).
+   */
   const step = useCallback(
-    (cell: number) => {
+    (cell: number, input: LineInput = "drag") => {
       if (solved) return;
       const current = lineRef.current;
       const head = current[current.length - 1];
@@ -46,17 +49,13 @@ export function PathBoard({ puzzle, onSolved }: BoardProps<PathPuzzle>) {
         refused.current = null; // back on the head: the next push against a wall is a new attempt
         return;
       }
-      let next: number[] | null = null;
-      if (current.length >= 2 && cell === current[current.length - 2]) {
-        next = current.slice(0, -1);
-        backtracks.current++;
-      } else if (current.includes(cell)) {
-        next = current.slice(0, current.indexOf(cell) + 1);
-        backtracks.current++;
-      } else if (canExtend(puzzle, current, cell, adj)) {
-        next = [...current, cell];
+      const result = stepLine(puzzle, current, cell, adj, input);
+      const next = result?.line ?? null;
+      if (result?.kind === "extend") {
         if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate?.(6);
-      } else if (isNeighbour(size, head, cell) && refused.current !== `${head}>${cell}`) {
+      } else if (result) {
+        backtracks.current++;
+      } else if (!current.includes(cell) && isNeighbour(size, head, cell) && refused.current !== `${head}>${cell}`) {
         // A real attempt the rules refuse (a wall, or a number out of order) shakes that cell once (D-052).
         // Skipped and diagonal cells from a fast drag never get here, and holding on it doesn't repeat.
         refused.current = `${head}>${cell}`;
@@ -114,13 +113,8 @@ export function PathBoard({ puzzle, onSolved }: BoardProps<PathPuzzle>) {
     e.currentTarget.setPointerCapture(e.pointerId);
     dragging.current = true;
     lastPoint.current = p;
-    if (cell === startCell && lineRef.current.length > 1) {
-      backtracks.current++;
-      lineRef.current = [startCell];
-      setLine([startCell]);
-    } else {
-      step(cell);
-    }
+    // A press is a tap: on a cell of the line (cell 1 included) it cuts back to it, anywhere else it steps.
+    step(cell, "tap");
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
