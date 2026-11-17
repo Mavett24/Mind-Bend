@@ -25,6 +25,7 @@ How the data is built and filtered: [`scripts/DATA_SOURCES.md`](scripts/DATA_SOU
 | [Motion](https://github.com/motiondivision/motion) | MIT |
 | [chess.js](https://github.com/jhlywa/chess.js) | BSD-2-Clause, Copyright (c) Jeff Hlywa |
 | [Geist and Geist Mono](https://github.com/vercel/geist-font) fonts | SIL Open Font License 1.1 |
+| [Space Grotesk](https://github.com/floriankarsten/space-grotesk) font, latin subset in `src/app/fonts/` | SIL Open Font License 1.1, Copyright 2020 The Space Grotesk Project Authors ([`src/app/fonts/SpaceGrotesk-OFL.txt`](src/app/fonts/SpaceGrotesk-OFL.txt)) |
 
 Build and test tools (Tailwind CSS, TypeScript, ESLint, Vitest) are development dependencies and are not shipped. Full licence texts come with each package in `node_modules`.
 

@@ -74,6 +74,14 @@ export default function CreditsPage() {
           </p>
         </Section>
 
+        <Section title="fonts">
+          <p>
+            <Ext href="https://github.com/vercel/geist-font">Geist and Geist Mono</Ext> by Vercel, and{" "}
+            <Ext href="https://github.com/floriankarsten/space-grotesk">Space Grotesk</Ext> by Florian Karsten for the numbers, all under the{" "}
+            <Ext href="https://openfontlicense.org">SIL Open Font License 1.1</Ext>.
+          </p>
+        </Section>
+
         <Section title="inspiration">
           <p>
             The game mechanics were inspired by LinkedIn&apos;s daily games, Dialed, Lessgames and chess.com puzzles. Mind Bend is independent and

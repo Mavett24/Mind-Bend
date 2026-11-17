@@ -395,11 +395,11 @@ export function ChessSession({ game, mode, tier, seed, onExit }: ChessSessionPro
       {/* Header strip: where you are, your rating, the clock. */}
       <div className="flex items-end justify-between px-1">
         <div className="flex flex-col gap-0.5">
-          <span className="text-caption uppercase tracking-wide text-ash">
+          <span className="text-caption uppercase text-ash">
             {mode === "daily" ? `daily · ${played.length + (ended ? 0 : 1)} of ${DAILY_TARGETS.length}` : mode === "challenge" && index === 0 ? "challenge" : `practice · ${tier}`}
             {!rated && !ended && <span className="text-steel"> · unrated</span>}
           </span>
-          <span className="font-mono text-heading-sm tabular-nums">
+          <span className="font-num text-heading-sm">
             {result && result.rated ? <RatingChange before={result.ratingAfter - result.delta} delta={result.delta} color={color} /> : rating}
           </span>
         </div>
@@ -447,7 +447,7 @@ export function ChessSession({ game, mode, tier, seed, onExit }: ChessSessionPro
                 </Button>
               </div>
             ) : (
-              <p className="animate-pulse font-mono text-caption uppercase tracking-wide text-fog">loading puzzles</p>
+              <p className="animate-pulse font-mono text-caption uppercase text-fog">loading puzzles</p>
             )}
           </div>
         )}
@@ -658,12 +658,12 @@ function DailySummary({ game, played, history, onExit }: { game: GameMeta; playe
       transition={{ duration: dur.slow, ease: ease.springStrong }}
       className="flex flex-1 flex-col gap-5 p-6"
     >
-      <p className="flex items-center gap-2 text-caption uppercase tracking-wide text-ash">
+      <p className="flex items-center gap-2 text-caption uppercase text-ash">
         <GameIcon id={game.id} size={22} />
         {game.name} · daily set
       </p>
       <div className="flex flex-col gap-2">
-        <span className="font-mono text-number-lg font-bold leading-none">
+        <span className="font-num text-number-lg leading-none">
           {solved}
           <span className="text-ash">/3</span>
         </span>
@@ -678,7 +678,7 @@ function DailySummary({ game, played, history, onExit }: { game: GameMeta; playe
               <span className="text-chalk">puzzle {i + 1}</span>
               <span className="text-caption text-ash">{p.puzzle.rating}</span>
             </span>
-            <span className="font-mono tabular-nums" style={p.rated && p.delta > 0 ? { color } : undefined}>
+            <span className="font-num" style={p.rated && p.delta > 0 ? { color } : undefined}>
               {p.rated ? (p.delta === 0 ? "±0" : `${p.delta > 0 ? "+" : ""}${p.delta}`) : "unrated"}
             </span>
           </li>

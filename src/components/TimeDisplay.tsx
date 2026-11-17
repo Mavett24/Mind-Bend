@@ -19,7 +19,7 @@ export function splitTime(ms: number): [string, string] {
 export function TimeDisplay({ ms, className = "" }: { ms: number; className?: string }) {
   const [whole, fraction] = splitTime(ms);
   return (
-    <span className={`font-mono tabular-nums ${className}`}>
+    <span className={`font-num ${className}`}>
       {whole}
       <span className="text-ash">{fraction}</span>
     </span>
@@ -59,7 +59,7 @@ export function CountUpTime({ ms, durationMs = 900, className = "" }: { ms: numb
 export function PointsDisplay({ points, className = "" }: { points: number; className?: string }) {
   const [whole, fraction] = Math.max(0, points).toFixed(2).split(".");
   return (
-    <span className={`font-mono tabular-nums ${className}`}>
+    <span className={`font-num ${className}`}>
       {whole}
       <span className="text-ash">.{fraction}</span>
     </span>
@@ -82,7 +82,7 @@ export function GameClock({ startedAt, stoppedAt }: { startedAt: number; stopped
   const [whole] = splitTime(elapsed);
   const shown = elapsed < 60_000 ? `0:${whole.padStart(2, "0")}` : whole;
   return (
-    <span className="font-mono text-heading-lg tabular-nums" aria-label={`time ${shown}`}>
+    <span className="font-num text-heading-lg" aria-label={`time ${shown}`}>
       {shown}
     </span>
   );
@@ -94,7 +94,7 @@ export function CountUpStat({ value, format, className = "" }: { value: number; 
   const seen = useInView(ref, { once: true, amount: 0.6 });
   const shown = useCountUp(value, dur.count * 1000, seen);
   return (
-    <span ref={ref} className={`tabular-nums ${className}`} aria-label={format(value)}>
+    <span ref={ref} className={`font-num ${className}`} aria-label={format(value)}>
       <span aria-hidden>{format(shown)}</span>
     </span>
   );

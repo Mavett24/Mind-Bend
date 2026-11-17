@@ -109,28 +109,33 @@ Correct, wrong and hint states use symbols and borders, not green or red fills: 
 
 ## 3. Typography
 
-**Geist Mono** (`--font-mono`): headings, captions and tags, numbers, buttons, the wordmark, game names.
+**Geist Mono** (`--font-mono`): headings, captions and tags, buttons, the wordmark, game names, numbers inside sentences and boards.
+**Space Grotesk** (`--font-num`, the `font-num` utility): every standalone number: scores, ratings and their change, bests, stat totals, clocks, countdowns (D-065).
 **Geist Sans** (`--font-sans`): body copy, descriptions, rules, helper text, navigation links.
 
-Both self-hosted through the `geist` package (SIL OFL 1.1), no runtime font requests. Headings, `.text-caption` and the `.text-number*` sizes switch to mono automatically in `globals.css`; anything else that needs mono uses the `font-mono` utility.
+All self-hosted (`geist` package, and Space Grotesk's latin variable font in `src/app/fonts/`), SIL OFL 1.1, no runtime font requests. Headings and `.text-caption` switch to mono automatically in `globals.css`, the `.text-number*` sizes to Space Grotesk; anything else uses `font-mono` or `font-num`. `font-num` always sets tabular figures.
 
-**Fallbacks:** `ui-monospace, SFMono-Regular, Menlo, monospace` and `ui-sans-serif, system-ui, sans-serif`.
+**Weights:** 400 for body and the big numbers, 500 for headings, game names and buttons, 700 only for the wordmark and glyphs inside boards (clues, givens, letters). Nothing else is bold.
+
+**Tracking:** mono tightens as it grows but never past -0.04em, where Geist Mono's fixed widths start to collide. Uppercase labels get +0.07em (`.uppercase`, in the components layer so a `tracking-*` utility still wins).
+
+**Fallbacks:** `ui-monospace, SFMono-Regular, Menlo, monospace` and `ui-sans-serif, system-ui, sans-serif`. Space Grotesk falls back to Geist Mono.
 
 ### Scale
 
 The reference scale stops at 32px. Mind Bend adds three larger steps for numbers, because the timer and score are the hero of every screen.
 
-| Token | Size | Line height | Tracking | Use |
-|-------|------|-------------|----------|-----|
-| `--text-caption` | 12px | 1.5 | 0 | Labels, metadata, tags (uppercase) |
-| `--text-body` | 14px | 1.71 | 0 | Body copy, descriptions |
-| `--text-heading-sm` | 18px | 1.56 | 0 | Card titles |
-| `--text-heading` | 20px | 1.4 | 0 | Section titles |
-| `--text-heading-lg` | 24px | 1.33 | -0.01em | Game titles on cards |
-| `--text-display` | 32px | 1.25 | -0.02em | Page titles |
-| `--text-number` | 56px | 1 | -0.04em | Reserved for large counters (not used in v0.2) |
-| `--text-number-lg` | 88px | 0.95 | -0.05em | Result score |
-| `--text-number-xl` | 128px | 0.9 | -0.06em | Result score on desktop |
+| Token | Size | Line height | Tracking | Weight | Use |
+|-------|------|-------------|----------|--------|-----|
+| `--text-caption` | 12px | 1.5 | 0 (+0.07em uppercase) | | Labels, metadata, tags |
+| `--text-body` | 14px | 1.6 | 0 | | Body copy, descriptions |
+| `--text-heading-sm` | 18px | 1.45 | 0 | | Card titles |
+| `--text-heading` | 20px | 1.35 | -0.01em | | Section titles |
+| `--text-heading-lg` | 24px | 1.25 | -0.02em | | Game titles on cards |
+| `--text-display` | 32px | 1.15 | -0.03em | | Page titles |
+| `--text-number` | 56px | 1 | -0.03em | 400 | Big counters (daily set, recall score) |
+| `--text-number-lg` | 88px | 0.95 | -0.035em | 400 | Result score |
+| `--text-number-xl` | 128px | 0.9 | -0.04em | 400 | Result score on desktop |
 
 **Number treatment** (from Dialed): split a number into its significant part and its fraction, and dim the fraction. `3.28` renders as `3` in `--color-paper` and `.28` in `--color-ash`. Always use tabular figures so digits do not jitter while counting.
 
@@ -193,7 +198,7 @@ Totals row, training-days calendar (26 weeks, Monday first, four ember steps), s
 | How-to-play screen | Example illustration on a void panel, numbered steps (iron number badges), a graphite tier box, controls in 13px steel, skip checkbox, back + start. |
 | Toast | Bottom centre, `--color-graphite`, 1px iron border, 14px text, slides up with spring, auto-dismiss 2.4s. |
 | Cookie card | `.surface` card fixed to the bottom, max 520px, 16px gutters on mobile, above the safe area. Caption eyebrow `COOKIES`, two sentences of fog body text with a privacy link, then accept and reject as identical ghost pills in a two-column grid (never one filled and one ghost). Rises 24px and fades in. Never blocks the page (D-053). |
-| Site footer | On every page (D-054). A terminal prompt (`~/mind-bend $ sign-off`, ember caret), the slogan "Built to / bend minds." two-tone like the hero (paper, then steel; `--text-display` on mobile, `--text-number` from md), one line of pitch in fog, and a `.surface` card with the countdown to the next set linking to the daily. Then every game as a 40px icon tile with its name, 4 columns on mobile and 8 from sm; hover lifts and tilts the tile and colours the name in its hue. A hairline, then one caption row: version and credit in steel, privacy and cookie settings in ash. Last, the wordmark in graphite at `--text-footer-mark` (fluid, 56 to 224px) sinking into the page edge, decoration only. |
+| Site footer | On every page (D-066): today's daily set on a light band (`--color-paper` background, void text) that clearly ends the page. "today's set" eyebrow with an ember dot, "3 of 8 done. 5 left." in mono `--text-display` (the second sentence in steel, on its own line on phones; "See you at midnight." when all are done), the countdown to the next set in Space Grotesk, an 8-segment bar that fills each game's hue when its daily is done, then a white tile per game (28px icon tile, name, "done" with a hue dot, or "play →" on hover) linking to that daily. 2 columns on phones, 4 from sm, 8 from lg. Tiles lift 2px on hover (fine pointers only) and press to 0.97. A hairline, then one caption row: version, credit and streak in steel, privacy, credits and cookie settings. |
 | App icon | A paper prompt chevron and the ember block cursor on the raised surface gradient, 14/64 corner radius (D-060). Built by `scripts/build-icons.mjs`; never draw it by hand. |
 | Link preview | 1200×630 raised card on void with a 40px radius. Wordmark top left, a terminal prompt top right in steel. Site card: two-tone mono headline and all eight icon tiles. Game card: 176px icon tile, skill eyebrow, game name in mono, tagline in fog, a soft glow in the game hue bottom right (D-061). |
 

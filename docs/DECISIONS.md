@@ -354,3 +354,15 @@ While a board or how to play is open, the play card's header shows "← abort", 
 Every choice in higher or lower shows a 4:3 flag beside the name: the country itself, or the city's country. Each item in `higher-lower.json` carries its ISO code. The flags come from flag-icons (MIT), rendered once to 240×180 WebPs of about 2 KB each (384 KB for all 188), served from the site, and the next question's pair is fetched while you answer. Mobile first: 56×42 on small phones, 64×48 from 380px, 80×60 from 640px, next to the name in the same card.
 **Why:** two blocks of text is the plainest screen in the app. A flag makes the pair readable at a glance, and it's exact: no picture can be wrong about which country it shows. Bundling keeps it fast and private (no third-party image requests, nothing for the privacy page).
 **Gave up:** photos of places (would need a live image service, per-photo credits and a privacy change, and a photo of "Brazil" is a guess), and pictures for the category questions, which are long text about albums, films and laws with no clean image per answer. The source SVGs, some over 100 KB.
+
+### D-065 · A calmer type system, and Space Grotesk for numbers
+**2026-11-17** · type tokens, `font-num`, every screen
+Weights now carry meaning: 400 for body and big numbers, 500 for headings, names and buttons, 700 only for the wordmark and glyphs inside boards. The result score went from Geist Mono Bold to Space Grotesk Regular. Every standalone number (scores, ratings, bests, stat totals, clocks, countdowns) uses Space Grotesk through `font-num`, with tabular figures; numbers inside sentences, labels and boards stay mono. Mono tracking stops at -0.04em, uppercase labels get +0.07em, body line height is 1.6 and headings sit tighter (1.15 to 1.35).
+**Why:** bold mono everywhere, squeezed tight, read as generic and loud: when everything is heavy nothing leads. Regular numerals at size look more confident, and a sans with some character (its 1, 2 and 7) gives the scores a voice of their own while the mono keeps the terminal identity for labels.
+**Gave up:** the all-mono look, and bold as the default emphasis. Space Grotesk adds about 30 KB.
+
+### D-066 · The footer is today's set
+**2026-11-17** · replaces D-054's sign-off footer
+The footer is a light band showing the daily set: how many are done and left, the countdown to the next set, a progress bar in each game's hue, and a tile per game that opens its daily. The slogan, the pitch line, the second game grid and the giant ghost wordmark are gone.
+**Why:** the old footer stacked template parts that repeated the home page without doing a job. Progress on the daily set is useful at the end of any page, and the light background makes the end of the page unmistakable on a dark site.
+**Gave up:** the "Built to bend minds." sign-off and the wordmark as decoration. Two other directions were tried (a terminal session log, and a board you draw on with the pointer).

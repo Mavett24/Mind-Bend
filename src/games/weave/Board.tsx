@@ -178,13 +178,13 @@ export function WeaveBoard({ puzzle, onSolved }: BoardProps<WeavePuzzle>) {
             exit={{ opacity: 0 }}
             transition={{ duration: dur.base, ease: ease.out }}
             className={`truncate font-mono ${
-              trace.length || message?.tone === "good" ? "text-heading-lg font-bold uppercase tracking-[0.12em] text-paper" : "text-body text-fog"
+              trace.length || message?.tone === "good" ? "text-heading-lg font-medium uppercase tracking-[0.1em] text-paper" : "text-body text-fog"
             }`}
           >
             {trace.length ? wordOf(puzzle, trace) : message ? message.text : "trace a word"}
           </motion.span>
         </AnimatePresence>
-        <span className="shrink-0 text-caption uppercase tracking-wide text-steel">
+        <span className="shrink-0 text-caption uppercase text-steel">
           {found.length} / {words.length}
         </span>
       </div>

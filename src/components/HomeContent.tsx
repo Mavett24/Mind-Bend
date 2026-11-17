@@ -26,7 +26,7 @@ export function HomeContent() {
             <h2 id="games-title" className="title-card">
               games
             </h2>
-            <p className="text-caption uppercase tracking-wide text-steel">{GAMES.length} games · 4 tiers</p>
+            <p className="text-caption uppercase text-steel">{GAMES.length} games · 4 tiers</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {GAMES.map((game, i) => (
@@ -116,7 +116,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="well flex flex-col gap-1 rounded-[14px] px-3 py-2.5">
       <dt className="text-caption uppercase text-ash">{label}</dt>
-      <dd className="font-mono text-heading-lg">{value}</dd>
+      <dd className="font-num text-heading-lg">{value}</dd>
     </div>
   );
 }

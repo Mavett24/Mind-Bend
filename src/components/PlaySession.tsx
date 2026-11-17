@@ -149,7 +149,7 @@ export function PlaySession<P>({ game, module, board, mode, nextDailyHref, onExi
         >
           <div className="flex items-center justify-between">
             <div className="flex flex-col">
-              <span className="text-caption uppercase tracking-wide text-ash">
+              <span className="text-caption uppercase text-ash">
                 {board.tier} · {mode}
               </span>
               <span className="text-caption text-steel">seed {board.seed}</span>
@@ -167,7 +167,7 @@ export function PlaySession<P>({ game, module, board, mode, nextDailyHref, onExi
                 </Button>
               </div>
             ) : (
-              <p className="animate-pulse font-mono text-caption uppercase tracking-wide text-steel">building board</p>
+              <p className="animate-pulse font-mono text-caption uppercase text-steel">building board</p>
             )}
           </div>
         </motion.div>
@@ -221,16 +221,16 @@ function Result<P>({ game, module, board, mode, finished, nextDailyHref, onExit,
       transition={{ duration: dur.slow, ease: ease.springStrong }}
       className="flex flex-1 flex-col gap-5 p-6"
     >
-      <p className="flex items-center gap-2 text-caption uppercase tracking-wide text-ash">
+      <p className="flex items-center gap-2 text-caption uppercase text-ash">
         <GameIcon id={game.id} size={22} />
         {game.name} · {board.tier} · {mode}
       </p>
 
       <div className="flex flex-col gap-3">
         {scored ? (
-          <CountUpPoints points={detail.points ?? 0} className="text-number-lg font-bold" />
+          <CountUpPoints points={detail.points ?? 0} className="text-number-lg" />
         ) : (
-          <CountUpTime ms={record.timeMs} className="text-number-lg font-bold" />
+          <CountUpTime ms={record.timeMs} className="text-number-lg" />
         )}
         <motion.p
           initial={{ opacity: 0, y: 6 }}
@@ -274,7 +274,7 @@ function Result<P>({ game, module, board, mode, finished, nextDailyHref, onExit,
         <div className="well flex flex-col gap-3 rounded-[18px] p-4">
           <div className="flex items-baseline justify-between">
             <span className="text-caption uppercase text-ash">rating</span>
-            <span className="font-mono text-heading-lg">
+            <span className="font-num text-heading-lg">
               {insight.ratingAfter}{" "}
               <span className={delta >= 0 ? "text-paper" : "text-ash"} style={delta > 0 ? { color } : undefined}>
                 {delta >= 0 ? "+" : ""}

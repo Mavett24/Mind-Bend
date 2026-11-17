@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Typography review** (D-065): weights mean something now (400 body and numbers, 500 headings and names, 700 only for the wordmark and board glyphs), calmer tracking, more air in uppercase labels, tighter line heights. **Space Grotesk** for every standalone number (scores, ratings, clocks, countdowns), self-hosted, OFL. Fixed a rule that forced the big numbers back into mono.
+- **New footer** (D-066): today's daily set on a light band, with progress, the countdown and a tile per game.
 - **trivia: flags in higher or lower** (D-064): every country and city choice shows its flag, sized for phones first. 188 flags as small WebPs from flag-icons (MIT), credited on `/credits`. New: `code` on each higher or lower item, `scripts/build-flags.mjs`.
 - **Abort a board** (D-063): "← abort" in the play card header goes back to the game's start screen. Leaving a game any other way also resets it, so it no longer reopens the board you left.
 - **balance expert is 6×6** (D-063): fewer cells and links, and every board needs one step of lookahead. Par 4 minutes. Expert balance boards (daily and challenge links) change from this release.

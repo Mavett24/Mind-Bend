@@ -49,30 +49,41 @@
   /* Type */
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* Standalone numbers (D-065). `font-num` sets tabular figures too, so clocks never jitter. */
+  --font-num: var(--font-space-grotesk), var(--font-geist-mono), ui-monospace, monospace;
 
+  /*
+   * Type scale (D-065). Weights: 400 for body and the big numerals, 500 for headings, names and
+   * buttons, 700 only for the wordmark and glyphs inside boards. Mono tracks tighter as it grows,
+   * but never past -0.04em: Geist Mono's fixed widths start to collide beyond that.
+   */
   --text-caption: 12px;
   --text-caption--line-height: 1.5;
   --text-body: 14px;
-  --text-body--line-height: 1.71;
+  --text-body--line-height: 1.6;
   --text-heading-sm: 18px;
-  --text-heading-sm--line-height: 1.56;
+  --text-heading-sm--line-height: 1.45;
   --text-heading: 20px;
-  --text-heading--line-height: 1.4;
+  --text-heading--line-height: 1.35;
+  --text-heading--letter-spacing: -0.01em;
   --text-heading-lg: 24px;
-  --text-heading-lg--line-height: 1.33;
-  --text-heading-lg--letter-spacing: -0.01em;
+  --text-heading-lg--line-height: 1.25;
+  --text-heading-lg--letter-spacing: -0.02em;
   --text-display: 32px;
-  --text-display--line-height: 1.25;
-  --text-display--letter-spacing: -0.02em;
+  --text-display--line-height: 1.15;
+  --text-display--letter-spacing: -0.03em;
   --text-number: 56px;
   --text-number--line-height: 1;
-  --text-number--letter-spacing: -0.04em;
+  --text-number--letter-spacing: -0.03em;
+  --text-number--font-weight: 400;
   --text-number-lg: 88px;
   --text-number-lg--line-height: 0.95;
-  --text-number-lg--letter-spacing: -0.05em;
+  --text-number-lg--letter-spacing: -0.035em;
+  --text-number-lg--font-weight: 400;
   --text-number-xl: 128px;
   --text-number-xl--line-height: 0.9;
-  --text-number-xl--letter-spacing: -0.06em;
+  --text-number-xl--letter-spacing: -0.04em;
+  --text-number-xl--font-weight: 400;
   /* Footer wordmark: fills the page width from phone to 1200px (DESIGN.md §5). */
   --text-footer-mark: clamp(56px, 17vw, 224px);
 
@@ -123,16 +134,20 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Geist Mono carries headings, labels and numbers; Geist Sans carries everything you read. */
+/* Geist Mono carries headings and labels, Space Grotesk the big numbers (D-065), Geist Sans everything you read. */
 h1,
 h2,
 h3,
 h4,
-.text-caption,
+.text-caption {
+  font-family: var(--font-mono);
+}
+
 .text-number,
 .text-number-lg,
 .text-number-xl {
-  font-family: var(--font-mono);
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Raised card: gradient, light ring, layered drop shadow. */
@@ -153,7 +168,20 @@ h4,
   font-size: 24px;
   line-height: 1.15;
   font-weight: 500;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.03em;
+}
+
+/* Uppercase labels need air to read at 12px (D-065). In the components layer, so a tracking-* utility still wins. */
+@layer utilities {
+  .font-num {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  .uppercase {
+    letter-spacing: 0.07em;
+  }
 }
 
 @keyframes float {

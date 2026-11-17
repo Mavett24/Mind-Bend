@@ -179,9 +179,9 @@ export function GameStart({ game }: { game: GameMeta }) {
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center gap-3">
                     <GameIcon id={game.id} size={44} />
-                    <span className="text-caption uppercase tracking-wide text-ash">{game.skill}</span>
+                    <span className="text-caption uppercase text-ash">{game.skill}</span>
                   </div>
-                  <h1 className="text-display font-medium tracking-[-0.04em]">
+                  <h1 className="text-display font-medium">
                     <TitleReveal text={game.name} />
                   </h1>
                   <p className="text-fog">{game.rules}</p>
@@ -305,7 +305,7 @@ function Stat({ label, value, title }: { label: string; value: React.ReactNode; 
   return (
     <div className="flex min-w-0 flex-col gap-1" title={title}>
       <dt className="truncate text-caption uppercase text-ash">{label}</dt>
-      <dd className="font-mono text-heading-sm tabular-nums">{value}</dd>
+      <dd className="font-num text-heading-sm">{value}</dd>
     </div>
   );
 }
@@ -313,7 +313,7 @@ function Stat({ label, value, title }: { label: string; value: React.ReactNode; 
 /** Section label above a choice on the start card: a step number and a name (D-045). */
 function Eyebrow({ id, step, note, children }: { id: string; step: string; note?: string; children: React.ReactNode }) {
   return (
-    <h2 id={id} className="flex items-baseline gap-2 text-caption uppercase tracking-wide text-ash">
+    <h2 id={id} className="flex items-baseline gap-2 text-caption uppercase text-ash">
       <span className="text-ember">{step}</span>
       <span>{children}</span>
       {note && <span className="normal-case tracking-normal text-steel">· {note}</span>}

@@ -146,7 +146,7 @@ export function RatingChart({ series, color, label, tiers = true }: { series: Ra
             className="pointer-events-none absolute top-0 rounded-[10px] bg-paper px-2.5 py-1.5 font-mono text-caption text-void shadow-lg"
             style={{ left: `${(x(hover) / W) * 100}%`, transform: `translateX(${hover > n / 2 ? "-110%" : "10%"})` }}
           >
-            <span className="font-bold">{h.rating}</span> · {hover === 0 ? "start" : `game ${hover}`}
+            <span className="font-medium">{h.rating}</span> · {hover === 0 ? "start" : `game ${hover}`}
             {h.at ? ` · ${fmtDate(h.at)}` : ""}
           </div>
         )}

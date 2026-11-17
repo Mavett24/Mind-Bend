@@ -48,8 +48,8 @@ export function GameIntroScreen({ game, tier, mode, onStart, onBack }: GameIntro
       className="flex flex-1 flex-col gap-5 p-6"
     >
       <div className="flex flex-col gap-1">
-        <p className="text-caption uppercase tracking-wide text-steel">how to play</p>
-        <h2 className="text-heading-lg font-bold">{game.name}</h2>
+        <p className="text-caption uppercase text-steel">how to play</p>
+        <h2 className="text-heading-lg font-medium">{game.name}</h2>
       </div>
 
       <div className="flex min-h-[132px] items-center justify-center rounded-control border border-iron bg-void p-4">
@@ -74,7 +74,7 @@ export function GameIntroScreen({ game, tier, mode, onStart, onBack }: GameIntro
       </ol>
 
       <div className="flex flex-col gap-1 rounded-control bg-graphite px-4 py-3">
-        <span className="text-caption uppercase tracking-wide text-steel">
+        <span className="text-caption uppercase text-steel">
           {tier} · {mode}
         </span>
         <span className="text-fog">{intro.tiers[tier]}</span>
