@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **Floating dock on phones** (D-068): today (with the daily set as a ring), games, stats, and a white pill to your next daily. Hides while you play. The header drops its "daily" link on phones.
 - **Footer stays below the fold** (D-067): content is at least one large viewport tall, so the footer never peeks in on short pages or phones. Rounded top corners (`--radius-card`).
 - **Splash** (D-067): once per session, the cursor types `mind_bend` and the screen clears like a board, about 3.3s with tiles sized to the screen. Pure CSS, skipped with reduced motion.
 - **Typography review** (D-065): weights mean something now (400 body and numbers, 500 headings and names, 700 only for the wordmark and board glyphs), calmer tracking, more air in uppercase labels, tighter line heights. **Space Grotesk** for every standalone number (scores, ratings, clocks, countdowns), self-hosted, OFL. Fixed a rule that forced the big numbers back into mono.
