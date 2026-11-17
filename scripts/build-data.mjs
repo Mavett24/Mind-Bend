@@ -205,7 +205,7 @@ for (const c of cities) {
   const key = `${c.name}|${c.country}`;
   if (cityNames.has(key)) continue;
   cityNames.add(key);
-  cityItems.push({ name: c.name, sub: nameOf(byCca2.get(c.country)), value: c.population });
+  cityItems.push({ name: c.name, sub: nameOf(byCca2.get(c.country)), value: c.population, code: c.country.toLowerCase() });
 }
 
 const hl = [
@@ -214,21 +214,21 @@ const hl = [
     prompt: "Which country has more people?",
     unit: "people",
     source: `World Bank, ${yearOf(population)}`,
-    items: [...population].filter(([, v]) => v.value >= 100_000).map(([code, v]) => ({ name: nameOf(byCca3.get(code)), value: Math.round(v.value) })),
+    items: [...population].filter(([, v]) => v.value >= 100_000).map(([code, v]) => ({ name: nameOf(byCca3.get(code)), value: Math.round(v.value), code: byCca3.get(code).cca2.toLowerCase() })),
   },
   {
     id: "gdp",
     prompt: "Which country has the bigger economy?",
     unit: "US$ GDP",
     source: `World Bank, ${yearOf(gdp)}`,
-    items: [...gdp].filter(([, v]) => v.value >= 1e9).map(([code, v]) => ({ name: nameOf(byCca3.get(code)), value: Math.round(v.value) })),
+    items: [...gdp].filter(([, v]) => v.value >= 1e9).map(([code, v]) => ({ name: nameOf(byCca3.get(code)), value: Math.round(v.value), code: byCca3.get(code).cca2.toLowerCase() })),
   },
   {
     id: "area",
     prompt: "Which country is bigger?",
     unit: "km²",
     source: "mledoze/countries (ODbL)",
-    items: countries.filter((c) => c.area >= 1000).map((c) => ({ name: nameOf(c), value: Math.round(c.area) })),
+    items: countries.filter((c) => c.area >= 1000).map((c) => ({ name: nameOf(c), value: Math.round(c.area), code: c.cca2.toLowerCase() })),
   },
   {
     id: "cities",

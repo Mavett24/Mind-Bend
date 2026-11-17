@@ -35,6 +35,8 @@ export interface HLItem {
   name: string;
   sub?: string;
   value: number;
+  /** ISO 3166-1 alpha-2, lower case: the country, or the city's country. Picks the flag (D-064). */
+  code?: string;
 }
 
 export interface HLCategory {
