@@ -9,6 +9,7 @@ The Mind Bend code is [MIT](LICENSE). It ships with data and depends on packages
 | `chess/` | Tactics puzzles | [Lichess puzzle database](https://database.lichess.org/#puzzles), via [mcognetta/lichess-combined-puzzle-game-db](https://github.com/mcognetta/lichess-combined-puzzle-game-db) | CC0 1.0 | none required |
 | `trivia/` (questions) | Quiz questions, adapted | [OpenTriviaQA](https://github.com/uberspot/OpenTriviaQA) | CC BY-SA 4.0 | [`public/data/trivia/LICENSE.md`](public/data/trivia/LICENSE.md) |
 | `trivia/higher-lower.json` | Country and city figures | World Bank (CC BY 4.0), [mledoze/countries](https://github.com/mledoze/countries) (ODbL 1.0), [GeoNames](https://www.geonames.org/) (CC BY 4.0) | ODbL 1.0 as a whole | [`public/data/trivia/LICENSE.md`](public/data/trivia/LICENSE.md) |
+| `../flags/` | Country flags in higher or lower, rendered to WebP by `scripts/build-flags.mjs` | [flag-icons](https://github.com/lipis/flag-icons), Copyright (c) 2013 Panayiotis Lipiridis | MIT | the flag-icons package (`node_modules/flag-icons/LICENSE`) |
 | `weave/` | English word lists | [SCOWL](http://wordlist.aspell.net/) by Kevin Atkinson, via npm `wordlist-english` | SCOWL licence (permissive, notice required) | [`public/data/weave/SCOWL-COPYRIGHT.txt`](public/data/weave/SCOWL-COPYRIGHT.txt) |
 
 Offensive words are filtered out of the word lists and questions with the [LDNOOBW](https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words) list (CC BY 4.0, via npm `naughty-words`). The list itself is used at build time and is not shipped.

@@ -122,3 +122,16 @@ describe("countdown readout", () => {
     expect(countdownParts(-250)).toEqual(["0", ".0"]);
   });
 });
+
+describe("higher or lower flags (D-064)", () => {
+  it("gives every country and city a flag that exists", async () => {
+    const { readFileSync, existsSync } = await import("node:fs");
+    const decks = JSON.parse(readFileSync("public/data/trivia/higher-lower.json", "utf8")) as { items: { name: string; code?: string }[] }[];
+    for (const deck of decks) {
+      for (const item of deck.items) {
+        expect(item.code, item.name).toMatch(/^[a-z]{2}$/);
+        expect(existsSync(`public/flags/${item.code}.webp`), item.code).toBe(true);
+      }
+    }
+  });
+});

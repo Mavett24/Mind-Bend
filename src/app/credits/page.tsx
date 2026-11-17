@@ -61,7 +61,8 @@ export default function CreditsPage() {
             Population and GDP from the World Bank (<Ext href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</Ext>). Country names and
             areas from <Ext href="https://github.com/mledoze/countries">mledoze/countries</Ext>, available under the{" "}
             <Ext href="https://opendatacommons.org/licenses/odbl/1-0/">ODbL</Ext>, so the combined data set is shared under the ODbL too. City
-            populations from <Ext href="https://www.geonames.org/">GeoNames</Ext> (CC BY 4.0).
+            populations from <Ext href="https://www.geonames.org/">GeoNames</Ext> (CC BY 4.0). Flags from{" "}
+            <Ext href="https://github.com/lipis/flag-icons">flag-icons</Ext> by Panayiotis Lipiridis (MIT).
           </p>
         </Section>
 

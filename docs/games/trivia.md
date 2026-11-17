@@ -13,6 +13,7 @@ After pressing play, the board offers higher or lower, or categories with a cate
 Two items share a measurable value. Pick the one with the higher value.
 
 - Ten pairs, cycling through four sets: country population, country GDP, country area, city population.
+- Each card shows a 4:3 flag left of the name: the country, or for cities the city's country (D-064). 56×42 on small phones, 64×48 from 380px, 80×60 from 640px, 6px corners and a 12% white hairline. Decorative (`alt=""`), since the name is beside it.
 - After a pick, both values appear in readable form ("36.2 million people", "$27.4 trillion"). The right card gets a paper border and ✓, a wrong pick gets an ember border, × and a shake.
 - The source is shown under every pair.
 - Difficulty comes from how close the two values are (table below).

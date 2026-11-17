@@ -89,6 +89,34 @@ function QuestionClock({
   );
 }
 
+/**
+ * Country flag beside a higher or lower choice (D-064): the country itself, or the city's country.
+ * Decorative, since the name sits next to it. 4:3, small WebPs from scripts/build-flags.mjs.
+ */
+function Flag({ code }: { code: string }) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element -- tiny static WebPs, sized here; the image optimiser would add nothing
+    <img
+      src={`/flags/${code}.webp`}
+      alt=""
+      width={80}
+      height={60}
+      decoding="async"
+      className="h-[42px] w-14 shrink-0 rounded-[6px] object-cover shadow-[0_0_0_1px_rgba(255,255,255,0.12)] min-[380px]:h-12 min-[380px]:w-16 sm:h-[60px] sm:w-20"
+    />
+  );
+}
+
+/** Fetch the next pair's flags while this question is on screen, so they never pop in. */
+function usePreloadFlags(pair: HLPair | undefined) {
+  useEffect(() => {
+    if (!pair) return;
+    for (const side of [pair.left, pair.right]) {
+      if (side.code) new Image().src = `/flags/${side.code}.webp`;
+    }
+  }, [pair]);
+}
+
 function Chooser({ onPick, loading }: { onPick: (mode: "higher-lower" | CategoryId) => void; loading: boolean }) {
   return (
     <div className="flex w-full flex-col gap-4">
@@ -184,6 +212,8 @@ export function TriviaBoard({ puzzle, onSolved }: BoardProps<TriviaPuzzle>) {
     return () => clearTimeout(id);
   }, [index, onSolved, picked, points, round]);
 
+  usePreloadFlags(round?.mode === "higher-lower" ? (round.items[index + 1] as HLPair | undefined) : undefined);
+
   if (!round) {
     return (
       <div className="flex w-full max-w-[400px] flex-col gap-3">
@@ -241,12 +271,14 @@ export function TriviaBoard({ puzzle, onSolved }: BoardProps<TriviaPuzzle>) {
                     whileTap={answered ? undefined : { scale: 0.98 }}
                     animate={answered && isPicked && !isRight ? shake : {}}
                     transition={{ duration: 0.36 }}
-                    className={`flex min-h-[104px] flex-col justify-center gap-1 rounded-control border p-5 text-left transition-colors duration-[var(--dur-base)] ${
+                    className={`flex min-h-[104px] items-center gap-4 rounded-control border p-4 text-left transition-colors duration-[var(--dur-base)] sm:gap-5 sm:p-5 ${
                       answered && isRight ? "border-paper bg-iron" : answered && isPicked ? "border-ember bg-graphite" : "border-iron bg-graphite hover:border-slate"
                     }`}
                   >
+                    {side.code && <Flag code={side.code} />}
+                    <span className="flex min-w-0 flex-1 flex-col gap-1">
                     <span className="flex items-baseline justify-between gap-3">
-                      <span className="font-mono text-heading-lg font-bold">{side.name}</span>
+                      <span className="font-mono text-heading-lg font-bold [overflow-wrap:anywhere]">{side.name}</span>
                       {answered && <span className="font-mono text-paper">{isRight ? "✓" : isPicked ? "×" : ""}</span>}
                     </span>
                     {side.sub && <span className="text-caption text-steel">{side.sub}</span>}
@@ -262,6 +294,7 @@ export function TriviaBoard({ puzzle, onSolved }: BoardProps<TriviaPuzzle>) {
                         </motion.span>
                       )}
                     </AnimatePresence>
+                    </span>
                   </motion.button>
                 );
               })}
