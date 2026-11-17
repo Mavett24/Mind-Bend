@@ -49,6 +49,8 @@
   /* Type */
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* Standalone numbers (D-065). `font-num` sets tabular figures too, so clocks never jitter. */
+  --font-num: var(--font-space-grotesk), var(--font-geist-mono), ui-monospace, monospace;
 
   /*
    * Type scale (D-065). Weights: 400 for body and the big numerals, 500 for headings, names and
@@ -132,16 +134,20 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Geist Mono carries headings, labels and numbers; Geist Sans carries everything you read. */
+/* Geist Mono carries headings and labels, Space Grotesk the big numbers (D-065), Geist Sans everything you read. */
 h1,
 h2,
 h3,
 h4,
-.text-caption,
+.text-caption {
+  font-family: var(--font-mono);
+}
+
 .text-number,
 .text-number-lg,
 .text-number-xl {
-  font-family: var(--font-mono);
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Raised card: gradient, light ring, layered drop shadow. */
@@ -166,6 +172,12 @@ h4,
 }
 
 /* Uppercase labels need air to read at 12px (D-065). In the components layer, so a tracking-* utility still wins. */
+@layer utilities {
+  .font-num {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
 @layer components {
   .uppercase {
     letter-spacing: 0.07em;

@@ -305,7 +305,7 @@ function Stat({ label, value, title }: { label: string; value: React.ReactNode; 
   return (
     <div className="flex min-w-0 flex-col gap-1" title={title}>
       <dt className="truncate text-caption uppercase text-ash">{label}</dt>
-      <dd className="font-mono text-heading-sm tabular-nums">{value}</dd>
+      <dd className="font-num text-heading-sm">{value}</dd>
     </div>
   );
 }

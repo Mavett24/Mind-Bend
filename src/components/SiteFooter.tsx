@@ -48,7 +48,7 @@ export function SiteFooter() {
           </div>
           <div className="flex flex-col gap-1 sm:items-end">
             <span className="font-mono text-caption uppercase text-steel">next set in</span>
-            <span className="font-mono text-display font-medium tabular-nums" suppressHydrationWarning>
+            <span className="font-num text-display" suppressHydrationWarning>
               {now ? untilMidnightUtc(now) : "--:--:--"}
             </span>
           </div>

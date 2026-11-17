@@ -59,7 +59,7 @@ function Countdown({ ms, onDone }: { ms: number; onDone: () => void }) {
   const [whole, fraction] = (left / 1000).toFixed(2).split(".");
   return (
     <div className="pointer-events-none absolute right-3 top-3 z-10 flex flex-col items-end gap-1 rounded-control bg-void/70 px-3 py-2 backdrop-blur-sm">
-      <p className="font-mono text-heading-lg font-medium tabular-nums leading-none text-paper">
+      <p className="font-num text-heading-lg leading-none text-paper">
         {whole}
         <span className="text-ash">.{fraction}</span>
       </p>

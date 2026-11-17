@@ -396,7 +396,7 @@ function DailySet({
             <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-ember" />
             daily set
           </h2>
-          <p className="font-mono leading-none">
+          <p className="font-num leading-none">
             <span className="text-number">{done.size}</span>
             <span className="text-number text-steel">/{GAMES.length}</span>
           </p>

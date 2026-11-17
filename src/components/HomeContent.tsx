@@ -116,7 +116,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="well flex flex-col gap-1 rounded-[14px] px-3 py-2.5">
       <dt className="text-caption uppercase text-ash">{label}</dt>
-      <dd className="font-mono text-heading-lg">{value}</dd>
+      <dd className="font-num text-heading-lg">{value}</dd>
     </div>
   );
 }

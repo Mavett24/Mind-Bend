@@ -98,7 +98,7 @@ function Stats({ profile }: { profile: Profile }) {
             className={`surface flex flex-col gap-1 rounded-[20px] px-5 py-4 ${i === 4 ? "col-span-2 md:col-span-1" : ""}`}
           >
             <dt className="text-caption uppercase text-ash">{t.label}</dt>
-            <dd className="font-mono text-heading-lg">
+            <dd className="font-num text-heading-lg">
               <CountUpStat value={t.value} format={t.format} />
             </dd>
           </motion.div>

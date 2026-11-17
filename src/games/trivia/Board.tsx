@@ -71,7 +71,7 @@ function QuestionClock({
         <span
           role="timer"
           aria-label={`${Math.ceil(left / 1000)} seconds left`}
-          className={`font-mono text-heading-lg font-medium leading-none tabular-nums transition-colors duration-[var(--dur-base)] ${frozen ? "text-fog" : "text-paper"}`}
+          className={`font-num text-heading-lg leading-none transition-colors duration-[var(--dur-base)] ${frozen ? "text-fog" : "text-paper"}`}
         >
           {whole}
           <span className="text-ash">{fraction}</span>
@@ -239,7 +239,7 @@ export function TriviaBoard({ puzzle, onSolved }: BoardProps<TriviaPuzzle>) {
             {index + 1} / {QUESTIONS_PER_GAME} ·{" "}
             {round.mode === "higher-lower" ? "higher or lower" : CATEGORIES.find((c) => c.id === round.category)?.label}
           </span>
-          <span className="font-mono text-heading-sm leading-none tabular-nums">
+          <span className="font-num text-heading-sm leading-none">
             {score[0]}
             <span className="text-ash">{score[1]}</span>
             <span className="ml-1 text-caption uppercase text-steel">pts</span>

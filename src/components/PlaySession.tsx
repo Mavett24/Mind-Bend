@@ -274,7 +274,7 @@ function Result<P>({ game, module, board, mode, finished, nextDailyHref, onExit,
         <div className="well flex flex-col gap-3 rounded-[18px] p-4">
           <div className="flex items-baseline justify-between">
             <span className="text-caption uppercase text-ash">rating</span>
-            <span className="font-mono text-heading-lg">
+            <span className="font-num text-heading-lg">
               {insight.ratingAfter}{" "}
               <span className={delta >= 0 ? "text-paper" : "text-ash"} style={delta > 0 ? { color } : undefined}>
                 {delta >= 0 ? "+" : ""}
