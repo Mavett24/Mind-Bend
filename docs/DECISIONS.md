@@ -331,3 +331,14 @@ Before the repo goes public, the whole history was checked for secrets and perso
 **Why:** CC BY-SA, CC BY and the ODbL all ask for credit where the material is used, and the app showed questions and figures with no credit at all. The ODbL also covers the higher or lower file as a whole, which the docs didn't say. A public repo is a showcase, so it should show the product handled like a real one: clear licences, a way to report security issues, and no third-party material that isn't ours to publish. The Axiom file was a reconstruction of another product's interface; the decisions that credit it as the starting point stay.
 **Gave up:** a footer with only privacy in it, and the style reference as a working file.
 
+### D-060 · An app icon from the wordmark cursor
+**2026-11-17** · replaces the default Next.js favicon
+The icon is a terminal prompt on the raised dark surface: a paper chevron and the wordmark's ember block cursor. It ships as an SVG for modern browsers, an ICO with 16, 32 and 48 px for the rest, a 180 px Apple touch icon, and 192, 512 and maskable 512 px icons in a web manifest. `scripts/build-icons.mjs` draws all of them from one mark with the colour tokens, so a change to the mark is one script run.
+**Why:** the tab showed the Next.js logo, which reads as an unfinished project the moment someone opens a shared link. The prompt and cursor are already the brand (header, hero, footer), and two bold shapes still read at 16 px where the full wordmark would not.
+**Gave up:** a letter mark ("m" or "mb"), which needs a font at 16 px, and a different icon per game.
+
+### D-061 · Link previews for the site and every game
+**2026-11-17** · adds Open Graph and X cards, sitemap, robots, canonical URLs
+Shared links now unfurl with a 1200×630 card. The site card shows the wordmark, "Eight games. Fresh daily." and all eight icon tiles. Each game has its own card (icon, skill, name, tagline, a glow in its hue), which is also what a challenge link shows. The cards are drawn at build time by next/og from the design tokens and the Geist fonts, so they stay in step with the app. Game pages get their own preview title and description, every page has a canonical URL (challenge links point back to the game), and there is a sitemap and a robots file that keeps `/stats` out of search and lets AI crawlers in.
+**Why:** launch traffic comes from links on Reddit, LinkedIn and chats, and a bare URL with no image gets far fewer clicks. Per game cards make challenge links ("beat my time on this board") look like an invitation to that game, not to a homepage.
+**Gave up:** cards that show the actual board for a seed (heavier to build, every challenge would need its own image), and per page copy for SEO, which comes with the how to play pages.

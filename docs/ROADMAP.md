@@ -57,7 +57,8 @@
 ## Launch prep
 - [x] Google Analytics 4 behind a consent banner, privacy page (D-053)
 - [ ] GA4 analytics plan: custom events, dimensions, key events, reports
-- [ ] Favicon, social images, SEO and GEO, custom domain
+- [x] Favicon, app icons, link previews, sitemap, robots, canonical URLs (D-060, D-061)
+- [ ] SEO copy, how to play pages, structured data and GEO; custom domain
 
 ## Phase 7 · Case study
 - [ ] Screen recordings of each game and signature moment

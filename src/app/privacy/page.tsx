@@ -5,11 +5,12 @@ import { Header } from "@/components/Header";
 export const metadata: Metadata = {
   title: "privacy",
   description: "What Mind Bend stores, what Google Analytics collects if you accept, and your rights.",
+  alternates: { canonical: "/privacy" },
 };
 
-/** Contact for privacy questions. TODO before launch: confirm the address Mavett wants public. */
-const CONTACT = { label: "matteofavetta.com", href: "https://matteofavetta.com" };
-const UPDATED = "2 November 2026";
+/** Contact for privacy questions and GDPR requests. */
+const CONTACT = { label: "mmfavetta@gmail.com", href: "mailto:mmfavetta@gmail.com" };
+const UPDATED = "17 November 2026";
 
 const link = "text-paper underline decoration-slate underline-offset-4 hover:decoration-paper";
 

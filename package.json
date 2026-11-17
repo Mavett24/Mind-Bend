@@ -27,7 +27,7 @@
     "chess.js": "^1.4.0",
     "geist": "^1.8.2",
     "motion": "^14.8.0",
-    "next": "16.4.3",
+    "next": "16.4.6",
     "react": "19.3.1",
     "react-dom": "19.3.1"
   },
@@ -38,7 +38,7 @@
     "@types/react-dom": "^19",
     "all-the-cities": "^3.1.0",
     "eslint": "^9",
-    "eslint-config-next": "16.4.3",
+    "eslint-config-next": "16.4.6",
     "naughty-words": "^1.2.0",
     "tailwindcss": "^4",
     "typescript": "^5",

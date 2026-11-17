@@ -1,7 +1,7 @@
 import type { GameId } from "@/games/registry";
 
-/** Small glyphs drawn on a 20×20 grid, monochrome via currentColor. */
-const glyphs: Record<GameId, React.ReactNode> = {
+/** Small glyphs drawn on a 20×20 grid, monochrome via currentColor. Also drawn into the link previews (src/lib/og.tsx). */
+export const glyphs: Record<GameId, React.ReactNode> = {
   path: <path d="M4 4h12v4H4v4h12v4H4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />,
   balance: (
     <>
