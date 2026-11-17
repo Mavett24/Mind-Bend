@@ -216,16 +216,23 @@ h4,
 }
 
 /* ---------- splash (D-067, src/components/Splash.tsx) ---------- */
-/* Timeline: 0 to 500ms the cursor types the wordmark, a blink, at 760ms the black backdrop drops and the
-   board tiles clear in a diagonal sweep (up to 360ms apart, 300ms each). Hidden for good at 1.5s.
-   Transform and opacity only. */
+/* Timeline, slow on purpose: the cursor blinks alone (0 to 420ms), types the wordmark (to 1240ms),
+   blinks once more, then the word lifts away (1700ms) and the board tiles clear in a diagonal sweep
+   (from 1760ms, up to 840ms apart, 640ms each, backing fading over the first 320ms). Hidden for good at 3.3s. Transform and opacity only. */
 #splash {
   position: fixed;
   inset: 0;
   z-index: 100;
   pointer-events: none;
   overflow: hidden;
-  animation: splash-done 1ms 1500ms forwards;
+  animation: splash-done 1ms 3300ms forwards;
+}
+/* Solid backdrop until the sweep starts; from then on each tile's own backing covers its cell. */
+.splash-bg {
+  position: absolute;
+  inset: 0;
+  background: var(--color-void);
+  animation: splash-out 1ms 1760ms forwards;
 }
 html[data-splash="off"] #splash {
   display: none;
@@ -239,14 +246,14 @@ html[data-splash="off"] #splash {
   position: absolute;
   inset: 0;
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  grid-auto-rows: calc(100vw / 12);
+  grid-template-columns: repeat(var(--cols, 12), 1fr);
+  grid-auto-rows: var(--size, calc(100vw / 12));
 }
 /* Each cell: a square backing (so no page shows between rounded corners) that drops the moment the
    cell starts to clear, and the rounded board tile on top that shrinks away. */
 .splash-tiles span {
   position: relative;
-  --delay: calc(780ms + (var(--c) / 12 + var(--r) / var(--splash-rows, 26)) * 180ms);
+  --delay: calc(1760ms + (var(--c) / var(--cols, 12) + var(--r) / var(--rows, 12)) * 420ms);
 }
 .splash-tiles span::before,
 .splash-tiles span::after {
@@ -256,12 +263,13 @@ html[data-splash="off"] #splash {
   background: var(--color-void);
 }
 .splash-tiles span::before {
-  animation: splash-out 1ms var(--delay) forwards;
+  animation: splash-out 320ms var(--ease-out) var(--delay) forwards;
 }
 .splash-tiles span::after {
-  border-radius: 22%;
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.05);
-  animation: splash-tile 300ms var(--ease-out) var(--delay) forwards;
+  inset: 2px;
+  border-radius: var(--radius-cell);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06);
+  animation: splash-tile 640ms cubic-bezier(0.23, 1, 0.32, 1) var(--delay) forwards;
 }
 .splash-mark {
   position: absolute;
@@ -269,21 +277,18 @@ html[data-splash="off"] #splash {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding-right: 0.63em; /* word plus cursor, so the finished line is centred */
   font-family: var(--font-mono);
   font-weight: 700;
-  font-size: clamp(28px, 6vw, 44px);
+  font-size: clamp(28px, 5vw, 48px);
   line-height: 1;
   letter-spacing: 0;
   color: var(--color-paper);
-  animation: splash-mark-out 200ms var(--ease-out) 760ms forwards;
+  animation: splash-mark-out 360ms var(--ease-out) 1700ms forwards;
 }
 .splash-mark > span {
   opacity: 0;
   animation: splash-in 1ms forwards;
-}
-.splash-mark {
-  /* Word plus cursor, so the finished line is centred. */
-  padding-right: 0.63em;
 }
 .splash-cursor {
   position: absolute;
@@ -293,21 +298,23 @@ html[data-splash="off"] #splash {
   height: 1.05em;
   margin-top: -0.55em;
   background: var(--color-ember);
-  animation: splash-cursor 760ms steps(1, end) forwards;
+  animation: splash-cursor 1700ms steps(1, end) forwards;
 }
 @keyframes splash-cursor {
   0% { transform: translateX(0); opacity: 1; }
-  15.79% { transform: translateX(calc(1ch + 0.08em)); opacity: 1; }
-  21.71% { transform: translateX(calc(2ch + 0.08em)); opacity: 1; }
-  27.63% { transform: translateX(calc(3ch + 0.08em)); opacity: 1; }
-  32.89% { transform: translateX(calc(4ch + 0.08em)); opacity: 1; }
-  43.42% { transform: translateX(calc(5ch + 0.08em)); opacity: 1; }
-  49.34% { transform: translateX(calc(6ch + 0.08em)); opacity: 1; }
-  54.61% { transform: translateX(calc(7ch + 0.08em)); opacity: 1; }
-  60.53% { transform: translateX(calc(8ch + 0.08em)); opacity: 1; }
-  65.79% { transform: translateX(calc(9ch + 0.08em)); opacity: 1; }
-  78.95% { transform: translateX(calc(9ch + 0.08em)); opacity: 0; }
-  90.79% { transform: translateX(calc(9ch + 0.08em)); opacity: 1; }
+  10.59% { transform: translateX(0); opacity: 0; }
+  17.65% { transform: translateX(0); opacity: 1; }
+  24.71% { transform: translateX(calc(1ch + 0.08em)); opacity: 1; }
+  30.59% { transform: translateX(calc(2ch + 0.08em)); opacity: 1; }
+  35.88% { transform: translateX(calc(3ch + 0.08em)); opacity: 1; }
+  41.18% { transform: translateX(calc(4ch + 0.08em)); opacity: 1; }
+  52.94% { transform: translateX(calc(5ch + 0.08em)); opacity: 1; }
+  58.24% { transform: translateX(calc(6ch + 0.08em)); opacity: 1; }
+  62.94% { transform: translateX(calc(7ch + 0.08em)); opacity: 1; }
+  67.65% { transform: translateX(calc(8ch + 0.08em)); opacity: 1; }
+  72.94% { transform: translateX(calc(9ch + 0.08em)); opacity: 1; }
+  83.53% { transform: translateX(calc(9ch + 0.08em)); opacity: 0; }
+  91.76% { transform: translateX(calc(9ch + 0.08em)); opacity: 1; }
   100% { transform: translateX(calc(9ch + 0.08em)); opacity: 1; }
 }
 @keyframes splash-in {
@@ -317,11 +324,11 @@ html[data-splash="off"] #splash {
   to { opacity: 0; }
 }
 @keyframes splash-mark-out {
-  to { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 0; transform: translateY(-10px); }
 }
 @keyframes splash-tile {
   from { transform: scale(1); opacity: 1; }
-  to { transform: scale(0.55); opacity: 0; }
+  to { transform: scale(0.5); opacity: 0; }
 }
 @keyframes splash-done {
   to { visibility: hidden; }
