@@ -11,7 +11,18 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps<"/play/[game]">): Promise<Metadata> {
   const game = getGame((await params).game);
-  return game ? { title: game.name, description: game.tagline } : {};
+  if (!game) return {};
+  const title = `${game.name}: ${game.tagline}`;
+  const description = `${game.rules} A new ${game.name} board every day, plus endless practice in four tiers. Free, no sign-up.`;
+  const url = `/play/${game.id}`;
+  // Link preview text (D-061). The image comes from ./opengraph-image.tsx.
+  return {
+    title: game.name,
+    description,
+    alternates: { canonical: url },
+    openGraph: { type: "website", siteName: "Mind Bend", locale: "en", url, title, description },
+    twitter: { card: "summary_large_image", title, description },
+  };
 }
 
 export default async function PlayPage({ params }: PageProps<"/play/[game]">) {

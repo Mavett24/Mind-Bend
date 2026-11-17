@@ -5,6 +5,7 @@ import { Header } from "@/components/Header";
 export const metadata: Metadata = {
   title: "credits",
   description: "Where Mind Bend's puzzles, questions, facts and word lists come from, and their licences.",
+  alternates: { canonical: "/credits" },
 };
 
 const link = "text-paper underline decoration-slate underline-offset-4 hover:decoration-paper";

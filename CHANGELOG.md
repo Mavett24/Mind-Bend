@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **App icon** (D-060): a paper prompt chevron and the ember cursor on the raised surface, replacing the Next.js favicon. SVG, ICO (16, 32, 48), Apple touch icon and PWA icons with a web manifest, all drawn by `scripts/build-icons.mjs`.
+- **Link previews** (D-061): Open Graph and X cards for the site and for each game, drawn at build time from the design tokens (`src/lib/og.tsx`). Game pages get their own preview title and description. Canonical URLs on every page, `sitemap.xml` and `robots.txt` (`/stats` stays out of search).
+- Privacy page: contact is now an email address (mmfavetta@gmail.com).
+- Next.js 16.4.3 to 16.4.6 (security patch, GHSA-mfr8-8qww-v76h; the app never used the affected API). Dev dependency audit fixes.
 - **Ready for a public repo** (D-059): history checked for secrets and personal data. New `/credits` page (linked in the footer) crediting the Lichess, OpenTriviaQA, World Bank, mledoze/countries, GeoNames, SCOWL and LDNOOBW data; trivia and chess credit their sources on the how-to-play screen. Licence notices next to the data (`public/data/trivia/LICENSE.md`, `public/data/weave/SCOWL-COPYRIGHT.txt`), plus `THIRD_PARTY_NOTICES.md` and `SECURITY.md`.
 - README: eight games everywhere, new hero and board screenshots, chess in the tests table, a clearer licence section and a not-affiliated note. The hero line and site description now mention chess.
 - Removed `docs/reference/axiom-style-reference.md`.
