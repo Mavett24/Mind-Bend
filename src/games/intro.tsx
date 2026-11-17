@@ -262,7 +262,7 @@ export const INTRO: Record<GameId, GameIntro> = {
       easy: "6×6 grid, 13 cells given",
       medium: "6×6 grid, 9 cells given",
       hard: "6×6 grid, about 6 cells given, longer chains of logic",
-      expert: "8×8 grid, needs one step of 'what if' thinking",
+      expert: "6×6 grid, about 6 cells given, fewer links, needs one step of 'what if' thinking",
     },
     Example: BalanceExample,
   },
