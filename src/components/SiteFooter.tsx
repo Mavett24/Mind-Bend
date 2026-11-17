@@ -24,7 +24,7 @@ export function SiteFooter() {
   const streak = profile?.overall.streak ?? 0;
 
   return (
-    <footer className="bg-paper text-void">
+    <footer className="rounded-t-card bg-paper text-void">
       <div className="mx-auto flex max-w-[1200px] flex-col px-4 pb-6 pt-10 md:pt-12">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex flex-col gap-2">

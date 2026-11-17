@@ -214,3 +214,122 @@ h4,
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ---------- splash (D-067, src/components/Splash.tsx) ---------- */
+/* Timeline: 0 to 500ms the cursor types the wordmark, a blink, at 760ms the black backdrop drops and the
+   board tiles clear in a diagonal sweep (up to 360ms apart, 300ms each). Hidden for good at 1.5s.
+   Transform and opacity only. */
+#splash {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  overflow: hidden;
+  animation: splash-done 1ms 1500ms forwards;
+}
+html[data-splash="off"] #splash {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  #splash {
+    display: none;
+  }
+}
+.splash-tiles {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  grid-auto-rows: calc(100vw / 12);
+}
+/* Each cell: a square backing (so no page shows between rounded corners) that drops the moment the
+   cell starts to clear, and the rounded board tile on top that shrinks away. */
+.splash-tiles span {
+  position: relative;
+  --delay: calc(780ms + (var(--c) / 12 + var(--r) / var(--splash-rows, 26)) * 180ms);
+}
+.splash-tiles span::before,
+.splash-tiles span::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--color-void);
+}
+.splash-tiles span::before {
+  animation: splash-out 1ms var(--delay) forwards;
+}
+.splash-tiles span::after {
+  border-radius: 22%;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.05);
+  animation: splash-tile 300ms var(--ease-out) var(--delay) forwards;
+}
+.splash-mark {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: clamp(28px, 6vw, 44px);
+  line-height: 1;
+  letter-spacing: 0;
+  color: var(--color-paper);
+  animation: splash-mark-out 200ms var(--ease-out) 760ms forwards;
+}
+.splash-mark > span {
+  opacity: 0;
+  animation: splash-in 1ms forwards;
+}
+.splash-mark {
+  /* Word plus cursor, so the finished line is centred. */
+  padding-right: 0.63em;
+}
+.splash-cursor {
+  position: absolute;
+  left: calc(50% - (9ch + 0.63em) / 2);
+  top: 50%;
+  width: 0.55em;
+  height: 1.05em;
+  margin-top: -0.55em;
+  background: var(--color-ember);
+  animation: splash-cursor 760ms steps(1, end) forwards;
+}
+@keyframes splash-cursor {
+  0% { transform: translateX(0); opacity: 1; }
+  15.79% { transform: translateX(calc(1ch + 0.08em)); opacity: 1; }
+  21.71% { transform: translateX(calc(2ch + 0.08em)); opacity: 1; }
+  27.63% { transform: translateX(calc(3ch + 0.08em)); opacity: 1; }
+  32.89% { transform: translateX(calc(4ch + 0.08em)); opacity: 1; }
+  43.42% { transform: translateX(calc(5ch + 0.08em)); opacity: 1; }
+  49.34% { transform: translateX(calc(6ch + 0.08em)); opacity: 1; }
+  54.61% { transform: translateX(calc(7ch + 0.08em)); opacity: 1; }
+  60.53% { transform: translateX(calc(8ch + 0.08em)); opacity: 1; }
+  65.79% { transform: translateX(calc(9ch + 0.08em)); opacity: 1; }
+  78.95% { transform: translateX(calc(9ch + 0.08em)); opacity: 0; }
+  90.79% { transform: translateX(calc(9ch + 0.08em)); opacity: 1; }
+  100% { transform: translateX(calc(9ch + 0.08em)); opacity: 1; }
+}
+@keyframes splash-in {
+  to { opacity: 1; }
+}
+@keyframes splash-out {
+  to { opacity: 0; }
+}
+@keyframes splash-mark-out {
+  to { opacity: 0; transform: translateY(-8px); }
+}
+@keyframes splash-tile {
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(0.55); opacity: 0; }
+}
+@keyframes splash-done {
+  to { visibility: hidden; }
+}
+
+/* Content fills at least the large viewport, so the footer always starts below the fold, even
+   while a phone's browser bars are hidden (D-067). */
+.page-fill {
+  min-height: 100vh;
+  min-height: 100lvh;
+}

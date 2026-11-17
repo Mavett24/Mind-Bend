@@ -366,3 +366,9 @@ Weights now carry meaning: 400 for body and big numbers, 500 for headings, names
 The footer is a light band showing the daily set: how many are done and left, the countdown to the next set, a progress bar in each game's hue, and a tile per game that opens its daily. The slogan, the pitch line, the second game grid and the giant ghost wordmark are gone.
 **Why:** the old footer stacked template parts that repeated the home page without doing a job. Progress on the daily set is useful at the end of any page, and the light background makes the end of the page unmistakable on a dark site.
 **Gave up:** the "Built to bend minds." sign-off and the wordmark as decoration. Two other directions were tried (a terminal session log, and a board you draw on with the pointer).
+
+### D-067 · Footer below the fold, and a splash that clears like a board
+**2026-11-17** · `.page-fill`, `src/components/Splash.tsx`
+Page content is now at least one large viewport tall (`100lvh`), so the light footer always starts below the fold, on short pages and on phones whose browser bars come and go. Its top corners take `--radius-card`. On the first page load of a session, a splash plays: the cursor types the wordmark, blinks, and the black screen breaks into board tiles that clear in a diagonal sweep. It is pure CSS, sent by the server so nothing flashes before it, about 1.5s, skipped with reduced motion and on every later page in the session.
+**Why:** a sliver of light footer under a short page read as a layout bug and pulled the eye away from the game, worst on phones. The splash introduces the two things the app is made of, the terminal cursor and the board, and the page appears the way a board clears, so it says something about the product instead of being a spinner.
+**Gave up:** a splash on every navigation (it would get in the way), and JS-driven motion (it would stutter while the page hydrates).
