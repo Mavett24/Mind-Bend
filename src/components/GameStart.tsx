@@ -56,6 +56,16 @@ export function GameStart({ game }: { game: GameMeta }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only when history first becomes available
   }, [ready, challenge]);
 
+  // Next keeps a visited page alive (hidden) after you navigate away, and its effects clean up when it hides.
+  // Reset here so any way out (×, wordmark, back button) brings you back to the start screen, not the old board (D-063).
+  useEffect(
+    () => () => {
+      setBoard(null);
+      setPending(null);
+    },
+    [],
+  );
+
   const daily = today ? dailyBoard(game.id, today) : null;
   const effectiveTier = mode === "daily" ? (daily?.tier ?? tier) : mode === "challenge" ? challenge!.tier : tier;
   const best = summary?.best[effectiveTier];
@@ -68,6 +78,12 @@ export function GameStart({ game }: { game: GameMeta }) {
 
   function backToMenu() {
     setBoard(null);
+  }
+
+  /** Abort: leave the board or how to play and show this game's start screen. */
+  function backToStart() {
+    setBoard(null);
+    setPending(null);
   }
 
   function nextBoard(promotedTo?: Tier) {
@@ -100,8 +116,26 @@ export function GameStart({ game }: { game: GameMeta }) {
         className="surface flex min-h-[min(586px,calc(100dvh-104px))] w-full max-w-[440px] flex-col overflow-hidden rounded-card"
       >
         <header className="flex h-12 shrink-0 items-center justify-between border-b border-white/[0.06] px-4 text-caption text-steel">
-          <span>~/play/{game.id}</span>
-          <Link href="/" aria-label="Close" className="flex h-8 w-8 items-center justify-center rounded-full text-fog transition-colors duration-[var(--dur-fast)] hover:bg-white/[0.08] hover:text-paper">
+          {board || pending ? (
+            // Abort (D-063): back to this game's start screen. Leaving a board counts as a quit, as before.
+            <button
+              type="button"
+              onClick={backToStart}
+              aria-label={`Abort and go back to the ${game.name} start screen`}
+              className="-ml-2 inline-flex h-8 items-center gap-1.5 rounded-full px-2 font-mono text-fog transition-colors duration-[var(--dur-fast)] hover:bg-white/[0.08] hover:text-paper"
+            >
+              <span aria-hidden>←</span> abort
+            </button>
+          ) : (
+            <span>~/play/{game.id}</span>
+          )}
+          {/* Next keeps this page's state when you navigate away, so reset it or the board reopens on return. */}
+          <Link
+            href="/"
+            onClick={backToStart}
+            aria-label="Close"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-fog transition-colors duration-[var(--dur-fast)] hover:bg-white/[0.08] hover:text-paper"
+          >
             ×
           </Link>
         </header>

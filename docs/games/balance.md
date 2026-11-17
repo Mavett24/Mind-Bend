@@ -48,9 +48,9 @@ Because every step is a forced deduction from the rules, a board the solver fini
 | Easy | 6×6 | 13 | 3.4 | rules only | 45s |
 | Medium | 6×6 | 9 | 5.5 | rules only | 90s |
 | Hard | 6×6 | ~6 | 6.9 | rules only, long chains | 2.5 min |
-| Expert | 8×8 | ~10 | 9.9 | one step of lookahead | 5 min |
+| Expert | 6×6 | ~6.5 | 4.0 | always needs one step of lookahead | 4 min |
 
-Generation: under 1ms median for 6×6, ~6ms median for Expert.
+Every tier is 6×6 (D-063). Expert boards are regenerated (up to 24 tries, deterministic per seed) until rules alone can't finish them; in practice all of them need the lookahead step. Generation: under 1ms median, ~2ms for Expert.
 
 ## Hints
 

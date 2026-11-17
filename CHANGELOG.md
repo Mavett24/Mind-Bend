@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Abort a board** (D-063): "← abort" in the play card header goes back to the game's start screen. Leaving a game any other way also resets it, so it no longer reopens the board you left.
+- **balance expert is 6×6** (D-063): fewer cells and links, and every board needs one step of lookahead. Par 4 minutes. Expert balance boards (daily and challenge links) change from this release.
 - **App icon** (D-060): a paper prompt chevron and the ember cursor on the raised surface, replacing the Next.js favicon. SVG, ICO (16, 32, 48), Apple touch icon and PWA icons with a web manifest, all drawn by `scripts/build-icons.mjs`.
 - **Link previews** (D-061): Open Graph and X cards for the site and for each game, drawn at build time from the design tokens (`src/lib/og.tsx`). Game pages get their own preview title and description. Canonical URLs on every page, `sitemap.xml` and `robots.txt` (`/stats` stays out of search).
 - Privacy page: contact is now an email address (mmfavetta@gmail.com).

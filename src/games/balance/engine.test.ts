@@ -41,7 +41,18 @@ describe("balance generator", () => {
     };
     expect(avgGivens("easy")).toBeGreaterThan(avgGivens("medium"));
     expect(avgGivens("medium")).toBeGreaterThan(avgGivens("hard"));
-    expect(generateBalance({ gameId: "balance", tier: "expert", seed: "x" }).size).toBe(8);
+    for (const tier of ["easy", "medium", "hard", "expert"] as const) {
+      expect(generateBalance({ gameId: "balance", tier, seed: "x" }).size).toBe(6);
+    }
+  });
+
+  it("makes expert boards that the rules alone can't finish", () => {
+    let needLookahead = 0;
+    for (let i = 0; i < 40; i++) {
+      const p = generateBalance({ gameId: "balance", tier: "expert", seed: `look${i}` });
+      if (!solveByDeduction(p.size, p.givens, p.links, 1)) needLookahead++;
+    }
+    expect(needLookahead).toBeGreaterThanOrEqual(36);
   });
 
   it("is deterministic per seed", () => {

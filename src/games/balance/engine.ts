@@ -42,10 +42,14 @@ const CONFIG: Record<Tier, TierConfig> = {
   easy: { size: 6, links: [3, 4], minGivens: 13, level: 1 },
   medium: { size: 6, links: [5, 6], minGivens: 9, level: 1 },
   hard: { size: 6, links: [6, 8], minGivens: 4, level: 1 },
-  expert: { size: 8, links: [8, 12], minGivens: 6, level: 2 },
+  // Same 6×6 grid as every tier (D-063): expert is harder through fewer links and clues, and boards that need lookahead.
+  expert: { size: 6, links: [3, 5], minGivens: 2, level: 2 },
 };
 
-export const BALANCE_PAR_MS: Record<Tier, number> = { easy: 45_000, medium: 90_000, hard: 150_000, expert: 300_000 };
+/** Expert boards are regenerated until the rules alone can't finish them, so they really need the lookahead step. */
+const EXPERT_ATTEMPTS = 24;
+
+export const BALANCE_PAR_MS: Record<Tier, number> = { easy: 45_000, medium: 90_000, hard: 150_000, expert: 240_000 };
 
 const opposite = (v: Cell): Cell => (v === DOT ? RING : DOT);
 
@@ -240,6 +244,15 @@ function randomFullGrid(size: number, rng: Rng): Cell[] {
 export function generateBalance(key: BoardKey): BalancePuzzle {
   const cfg = CONFIG[key.tier];
   const rng = createRng(boardSeed(key));
+  if (cfg.level === 1) return buildBoard(cfg, rng);
+  let board = buildBoard(cfg, rng.fork("attempt:0"));
+  for (let i = 1; i < EXPERT_ATTEMPTS && solveByDeduction(board.size, board.givens, board.links, 1); i++) {
+    board = buildBoard(cfg, rng.fork(`attempt:${i}`));
+  }
+  return board;
+}
+
+function buildBoard(cfg: TierConfig, rng: Rng): BalancePuzzle {
   const { size } = cfg;
   const solution = randomFullGrid(size, rng.fork("grid"));
 
