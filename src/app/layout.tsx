@@ -5,7 +5,7 @@ import localFont from "next/font/local";
 import { MotionProvider } from "@/components/MotionProvider";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ConsentBanner } from "@/components/ConsentBanner";
-import { SPLASH_SCRIPT, Splash } from "@/components/Splash";
+import { SPLASH_HEAD_SCRIPT, Splash } from "@/components/Splash";
 import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
@@ -52,7 +52,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     // suppressHydrationWarning: the head script below sets data-splash and a CSS variable before React hydrates.
     <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable} ${spaceGrotesk.variable} h-full antialiased`} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: SPLASH_SCRIPT }} />
+        <script dangerouslySetInnerHTML={{ __html: SPLASH_HEAD_SCRIPT }} />
       </head>
       <body className="flex min-h-full flex-col">
         <Splash />
