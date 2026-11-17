@@ -5,6 +5,7 @@ import localFont from "next/font/local";
 import { MotionProvider } from "@/components/MotionProvider";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ConsentBanner } from "@/components/ConsentBanner";
+import { SPLASH_SCRIPT, Splash } from "@/components/Splash";
 import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
@@ -48,10 +49,16 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable} ${spaceGrotesk.variable} h-full antialiased`}>
+    // suppressHydrationWarning: the head script below sets data-splash and a CSS variable before React hydrates.
+    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable} ${spaceGrotesk.variable} h-full antialiased`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: SPLASH_SCRIPT }} />
+      </head>
       <body className="flex min-h-full flex-col">
+        <Splash />
         <MotionProvider>
-          {children}
+          {/* At least one large viewport tall, so the footer never shows before you scroll (D-067). */}
+          <div className="page-fill flex flex-col">{children}</div>
           <SiteFooter />
           <ConsentBanner />
         </MotionProvider>
