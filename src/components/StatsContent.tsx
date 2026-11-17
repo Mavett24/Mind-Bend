@@ -82,7 +82,7 @@ function Stats({ profile }: { profile: Profile }) {
     <main className="mx-auto flex w-full max-w-[1200px] flex-1 flex-col gap-4 px-4 pb-16 pt-8 md:gap-5 md:pt-14">
       <div className="flex flex-col gap-1 pb-3">
         <p className="text-caption text-steel">~/mind-bend $ stats</p>
-        <h1 className="text-heading-lg font-medium tracking-[-0.04em] md:text-[38px] md:leading-[1.15]">your stats</h1>
+        <h1 className="text-heading-lg font-medium md:text-[38px] md:leading-[1.15] md:tracking-[-0.03em]">your stats</h1>
         <p className="text-fog">
           Since {new Date(firstAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}. Saved in this browser.
         </p>

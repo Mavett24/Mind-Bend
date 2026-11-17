@@ -59,7 +59,7 @@ function Countdown({ ms, onDone }: { ms: number; onDone: () => void }) {
   const [whole, fraction] = (left / 1000).toFixed(2).split(".");
   return (
     <div className="pointer-events-none absolute right-3 top-3 z-10 flex flex-col items-end gap-1 rounded-control bg-void/70 px-3 py-2 backdrop-blur-sm">
-      <p className="font-mono text-heading-lg font-bold tabular-nums leading-none text-paper">
+      <p className="font-mono text-heading-lg font-medium tabular-nums leading-none text-paper">
         {whole}
         <span className="text-ash">.{fraction}</span>
       </p>
@@ -89,7 +89,7 @@ function Slider({ label, value, min, max, step, gradient, onChange }: SliderProp
   const t = (value - min) / (max - min);
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="text-caption uppercase tracking-wide text-steel">{label}</span>
+      <span className="text-caption uppercase text-steel">{label}</span>
       <div
         ref={ref}
         role="slider"
@@ -204,7 +204,7 @@ export function RecallBoard({ puzzle, onSolved }: BoardProps<RecallPuzzle>) {
             />
           ))}
         </div>
-        <span className="font-mono text-caption uppercase tracking-wide text-steel">
+        <span className="font-mono text-caption uppercase text-steel">
           round {roundIndex + 1} / {ROUNDS}
           {toRebuild > 1 && phase !== "ready" && phase !== "show" ? ` · colour ${targetIndex + 1} of ${toRebuild}` : ""}
         </span>
@@ -260,7 +260,7 @@ export function RecallBoard({ puzzle, onSolved }: BoardProps<RecallPuzzle>) {
         {phase === "ready" && (
           <div className="absolute inset-0 flex items-center justify-center p-8">
             <div className="flex flex-col items-center gap-1 rounded-control bg-carbon px-6 py-4 text-center">
-              <p className="font-mono text-heading-lg font-bold">{plural(tileCount, "colour")}</p>
+              <p className="font-mono text-heading-lg font-medium">{plural(tileCount, "colour")}</p>
               <p className="text-fog">shown for {seconds} seconds</p>
             </div>
           </div>
@@ -300,7 +300,7 @@ export function RecallBoard({ puzzle, onSolved }: BoardProps<RecallPuzzle>) {
           <motion.div key={`reveal-${targetIndex}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: dur.base, ease: ease.out }} className="flex flex-col gap-3">
             <div className="flex items-end justify-between">
               <span className="flex items-baseline gap-1.5 whitespace-nowrap">
-                <CountUpPoints points={last.points} className="text-number font-bold" />
+                <CountUpPoints points={last.points} className="text-number" />
                 <span className="font-mono text-heading-sm text-steel">/10</span>
               </span>
               <span className="pb-2 text-right text-caption text-steel">

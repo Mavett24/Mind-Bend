@@ -332,7 +332,7 @@ export function BlocksBoard({ puzzle, onSolved }: BoardProps<BlocksPuzzle>) {
           {note ?? (placed.length === 0 && !solved ? "Drag across the cells to draw a rectangle." : "\u00a0")}
         </p>
         <p className="flex shrink-0 items-baseline gap-2 font-mono text-body tabular-nums" aria-hidden>
-          <span className="text-caption uppercase tracking-wide text-steel">placed</span>
+          <span className="text-caption uppercase text-steel">placed</span>
           <span>
             <span className="text-paper">{done}</span>
             <span className="text-ash">/{clues.length}</span>

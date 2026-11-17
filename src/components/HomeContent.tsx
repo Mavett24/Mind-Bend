@@ -26,7 +26,7 @@ export function HomeContent() {
             <h2 id="games-title" className="title-card">
               games
             </h2>
-            <p className="text-caption uppercase tracking-wide text-steel">{GAMES.length} games · 4 tiers</p>
+            <p className="text-caption uppercase text-steel">{GAMES.length} games · 4 tiers</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {GAMES.map((game, i) => (

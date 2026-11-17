@@ -43,7 +43,7 @@ export function Segmented<T extends string>({ id, label, options, value, onChang
             aria-checked={active}
             disabled={disabled}
             onClick={() => onChange(opt.value)}
-            className={`relative flex h-9 flex-1 items-center justify-center rounded-cell text-caption uppercase tracking-wide transition-colors duration-[var(--dur-fast)] ${
+            className={`relative flex h-9 flex-1 items-center justify-center rounded-cell text-caption uppercase transition-colors duration-[var(--dur-fast)] ${
               active ? "text-paper" : "text-ash enabled:hover:bg-white/[0.04] enabled:hover:text-paper"
             } disabled:cursor-not-allowed`}
           >

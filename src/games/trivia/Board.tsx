@@ -71,11 +71,11 @@ function QuestionClock({
         <span
           role="timer"
           aria-label={`${Math.ceil(left / 1000)} seconds left`}
-          className={`font-mono text-heading-lg font-bold leading-none tabular-nums transition-colors duration-[var(--dur-base)] ${frozen ? "text-fog" : "text-paper"}`}
+          className={`font-mono text-heading-lg font-medium leading-none tabular-nums transition-colors duration-[var(--dur-base)] ${frozen ? "text-fog" : "text-paper"}`}
         >
           {whole}
           <span className="text-ash">{fraction}</span>
-          <span className="ml-1 text-caption font-normal uppercase tracking-wide text-steel">s</span>
+          <span className="ml-1 text-caption font-normal uppercase text-steel">s</span>
         </span>
       </div>
       <div className="h-1.5 w-full overflow-hidden rounded-full bg-iron">
@@ -126,13 +126,13 @@ function Chooser({ onPick, loading }: { onPick: (mode: "higher-lower" | Category
         onClick={() => onPick("higher-lower")}
         className="group flex flex-col gap-1 rounded-control border border-iron bg-graphite p-5 text-left transition-colors duration-[var(--dur-fast)] hover:border-slate"
       >
-        <span className="text-caption uppercase tracking-wide text-steel">mode 1</span>
-        <span className="font-mono text-heading-lg font-bold">higher or lower</span>
+        <span className="text-caption uppercase text-steel">mode 1</span>
+        <span className="font-mono text-heading-lg font-medium">higher or lower</span>
         <span className="text-fog">Two real numbers. Pick the bigger one. People, economies, countries, cities.</span>
       </button>
       <div className="flex flex-col gap-3 rounded-control border border-iron bg-graphite p-5">
-        <span className="text-caption uppercase tracking-wide text-steel">mode 2</span>
-        <span className="font-mono text-heading-lg font-bold">categories</span>
+        <span className="text-caption uppercase text-steel">mode 2</span>
+        <span className="font-mono text-heading-lg font-medium">categories</span>
         <div className="flex flex-wrap gap-2">
           {CATEGORIES.map((c) => (
             <button
@@ -147,7 +147,7 @@ function Chooser({ onPick, loading }: { onPick: (mode: "higher-lower" | Category
           ))}
         </div>
       </div>
-      {loading && <p className="text-center font-mono text-caption uppercase tracking-wide text-steel">loading questions</p>}
+      {loading && <p className="text-center font-mono text-caption uppercase text-steel">loading questions</p>}
     </div>
   );
 }
@@ -235,14 +235,14 @@ export function TriviaBoard({ puzzle, onSolved }: BoardProps<TriviaPuzzle>) {
     <div className="flex w-full max-w-[400px] flex-col gap-4">
       <QuestionClock key={index} ms={totalMs} running={!answered} onTimeout={() => answer(-1)}>
         <div className="flex min-w-0 flex-col gap-1">
-          <span className="truncate text-caption uppercase tracking-wide text-steel">
+          <span className="truncate text-caption uppercase text-steel">
             {index + 1} / {QUESTIONS_PER_GAME} ·{" "}
             {round.mode === "higher-lower" ? "higher or lower" : CATEGORIES.find((c) => c.id === round.category)?.label}
           </span>
           <span className="font-mono text-heading-sm leading-none tabular-nums">
             {score[0]}
             <span className="text-ash">{score[1]}</span>
-            <span className="ml-1 text-caption uppercase tracking-wide text-steel">pts</span>
+            <span className="ml-1 text-caption uppercase text-steel">pts</span>
           </span>
         </div>
       </QuestionClock>
@@ -278,7 +278,7 @@ export function TriviaBoard({ puzzle, onSolved }: BoardProps<TriviaPuzzle>) {
                     {side.code && <Flag code={side.code} />}
                     <span className="flex min-w-0 flex-1 flex-col gap-1">
                     <span className="flex items-baseline justify-between gap-3">
-                      <span className="font-mono text-heading-lg font-bold [overflow-wrap:anywhere]">{side.name}</span>
+                      <span className="font-mono text-heading-lg font-medium [overflow-wrap:anywhere]">{side.name}</span>
                       {answered && <span className="font-mono text-paper">{isRight ? "✓" : isPicked ? "×" : ""}</span>}
                     </span>
                     {side.sub && <span className="text-caption text-steel">{side.sub}</span>}

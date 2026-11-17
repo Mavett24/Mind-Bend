@@ -281,7 +281,7 @@ export function Hero({ profile }: { profile: Profile | null }) {
                 ease: ease.springStrong,
                 delay: 0.05,
               }}
-              className="block whitespace-nowrap text-[clamp(44px,5.4vw,84px)] leading-[0.98] tracking-[-0.05em]"
+              className="block whitespace-nowrap text-[clamp(44px,5.4vw,84px)] leading-none tracking-[-0.04em]"
             >
               {line1}
             </motion.span>
@@ -294,7 +294,7 @@ export function Hero({ profile }: { profile: Profile | null }) {
                 ease: ease.springStrong,
                 delay: 0.14,
               }}
-              className="block whitespace-nowrap text-[clamp(44px,5.4vw,84px)] leading-[0.98] tracking-[-0.05em] text-steel"
+              className="block whitespace-nowrap text-[clamp(44px,5.4vw,84px)] leading-none tracking-[-0.04em] text-steel"
             >
               {line2}
             </motion.span>
@@ -392,7 +392,7 @@ function DailySet({
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <h2 id="daily-title" className="flex items-center gap-2 text-caption uppercase tracking-wide text-ash">
+          <h2 id="daily-title" className="flex items-center gap-2 text-caption uppercase text-ash">
             <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-ember" />
             daily set
           </h2>
@@ -479,7 +479,7 @@ function DailySet({
       </ol>
 
       <div className="flex items-center justify-between border-t border-white/[0.06] pt-4 text-caption">
-        <span className="uppercase tracking-wide text-ash">new set in</span>
+        <span className="uppercase text-ash">new set in</span>
         <span className="font-mono text-[15px] text-paper" suppressHydrationWarning>
           {now ? untilMidnightUtc(now) : "--:--:--"}
         </span>
