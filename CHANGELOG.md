@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Game analytics** (D-062): ten GA4 events (start, complete, abandon, level up, first game, daily set complete, hint, share, how to play), only after consent and only on the production host. `?internal=1` marks your own browsers, `?ga_debug=1` turns on DebugView. Schema and GA setup in `docs/ANALYTICS.md`. Games are now recorded through `recordGame`, which sends the events for each history record. Closing a tab mid-board counts as an abandon in GA.
+- Privacy page: lists what the game events contain.
 - **App icon** (D-060): a paper prompt chevron and the ember cursor on the raised surface, replacing the Next.js favicon. SVG, ICO (16, 32, 48), Apple touch icon and PWA icons with a web manifest, all drawn by `scripts/build-icons.mjs`.
 - **Link previews** (D-061): Open Graph and X cards for the site and for each game, drawn at build time from the design tokens (`src/lib/og.tsx`). Game pages get their own preview title and description. Canonical URLs on every page, `sitemap.xml` and `robots.txt` (`/stats` stays out of search).
 - Privacy page: contact is now an email address (mmfavetta@gmail.com).

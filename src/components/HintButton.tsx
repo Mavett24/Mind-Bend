@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
+import { useTrackHint } from "@/lib/track";
 
 export const HINT_COOLDOWN_MS = 5000;
 
@@ -20,6 +21,7 @@ export function HintButton({ onHint, count, disabled = false, cooldownMs = HINT_
   const [coolingUntil, setCoolingUntil] = useState(0);
   const [now, setNow] = useState(0);
   const cooling = coolingUntil > now;
+  const trackHint = useTrackHint();
 
   useEffect(() => {
     if (!coolingUntil) return;
@@ -34,6 +36,7 @@ export function HintButton({ onHint, count, disabled = false, cooldownMs = HINT_
   const press = () => {
     if (disabled || cooling) return;
     onHint();
+    trackHint(count + 1);
     const t = performance.now();
     setNow(t);
     setCoolingUntil(t + cooldownMs);

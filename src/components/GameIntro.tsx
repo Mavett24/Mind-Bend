@@ -9,7 +9,9 @@ import type { Mode } from "@/engine/seed";
 import { readJson, writeJson } from "@/engine/storage";
 import { dur, ease } from "@/lib/motion";
 import { Button } from "./Button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { sendEvents } from "@/lib/analytics";
+import { tutorial } from "@/lib/events";
 
 const skipKey = (gameId: string) => `intro-skip:${gameId}`;
 
@@ -31,6 +33,14 @@ export function GameIntroScreen({ game, tier, mode, onStart, onBack }: GameIntro
   const intro = INTRO[game.id];
   const [skip, setSkip] = useState(() => introSkipped(game.id));
   const Example = intro.Example;
+
+  useEffect(() => {
+    sendEvents(tutorial(game.id, "begin"));
+  }, [game.id]);
+  const start = () => {
+    sendEvents(tutorial(game.id, "complete"));
+    onStart();
+  };
 
   const toggleSkip = () => {
     const next = !skip;
@@ -99,7 +109,7 @@ export function GameIntroScreen({ game, tier, mode, onStart, onBack }: GameIntro
           <Button variant="ghost" arrow={false} onClick={onBack}>
             ←
           </Button>
-          <Button onClick={onStart} className="w-full" autoFocus>
+          <Button onClick={start} className="w-full" autoFocus>
             start
           </Button>
         </div>
