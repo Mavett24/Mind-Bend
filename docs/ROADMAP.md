@@ -57,7 +57,8 @@
 ## Launch prep
 - [x] Google Analytics 4 behind a consent banner, privacy page (D-053)
 - [x] GA4 events in code, schema and setup plan (D-062, `docs/ANALYTICS.md`)
-- [ ] GA4 property setup: dimensions, metrics, key events, audiences, explorations, internal filter
+- [x] GA4 property setup: dimensions, metrics, internal and developer filters, retention (key events, audiences and explorations once data arrives)
+- [x] Version 1.0 and the first GitHub release (D-069)
 - [x] Favicon, app icons, link previews, sitemap, robots, canonical URLs (D-060, D-061)
 - [ ] SEO copy, how to play pages, structured data and GEO; custom domain
 

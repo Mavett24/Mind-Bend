@@ -5,6 +5,7 @@ import { dayKey } from "@/engine/history";
 import { GAMES } from "@/games/registry";
 import { analyticsEnabled, openConsentSettings } from "@/lib/analytics";
 import { useProfile } from "@/lib/profile";
+import { APP_VERSION } from "@/lib/site";
 import { untilMidnightUtc, useNow } from "@/lib/useNow";
 import { GameIcon, hue } from "./GameIcon";
 
@@ -98,7 +99,7 @@ export function SiteFooter() {
 
         <div className="mt-8 flex flex-col gap-3 border-t border-void/[0.08] pt-4 text-caption text-steel sm:flex-row sm:items-center sm:justify-between">
           <span>
-            mind_bend v0.7 · made in the hague by{" "}
+            mind_bend v{APP_VERSION} · made in the hague by{" "}
             <a href="https://matteofavetta.com" className={`text-void/70 ${quiet}`}>
               matteo favetta
             </a>

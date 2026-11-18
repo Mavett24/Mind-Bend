@@ -383,3 +383,10 @@ Page content is now at least one large viewport tall (`100lvh`), so the light fo
 On phones a floating capsule holds today (with the daily set as a ring), games and stats, plus a white pill that opens your next unplayed daily, or practice once the set is done. It hides while a board is in play and returns on the result screen. Desktop keeps the header.
 **Why:** on a phone the header is out of thumb reach and gives no sense of progress. The most common action, playing the next daily, now sits one tap away on every page, and the ring keeps the day's progress in view. The capsule uses the same raised surface and white primary pill as the rest of the app. Chosen over a classic tab bar with a centre key and a text-only terminal strip.
 **Gave up:** a fifth tab for the streak (it stays in the header pill and on the stats page), and the dock on desktop.
+
+### D-069 · Launch as 1.0
+**2026-11-18** · `package.json`, `APP_VERSION`, GitHub releases
+The public launch is version 1.0.0, not 0.8. The footer shows `v1.0` from one constant, and each release from here gets a git tag and a GitHub release whose notes come from the changelog. Semantic versioning: new games or modes are minor releases, fixes are patches.
+**Why:** 0.x tells visitors the app isn't finished. Everything promised in the product brief ships at launch (eight games, daily sets, practice, challenge links, stats), so 1.0 is the honest number, and tagged releases give the repo a visible history.
+**Gave up:** the 0.x numbering that matched the build phases.
+
