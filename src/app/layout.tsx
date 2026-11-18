@@ -4,6 +4,7 @@ import { GeistMono } from "geist/font/mono";
 import localFont from "next/font/local";
 import { MotionProvider } from "@/components/MotionProvider";
 import { SiteFooter } from "@/components/SiteFooter";
+import { Dock } from "@/components/Dock";
 import { ConsentBanner } from "@/components/ConsentBanner";
 import { SPLASH_HEAD_SCRIPT, Splash } from "@/components/Splash";
 import { SITE_URL } from "@/lib/site";
@@ -60,6 +61,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           {/* At least one large viewport tall, so the footer never shows before you scroll (D-067). */}
           <div className="page-fill flex flex-col">{children}</div>
           <SiteFooter />
+          <Dock />
           <ConsentBanner />
         </MotionProvider>
       </body>

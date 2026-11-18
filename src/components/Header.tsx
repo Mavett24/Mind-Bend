@@ -44,7 +44,8 @@ export function Header() {
           <Link href="/#games" className="hidden transition-colors duration-[var(--dur-fast)] hover:text-paper sm:inline">
             games
           </Link>
-          <Link href="/#daily" className="transition-colors duration-[var(--dur-fast)] hover:text-paper">
+          {/* On phones the dock carries today, games and stats (D-068). */}
+          <Link href="/#daily" className="hidden transition-colors duration-[var(--dur-fast)] hover:text-paper sm:inline">
             daily
           </Link>
           <Link

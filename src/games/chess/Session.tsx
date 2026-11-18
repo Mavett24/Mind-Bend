@@ -16,6 +16,7 @@ import { createRng } from "@/engine/rng";
 import { challengeQuery, type Mode } from "@/engine/seed";
 import { dayKey, gameSummary, overall, type GameRecord } from "@/engine/history";
 import { addRecord, getHistory, newRecordId, useHistory } from "@/lib/history";
+import { useHideDock } from "@/lib/dock";
 import { scoringOf } from "@/lib/profile";
 import { dur, ease } from "@/lib/motion";
 import { Button } from "@/components/Button";
@@ -111,6 +112,8 @@ export function ChessSession({ game, mode, tier, seed, onExit }: ChessSessionPro
   const timers = useRef<number[]>([]);
 
   const dailyDone = mode === "daily" && index >= DAILY_TARGETS.length;
+  // Puzzle after puzzle on one board: the dock stays away until the run ends (D-068).
+  useHideDock(!dailyDone);
   /** Bumped on retry, so a result only shows for the attempt it belongs to. */
   const [attempt, setAttempt] = useState(0);
 
