@@ -13,7 +13,7 @@ Daily challenges, infinite practice, difficulty that adapts to you.
 
 **[Play it](https://mind-bend.vercel.app)** · [Design system](DESIGN.md) · [Decision log](docs/DECISIONS.md) · [Changelog](CHANGELOG.md)
 
-<img src="docs/assets/hero.png" alt="Mind Bend home screen: the daily set of eight games over a field of floating mini boards" width="100%">
+<img src="docs/assets/demo.gif" alt="Mind Bend in 17 seconds: the splash, the daily set, then a path board solved in one continuous line and the result screen" width="100%">
 
 </div>
 

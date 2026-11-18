@@ -5,7 +5,7 @@
 The first public release: eight games, daily sets, practice, challenge links, local-first stats and game analytics.
 
 - **Version 1.0** (D-069): the footer reads the version from `APP_VERSION` in `src/lib/site.ts`. GitHub releases follow the changelog from here on.
-- Repo: `CONTRIBUTING.md` and `CODE_OF_CONDUCT.md`; `LICENSE` holds only the MIT text so GitHub detects it (the data licences stay in the README and `THIRD_PARTY_NOTICES.md`).
+- Repo: a demo GIF at the top of the README (`docs/assets/demo.gif`), `CONTRIBUTING.md` and `CODE_OF_CONDUCT.md`; `LICENSE` holds only the MIT text so GitHub detects it (the data licences stay in the README and `THIRD_PARTY_NOTICES.md`).
 
 - **Game analytics** (D-062): ten GA4 events (start, complete, abandon, level up, first game, daily set complete, hint, share, how to play), only after consent and only on the production host. `?internal=1` marks your own browsers, `?ga_debug=1` turns on DebugView. Schema and GA setup in `docs/ANALYTICS.md`. Games are now recorded through `recordGame`, which sends the events for each history record. Closing a tab mid-board counts as an abandon in GA.
 - Privacy page: lists what the game events contain.
