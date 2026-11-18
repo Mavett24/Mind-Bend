@@ -21,8 +21,3 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ---
-
-This license covers the source code. Content in public/data/ comes from
-third-party sources under their own licences; the trivia question files in
-public/data/trivia/ are an adaptation of OpenTriviaQA and are shared under
-CC BY-SA 4.0. See scripts/DATA_SOURCES.md.
