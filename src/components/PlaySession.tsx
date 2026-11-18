@@ -11,8 +11,11 @@ import { createRng } from "@/engine/rng";
 import { outcomeScore } from "@/engine/rating";
 import { pointsBand, pointsOutcome, timeBand, type Band } from "@/engine/stats";
 import { dayKey, gameSummary, insightFor, overall, ratingOutcome, tierProgress, type GameRecord, type GameSummary, type ResultInsight } from "@/engine/history";
-import { addRecord, newRecordId } from "@/lib/history";
 import { useHideDock } from "@/lib/dock";
+import { newRecordId } from "@/lib/history";
+import { sendEvents } from "@/lib/analytics";
+import { gameStart, type PlayContext } from "@/lib/events";
+import { PlayTracking, recordGame, trackShare, useAbandonOnClose } from "@/lib/track";
 import { scoringOf } from "@/lib/profile";
 import { dur, ease } from "@/lib/motion";
 import { Button } from "./Button";
@@ -53,6 +56,7 @@ export function PlaySession<P>({ game, module, board, mode, nextDailyHref, onExi
   const [startedAt, setStartedAt] = useState(() => performance.now());
   const readyAt = useRef<number | null>(null);
   const recorded = useRef(false);
+  const ctx = useMemo<PlayContext>(() => ({ game: game.id, tier: board.tier, mode }), [game.id, board.tier, mode]);
 
   // Boards may load content first; the clock starts when the board is ready.
   useEffect(() => {
@@ -65,12 +69,13 @@ export function PlaySession<P>({ game, module, board, mode, nextDailyHref, onExi
         const now = performance.now();
         readyAt.current = now;
         setStartedAt(now);
+        sendEvents(gameStart({ game: board.gameId, tier: board.tier, mode }));
       })
       .catch(() => live && setLoadError(true));
     return () => {
       live = false;
     };
-  }, [module, board]);
+  }, [module, board, mode]);
 
   // Walking away from a started board is recorded as a quit, so completion rate is honest.
   useEffect(() => {
@@ -80,9 +85,12 @@ export function PlaySession<P>({ game, module, board, mode, nextDailyHref, onExi
       const timeMs = performance.now() - at;
       if (timeMs < QUIT_AFTER_MS) return;
       recorded.current = true;
-      addRecord({ id: newRecordId(), at: Date.now(), gameId: game.id, tier: board.tier, mode, seed: board.seed, timeMs, solved: false, quit: true });
+      recordGame({ id: newRecordId(), at: Date.now(), gameId: game.id, tier: board.tier, mode, seed: board.seed, timeMs, solved: false, quit: true });
     };
   }, [game.id, board.tier, board.seed, mode]);
+
+  // Closing the tab mid-board: GA only, see useAbandonOnClose.
+  useAbandonOnClose(() => (recorded.current || readyAt.current === null ? null : { ctx, startedAt: readyAt.current }), QUIT_AFTER_MS);
 
   const [stoppedAt, setStoppedAt] = useState<number | null>(null);
   const [finished, setFinished] = useState<Finished | null>(null);
@@ -115,7 +123,7 @@ export function PlaySession<P>({ game, module, board, mode, nextDailyHref, onExi
         // Daily boards are shared by everyone and don't move your rating.
         outcome: mode === "daily" ? undefined : ratingOutcome(base, hints),
       };
-      const data = addRecord(record);
+      const data = recordGame(record);
       const scoring = scoringOf(game.id);
       const today = dayKey(record.at);
       setStoppedAt(end);
@@ -138,6 +146,7 @@ export function PlaySession<P>({ game, module, board, mode, nextDailyHref, onExi
   const Board = module.Board;
 
   return (
+    <PlayTracking.Provider value={ctx}>
     <AnimatePresence mode="wait" initial={false}>
       {showResult && finished ? (
         <Result key="result" game={game} module={module} board={board} mode={mode} finished={finished} nextDailyHref={nextDailyHref} onExit={onExit} onNext={onNext} />
@@ -176,6 +185,7 @@ export function PlaySession<P>({ game, module, board, mode, nextDailyHref, onExi
         </motion.div>
       )}
     </AnimatePresence>
+    </PlayTracking.Provider>
   );
 }
 
@@ -212,8 +222,10 @@ function Result<P>({ game, module, board, mode, finished, nextDailyHref, onExit,
       await navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2400);
+      trackShare(board.gameId, "clipboard");
     } catch {
       window.prompt("Copy this challenge link", url);
+      trackShare(board.gameId, "prompt");
     }
   }
 

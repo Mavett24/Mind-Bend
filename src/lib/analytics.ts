@@ -8,10 +8,16 @@
  * - After accept, Consent Mode v2 starts with every signal denied and grants only
  *   `analytics_storage`. The three ad signals stay denied for good: Mind Bend runs no ads.
  * - Reject after an accept denies storage, deletes the GA cookies and reloads, so gtag is gone.
- * - GA only exists where `NEXT_PUBLIC_GA_ID` is set, which on Vercel is Production only.
+ * - GA only exists where `NEXT_PUBLIC_GA_ID` is set, which on Vercel is Production only, and only
+ *   loads on the production hostname, so preview and branch URLs never send data.
+ * - Game events (D-062) go through `sendEvents`, which does nothing until gtag is loaded.
+ * - `?internal=1` marks this browser as Mavett's own (traffic_type "internal", filtered out in GA),
+ *   `?internal=0` clears it. `?ga_debug=1` turns on DebugView for this tab.
  */
 import { useSyncExternalStore } from "react";
 import { readJson, writeJson } from "@/engine/storage";
+import { SITE_URL } from "./site";
+import type { AnalyticsEvent } from "./events";
 import {
   GA_COOKIE_EXPIRES_S,
   cookieDomains,
@@ -23,6 +29,9 @@ import {
 
 export const GA_ID = process.env.NEXT_PUBLIC_GA_ID ?? "";
 export const analyticsEnabled = /^G-[A-Z0-9]+$/.test(GA_ID);
+const SITE_HOST = new URL(SITE_URL).hostname;
+const INTERNAL_KEY = "analytics-internal";
+const DEBUG_KEY = "mind-bend:ga-debug";
 
 const KEY = "consent";
 
@@ -106,7 +115,9 @@ let loaded = false;
 /** Inject gtag. Call only after a granted choice. Safe to call more than once. */
 export function loadAnalytics() {
   if (!analyticsEnabled || loaded || typeof window === "undefined") return;
+  if (window.location.hostname !== SITE_HOST) return;
   loaded = true;
+  const { internal, debug } = rememberFlags();
 
   window.dataLayer = window.dataLayer ?? [];
   // gtag must push the `arguments` object itself, not an array copy, or GA ignores the command.
@@ -129,6 +140,8 @@ export function loadAnalytics() {
     allow_ad_personalization_signals: false,
     cookie_expires: GA_COOKIE_EXPIRES_S,
     cookie_flags: "SameSite=Lax;Secure",
+    ...(internal ? { traffic_type: "internal" } : {}),
+    ...(debug ? { debug_mode: true } : {}),
   });
 
   const script = document.createElement("script");
@@ -146,3 +159,33 @@ export function clearGaCookies() {
     }
   }
 }
+
+/* ---------- events ---------- */
+
+/** Send game events. A no-op until the visitor accepts and gtag is loaded on the production host. */
+export function sendEvents(events: AnalyticsEvent | AnalyticsEvent[]) {
+  if (!loaded || typeof window === "undefined" || !window.gtag) return;
+  for (const e of Array.isArray(events) ? events : [events]) window.gtag("event", e.name, e.params);
+}
+
+/** Reads ?internal= and ?ga_debug= from the URL, keeps them, and returns the current flags. */
+function rememberFlags(): { internal: boolean; debug: boolean } {
+  const q = new URLSearchParams(window.location.search);
+  if (q.get("internal") === "1") writeJson(INTERNAL_KEY, true);
+  if (q.get("internal") === "0") writeJson(INTERNAL_KEY, false);
+  try {
+    if (q.get("ga_debug") === "1") sessionStorage.setItem(DEBUG_KEY, "1");
+    if (q.get("ga_debug") === "0") sessionStorage.removeItem(DEBUG_KEY);
+  } catch {
+    // Storage can be blocked; debug mode is a convenience.
+  }
+  let debug = false;
+  try {
+    debug = sessionStorage.getItem(DEBUG_KEY) === "1";
+  } catch {}
+  return { internal: readJson<boolean>(INTERNAL_KEY, false) === true, debug };
+}
+
+// Remember the flags on arrival too, so ?internal=1 sticks even before analytics is accepted.
+if (typeof window !== "undefined") rememberFlags();
+

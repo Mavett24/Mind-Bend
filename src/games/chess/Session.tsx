@@ -15,8 +15,11 @@ import type { Tier } from "@/engine/difficulty";
 import { createRng } from "@/engine/rng";
 import { challengeQuery, type Mode } from "@/engine/seed";
 import { dayKey, gameSummary, overall, type GameRecord } from "@/engine/history";
-import { addRecord, getHistory, newRecordId, useHistory } from "@/lib/history";
 import { useHideDock } from "@/lib/dock";
+import { getHistory, newRecordId, useHistory } from "@/lib/history";
+import { sendEvents } from "@/lib/analytics";
+import { gameStart, unrecordedComplete, type PlayContext } from "@/lib/events";
+import { PlayTracking, recordGame, trackShare, useAbandonOnClose } from "@/lib/track";
 import { scoringOf } from "@/lib/profile";
 import { dur, ease } from "@/lib/motion";
 import { Button } from "@/components/Button";
@@ -114,6 +117,8 @@ export function ChessSession({ game, mode, tier, seed, onExit }: ChessSessionPro
   const dailyDone = mode === "daily" && index >= DAILY_TARGETS.length;
   // Puzzle after puzzle on one board: the dock stays away until the run ends (D-068).
   useHideDock(!dailyDone);
+  /** The board for analytics: daily puzzles carry their own tier (D-062). */
+  const ctx = useMemo<PlayContext>(() => ({ game: "chess", tier: mode === "daily" ? (DAILY_TIERS[index] ?? tier) : tier, mode }), [mode, index, tier]);
   /** Bumped on retry, so a result only shows for the attempt it belongs to. */
   const [attempt, setAttempt] = useState(0);
 
@@ -171,6 +176,7 @@ export function ChessSession({ game, mode, tier, seed, onExit }: ChessSessionPro
         setPly(1);
         setPhase("play");
         setStartedAt(performance.now());
+        sendEvents(gameStart({ game: "chess", tier: mode === "daily" ? (DAILY_TIERS[index] ?? tier) : tier, mode }));
         setAnnounce(`${playerColor(p) === "w" ? "White" : "Black"} to move. Find the best move.`);
       }, SETUP_DELAY_MS);
     })().catch(() => live && setPhase("error"));
@@ -202,9 +208,16 @@ export function ChessSession({ game, mode, tier, seed, onExit }: ChessSessionPro
       if (!p || at === null || recorded.current || (ph !== "play" && ph !== "reply")) return;
       const timeMs = performance.now() - at;
       if (timeMs < QUIT_AFTER_MS) return;
-      addRecord({ id: newRecordId(), at: Date.now(), gameId: "chess", tier, mode, seed: puzzleSeed(p), timeMs, solved: false, quit: true, opponent: p.rating });
+      recordGame({ id: newRecordId(), at: Date.now(), gameId: "chess", tier, mode, seed: puzzleSeed(p), timeMs, solved: false, quit: true, opponent: p.rating });
     };
   }, [mode, tier]);
+
+  // Closing the tab mid-puzzle: GA only, see useAbandonOnClose.
+  useAbandonOnClose(() => {
+    const { puzzle: p, startedAt: at, phase: ph } = progress.current;
+    if (!p || at === null || recorded.current || (ph !== "play" && ph !== "reply")) return null;
+    return { ctx, startedAt: at };
+  }, QUIT_AFTER_MS);
 
   // ------------------------------------------------------------ results
 
@@ -227,7 +240,7 @@ export function ChessSession({ game, mode, tier, seed, onExit }: ChessSessionPro
         opponent: puzzle.rating,
         bonus: bonus || undefined,
       };
-      const data = addRecord(record);
+      const data = recordGame(record);
       const after = gameSummary(data, "chess", "time");
       setPlayed((list) => [...list, { attempt, record, puzzle, rated, delta: after.deltas.get(record.id) ?? 0, ratingAfter: after.rating }]);
     },
@@ -256,7 +269,10 @@ export function ChessSession({ game, mode, tier, seed, onExit }: ChessSessionPro
         setPhase("failed");
         setAnnounce(`${made.san} is not the move. Puzzle failed.`);
         if (rated && !recorded.current) finish(false, t);
-        else recorded.current = true;
+        else {
+          recorded.current = true;
+          sendEvents(unrecordedComplete(ctx, { solved: false, timeMs: t, hints, puzzleRating: puzzle.rating }));
+        }
         // Put the board back so you can see what you missed.
         later(() => {
           setDisplay(positionAt(puzzle, ply).fen());
@@ -275,7 +291,8 @@ export function ChessSession({ game, mode, tier, seed, onExit }: ChessSessionPro
         setPly(nextPly);
         setPhase("solved");
         setAnnounce(`${made.san}. Solved.`);
-        finish(true, t);
+        if (recorded.current) sendEvents(unrecordedComplete(ctx, { solved: true, timeMs: t, hints, puzzleRating: puzzle.rating }));
+        else finish(true, t);
         return;
       }
       setPly(nextPly);
@@ -292,7 +309,7 @@ export function ChessSession({ game, mode, tier, seed, onExit }: ChessSessionPro
         setAnnounce(`Opponent played ${g.history().at(-1) ?? ""}. Your move.`);
       }, REPLY_DELAY_MS);
     },
-    [puzzle, phase, ply, startedAt, rated, finish, later],
+    [puzzle, phase, ply, startedAt, rated, finish, later, ctx, hints],
   );
 
   const giveHint = () => {
@@ -339,6 +356,7 @@ export function ChessSession({ game, mode, tier, seed, onExit }: ChessSessionPro
     setStoppedMs(null);
     setStartedAt(performance.now());
     setPhase("play");
+    sendEvents(gameStart(ctx, { retry: true }));
     setAnnounce("Again. Find the best move.");
   };
 
@@ -388,6 +406,7 @@ export function ChessSession({ game, mode, tier, seed, onExit }: ChessSessionPro
               : `${orientation === "w" ? "white" : "black"} to move`;
 
   return (
+    <PlayTracking.Provider value={ctx}>
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
@@ -524,6 +543,7 @@ export function ChessSession({ game, mode, tier, seed, onExit }: ChessSessionPro
         {announce}
       </p>
     </motion.div>
+    </PlayTracking.Provider>
   );
 }
 
@@ -626,8 +646,10 @@ function ShareButton({ puzzle }: { puzzle: ChessPuzzle }) {
       await navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2400);
+      trackShare("chess", "clipboard");
     } catch {
       window.prompt("Copy this challenge link", url);
+      trackShare("chess", "prompt");
     }
   }
   return (
