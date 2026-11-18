@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Game analytics** (D-062): ten GA4 events (start, complete, abandon, level up, first game, daily set complete, hint, share, how to play), only after consent and only on the production host. `?internal=1` marks your own browsers, `?ga_debug=1` turns on DebugView. Schema and GA setup in `docs/ANALYTICS.md`. Games are now recorded through `recordGame`, which sends the events for each history record. Closing a tab mid-board counts as an abandon in GA.
+- Privacy page: lists what the game events contain.
 - **Floating dock on phones** (D-068): today (with the daily set as a ring), games, stats, and a white pill to your next daily. Hides while you play. The header drops its "daily" link on phones.
 - **Footer stays below the fold** (D-067): content is at least one large viewport tall, so the footer never peeks in on short pages or phones. Rounded top corners (`--radius-card`).
 - **Splash** (D-067): once per session, the cursor types `mind_bend` and the screen clears like a board, about 3.3s with tiles sized to the screen. Pure CSS, skipped with reduced motion.

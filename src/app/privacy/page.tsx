@@ -61,8 +61,10 @@ export default function PrivacyPage() {
         <Section title="google analytics, only if you accept">
           <p>
             If you accept, Google Analytics 4 measures how the site is used: pages visited, how you arrived, browser and device type, rough
-            location (country and city, worked out from your IP address) and, later, which games, tiers and modes are played and how they end. It
-            helps decide which games to improve. Nothing is collected before you accept, and the Google script isn&apos;t even loaded.
+            location (country and city, worked out from your IP address), and how the games are played: which game, tier and mode, how long a
+            game took, whether it was solved, failed or left, hints used, your rating for that game, and when you open how to play or copy a
+            challenge link. Never the boards themselves or the moves and answers you enter. It helps decide which games to improve. Nothing is
+            collected before you accept, and the Google script isn&apos;t even loaded.
           </p>
           <p>
             Legal basis: your consent (GDPR article 6(1)(a) and article 11.7a of the Dutch Telecommunicatiewet). The settings used: no advertising,
