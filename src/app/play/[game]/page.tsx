@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Header } from "@/components/Header";
 import { GameStart } from "@/components/GameStart";
 import { GAMES, getGame } from "@/games/registry";
+import { gameColours } from "@/components/GameIcon";
 
 export function generateStaticParams() {
   return GAMES.map((g) => ({ game: g.id }));
@@ -31,8 +32,10 @@ export default async function PlayPage({ params }: PageProps<"/play/[game]">) {
 
   return (
     <>
+      {/* The game's colour washes down from the top of the screen (D-073). */}
+      <div aria-hidden className="page-wash pointer-events-none fixed inset-0 z-0" style={gameColours(game.id)} />
       <Header />
-      <main className="flex flex-1 items-start justify-center px-4 py-6 md:items-center md:py-10">
+      <main className="relative z-[1] flex flex-1 items-start justify-center px-4 py-6 md:items-center md:py-10">
         <Suspense fallback={<div className="min-h-[586px] w-full max-w-[440px] rounded-card border border-iron bg-carbon" />}>
           <GameStart game={game} />
         </Suspense>

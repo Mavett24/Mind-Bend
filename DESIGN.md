@@ -59,6 +59,26 @@ Ember rules: primary buttons, progress bars, step numbers in start-card eyebrows
 
 Black glyphs and text on every hue pass 4.5:1. All pass 3:1 against the card surface. They are identity colours, not a chart palette: two hues (pink and teal) sit close for deuteranopes, and violet sits near indigo (chess and sudoku), so a hue is always paired with the game's name or icon and charts show one game at a time.
 
+### Deep game colours (D-073)
+
+Muted, darker takes on each hue, for surfaces that carry white text: home game cards, the top of the start card and the start page's wash. Each is a vertical gradient from `--color-deep-<game>` to `--color-deeper-<game>` (OKLCH lightness 0.47 to 0.50 at the top, 0.27 at the bottom, chroma about 0.1, so nothing glows).
+
+| Game | Deep (top) | Deeper (bottom) |
+|------|------------|-----------------|
+| path | `#954c27` | `#401905` |
+| balance | `#006a61` | `#002e2a` |
+| blocks | `#924666` | `#3f1628` |
+| sudoku | `#585aa0` | `#212147` |
+| weave | `#266a3d` | `#082f16` |
+| recall | `#815b17` | `#362200` |
+| trivia | `#00668c` | `#002b3f` |
+| chess | `#725195` | `#2f1c41` |
+
+- **Contrast:** white passes 6:1 on every top stop. Secondary text is white at 86% (`.on-colour-soft`), which passes 5:1. There are only these two levels on colour: hierarchy comes from size, weight and the white pill, never from fading text below 4.5:1. Text always sits in the top of the gradient; it only gets darker below.
+- **Light:** one soft white radial (9%) in the top right corner, away from the text on the left, plus a 16% inset top edge. No other gradients, no glows behind text.
+- **On colour:** the hue icon tile gets a dark 1px ring and a shadow so it separates from a colour close to its own. "new" is a dark translucent chip, so the white "play" pill stays the only bright element after the title.
+- `gameColours(id)` sets `--deep` and `--deeper`; `.game-surface`, `.card-tint` and `.page-wash` read them.
+
 ### Surfaces
 
 | Token | Value | Use |
@@ -168,7 +188,9 @@ Nested radii step down (card 24 → control 14 → cell 8) so inner corners neve
 - Hero left: terminal prompt with an ember caret, a two-line mono headline at up to 84px (paper, then steel: "Seven boards. / Fresh daily." for a first visit, the streak or boards left for a returning player), a short pitch on first visit, a white pill naming the next daily game with its icon tile, a ghost "practice" pill, and the week ramp (one bar per weekday, height by tier, today in ember).
 - Hero right: the daily set card. `0/7` at `--text-number` with the fraction dimmed, today's tier pill, one bar per game in its hue, the seven games as rows, and a ticking countdown to the next set. Hovering or focusing a row lights that game's boards in the field (scale up, hue glow) and dims the rest; at rest the next unplayed game is lit.
 - Below the hero, the "you" card runs horizontally: streak, played and best run, the 14-day activity bars, and the "next up" suggestion with progress to the next tier.
-- Game cards, Dialed style: `.surface`, 44px hue icon tile, title in `.title-card` (24px Geist Mono, weight 500, -0.04em), tagline, a white "play <game> →" pill, rating and suggested tier top right (or a "new" pill if never played). Card art fills the bottom: two tilted mini boards in the game's hue that bleed off the edge; the front one straightens and lifts on hover.
+- Game cards, Dialed style, filled with the game's deep colour (`.game-surface`, D-073): 44px hue icon tile with a dark ring, title in `.title-card` (24px Geist Mono, weight 500, -0.04em, white), tagline and skill in white at 86%, a white "play <game> →" pill, rating and suggested tier top right (or a dark "new" chip if never played).
+- Opening a card (D-073, `src/lib/cardOpen.ts`): the card's colour fades in over the tile (140ms) and grows to the whole screen with a clip-path reveal (380ms, `cubic-bezier(0.32, 0.72, 0, 1)`); the route changes at 150ms, once the colour is opaque; when the start card mounts the colour fades out (260ms) onto the page wash. New-tab clicks and reduced motion keep the plain link.
+- Start page (D-073): `.page-wash` holds the game's colour at the top of the screen and fades to void by 75% of the height. The start card's top carries `.card-tint` (full colour behind the title and rules, gone by the controls); its header and the skill and rules text switch to white at 86%. The tint fades out (240ms) when an intro, a board or a rush opens. Card art fills the bottom: two tilted mini boards in the game's hue that bleed off the edge; the front one straightens and lifts on hover.
 - Grid: 1 column on mobile, 2 on tablet, 3 on desktop with the first and last cards spanning two columns (seven cards fill three rows).
 
 ### Start card

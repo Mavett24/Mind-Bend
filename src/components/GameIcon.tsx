@@ -51,6 +51,10 @@ export const glyphs: Record<GameId, React.ReactNode> = {
   ),
 };
 
+/** The two stops of a game's deep colour (D-073), as custom properties for `.game-surface`. */
+export const gameColours = (id: GameId) =>
+  ({ "--deep": `var(--color-deep-${id})`, "--deeper": `var(--color-deeper-${id})` }) as React.CSSProperties;
+
 /** The game's identity hue as a CSS value, for inline styles and SVG fills. */
 export const hue = (id: GameId) => `var(--color-hue-${id})`;
 

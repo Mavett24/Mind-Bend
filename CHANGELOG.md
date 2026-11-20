@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Game colours** (D-073): every home game card is filled with a muted, deep take on its hue, a vertical gradient with a soft light in the top right corner and white text that passes 5:1 or better everywhere. The start screen picks up the same colour: a wash from the top of the page and a band across the top of the card that fades out before the controls and when a board opens.
+- **Opening a card** (D-073): the card's colour grows from the tile to the whole screen and settles into the start screen. New-tab clicks and reduced motion keep the plain link.
+
 - **chess: Puzzle Rush** (D-071). A third mode on the chess start card: 3 or 5 minutes to solve as many puzzles as you can, and the third wrong move ends the run. The first five are mates in one from the bottom of the set (back rank mates among them), the next five mates in one or two, then any tactic, climbing about 50 points a puzzle to 1450, 40 to 2060, then 30 to 2800, with short lines first. Lives, a live score, a strip of ✓ and × tiles and the clock (ember in the last 10 seconds) sit above the board; the end screen shows the score, your best, misses, the hardest puzzle solved and every puzzle's rating. No hints and no rating at stake. Bests per length on the start card and in recent games.
 - **Rush review** (D-072): tap any puzzle on the end screen to replay it, or "review 3 mistakes" to walk through every miss. Off the clock: retry as often as you like, hints (piece, then move), the solution played out, what you played in the run, then next mistake. Reviewed misses are marked.
 - **Rush challenge links**: `/play/chess?m=rush&r=3&s=<seed>&b=<score>` replays the same puzzles in the same order with a score to beat. The sequence depends only on the seed and the puzzle number.
