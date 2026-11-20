@@ -14,6 +14,7 @@ import { ActivityCalendar, RatingChart, Sparkline, TierBar } from "./charts";
 import { CountUpStat, PointsDisplay, TimeDisplay } from "./TimeDisplay";
 import { Reveal } from "./Reveal";
 import { Button } from "./Button";
+import { parseRushSeed } from "@/games/chess/rush";
 
 const SKILL_LABEL: Record<Skill, { name: string; games: string }> = {
   logic: { name: "logic", games: "path, balance, blocks, sudoku" },
@@ -308,11 +309,11 @@ function RecentRow({ r, delta, now }: { r: GameRecord; delta: number | undefined
       <div className="flex min-w-0 flex-1 flex-col">
         <span className="font-mono">{game.name}</span>
         <span className="truncate text-caption text-ash">
-          {r.opponent !== undefined ? `puzzle ${r.opponent}` : r.tier} · {r.mode} · {fmtWhen(r.at, now)}
+          {r.mode === "rush" ? `puzzle rush · ${parseRushSeed(r.seed)?.minutes ?? "?"} min` : `${r.opponent !== undefined ? `puzzle ${r.opponent}` : r.tier} · ${r.mode}`} · {fmtWhen(r.at, now)}
         </span>
       </div>
       <span className="font-mono">
-        {r.quit ? <span className="text-ash">left</span> : r.points !== undefined ? <PointsDisplay points={r.points} /> : <TimeDisplay ms={r.timeMs} />}
+        {r.quit ? <span className="text-ash">left</span> : r.mode === "rush" ? `${r.score ?? 0} solved` : r.points !== undefined ? <PointsDisplay points={r.points} /> : <TimeDisplay ms={r.timeMs} />}
       </span>
       <span className="w-12 text-right font-mono text-caption text-ash">{delta === undefined ? "" : `${delta >= 0 ? "+" : ""}${delta}`}</span>
     </li>

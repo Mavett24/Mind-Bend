@@ -35,7 +35,8 @@
 - [x] chess: Lichess puzzle set, build script, every solution tested
 - [x] Own board, pieces and session: drag and tap, auto replies, hints, retry, solution
 - [x] Puzzle Elo with speed bonus, rated daily set of three (D-048, D-049)
-- [ ] Puzzle Rush timed mode, theme practice
+- [x] Puzzle Rush: 3 and 5 minute runs, three lives, ramp from mate in 1, shareable runs (D-071)
+- [ ] Theme practice
 - [ ] Move and capture sounds (with the Phase 6 sound pass)
 
 ## Phase 5 · Score tracking, stats and redesign

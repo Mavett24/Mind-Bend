@@ -24,13 +24,16 @@ interface GameIntroProps {
   game: GameMeta;
   tier: Tier;
   mode: Mode;
+  /** Replaces the game's steps and the tier note, for a mode with its own rules (puzzle rush). */
+  override?: { steps: readonly string[]; label: string; note: string };
   onStart: () => void;
   onBack: () => void;
 }
 
 /** How to play, shown between the start card and the board. */
-export function GameIntroScreen({ game, tier, mode, onStart, onBack }: GameIntroProps) {
+export function GameIntroScreen({ game, tier, mode, override, onStart, onBack }: GameIntroProps) {
   const intro = INTRO[game.id];
+  const steps = override?.steps ?? intro.steps;
   const [skip, setSkip] = useState(() => introSkipped(game.id));
   const Example = intro.Example;
 
@@ -67,7 +70,7 @@ export function GameIntroScreen({ game, tier, mode, onStart, onBack }: GameIntro
       </div>
 
       <ol className="flex flex-col gap-3">
-        {intro.steps.map((step, i) => (
+        {steps.map((step, i) => (
           <motion.li
             key={step}
             initial={{ opacity: 0, y: 6 }}
@@ -85,9 +88,9 @@ export function GameIntroScreen({ game, tier, mode, onStart, onBack }: GameIntro
 
       <div className="flex flex-col gap-1 rounded-control bg-graphite px-4 py-3">
         <span className="text-caption uppercase text-steel">
-          {tier} · {mode}
+          {override?.label ?? `${tier} · ${mode}`}
         </span>
-        <span className="text-fog">{intro.tiers[tier]}</span>
+        <span className="text-fog">{override?.note ?? intro.tiers[tier]}</span>
       </div>
 
       <p className="text-[13px] leading-snug text-steel">{intro.controls}</p>

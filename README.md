@@ -30,7 +30,7 @@ Daily challenges, infinite practice, difficulty that adapts to you.
 | **trivia** | Knowledge and estimation | points /10 | Lessgames |
 | **chess** | Tactics | puzzle rating | chess.com puzzles |
 
-Every game has four tiers (easy to expert), a skippable how-to-play screen and hints with a cooldown on the logic games. chess plays puzzles from the Lichess database with a chess.com style puzzle rating: tiers are offsets from your rating, the daily is three rated puzzles, and fast clean solves earn a speed bonus. Balance and sudoku hints also explain the rule behind the move.
+Every game has four tiers (easy to expert), a skippable how-to-play screen and hints with a cooldown on the logic games. chess plays puzzles from the Lichess database with a chess.com style puzzle rating: tiers are offsets from your rating, the daily is three rated puzzles, fast clean solves earn a speed bonus, and Puzzle Rush gives you 3 or 5 minutes and three lives to solve as many as you can, starting from mates in one. Balance and sudoku hints also explain the rule behind the move.
 
 <img src="docs/assets/boards.png" alt="Boards for path, balance, blocks and sudoku" width="100%">
 

@@ -65,6 +65,8 @@ export function recordEvents(record: GameRecord, before: HistoryData, after: His
     rating: Math.round(now.rating),
   };
   if (record.points !== undefined) params.points = record.points;
+  // Puzzle Rush: the run's score rides in points (D-071).
+  if (record.score !== undefined) params.points = record.score;
   if (rated) params.rating_change = Math.round(now.rating - was.rating);
   if (record.opponent !== undefined) params.puzzle_rating = record.opponent;
 
