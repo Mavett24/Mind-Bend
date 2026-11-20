@@ -22,6 +22,7 @@ import { ChessBoard, type Marker } from "./Board";
 import { loadPool } from "./data";
 import { isComplete, judgeMove, parseUci, playerColor, positionAt, type ChessPuzzle, type Move } from "./engine";
 import { pickRushPuzzle, RUSH_STRIKES, rushBests, rushSeed, rushStep, type RushMinutes } from "./rush";
+import { RushReview } from "./RushReview";
 
 /** Faster than practice: the clock is running, so the setup and replies don't linger. */
 const SETUP_DELAY_MS = 320;
@@ -51,6 +52,8 @@ type EndReason = "time" | "strikes" | "ended";
 interface Attempt {
   puzzle: ChessPuzzle;
   solved: boolean;
+  /** The move you played on a miss, in SAN, shown again in the review. */
+  played?: string;
 }
 
 export function RushSession({ game, minutes, seed, beat, onExit, onAgain }: RushSessionProps) {
@@ -70,6 +73,9 @@ export function RushSession({ game, minutes, seed, beat, onExit, onAgain }: Rush
   const [now, setNow] = useState(0);
   const [end, setEnd] = useState<{ reason: EndReason; timeMs: number; previousBest: number | null } | null>(null);
   const [announce, setAnnounce] = useState("");
+  /** After the run: the puzzle open for review (index into attempts), and the misses already looked at. */
+  const [reviewing, setReviewing] = useState<number | null>(null);
+  const [reviewed, setReviewed] = useState<ReadonlySet<number>>(new Set());
 
   const used = useRef(new Set<string>());
   const timers = useRef<number[]>([]);
@@ -210,7 +216,7 @@ export function RushSession({ game, minutes, seed, beat, onExit, onAgain }: Rush
         setShake((n) => n + 1);
         setPhase("between");
         const strikesNow = strikes + 1;
-        setAttempts((a) => [...a, { puzzle, solved: false }]);
+        setAttempts((a) => [...a, { puzzle, solved: false, played: made.san }]);
         setAnnounce(`${made.san} is not the move. ${RUSH_STRIKES - strikesNow} ${RUSH_STRIKES - strikesNow === 1 ? "life" : "lives"} left.`);
         later(() => (strikesNow >= RUSH_STRIKES ? finish("strikes") : nextPuzzle()), WRONG_HOLD_MS);
         return;
@@ -243,8 +249,40 @@ export function RushSession({ game, minutes, seed, beat, onExit, onAgain }: Rush
   // ------------------------------------------------------------ render
 
   if (over && end) {
+    const misses = attempts.flatMap((a, i) => (a.solved ? [] : [i]));
+    const open = (i: number) => {
+      setReviewing(i);
+      setReviewed((set) => new Set(set).add(i));
+    };
+    if (reviewing !== null && attempts[reviewing]) {
+      const a = attempts[reviewing];
+      const at = misses.indexOf(reviewing);
+      const next = at >= 0 ? misses[at + 1] : undefined;
+      return (
+        <RushReview
+          key={reviewing}
+          item={{ puzzle: a.puzzle, number: reviewing + 1, solved: a.solved, played: a.played }}
+          position={at >= 0 ? { at: at + 1, of: misses.length } : null}
+          hasNext={next !== undefined}
+          onNext={() => next !== undefined && open(next)}
+          onBack={() => setReviewing(null)}
+        />
+      );
+    }
     return (
-      <RushSummary game={game} minutes={minutes} seed={seed} attempts={attempts} reason={end.reason} previousBest={end.previousBest} beat={beat ?? null} onExit={onExit} onAgain={onAgain} />
+      <RushSummary
+        game={game}
+        minutes={minutes}
+        seed={seed}
+        attempts={attempts}
+        reason={end.reason}
+        previousBest={end.previousBest}
+        beat={beat ?? null}
+        reviewed={reviewed}
+        onOpen={open}
+        onExit={onExit}
+        onAgain={onAgain}
+      />
     );
   }
 
@@ -420,16 +458,22 @@ interface SummaryProps {
   reason: EndReason;
   previousBest: number | null;
   beat: number | null;
+  /** Misses already opened in review. */
+  reviewed: ReadonlySet<number>;
+  onOpen: (index: number) => void;
   onExit: () => void;
   onAgain: () => void;
 }
 
-function RushSummary({ game, minutes, seed, attempts, reason, previousBest, beat, onExit, onAgain }: SummaryProps) {
+function RushSummary({ game, minutes, seed, attempts, reason, previousBest, beat, reviewed, onOpen, onExit, onAgain }: SummaryProps) {
   const color = hue("chess");
   const score = attempts.filter((a) => a.solved).length;
   const shown = Math.round(useCountUp(score, 900));
   const hardest = attempts.filter((a) => a.solved).reduce<number | null>((m, a) => Math.max(m ?? 0, a.puzzle.rating), null);
   const newBest = score > 0 && (previousBest === null || score > previousBest);
+  const misses = attempts.flatMap((a, i) => (a.solved ? [] : [i]));
+  const firstUnseen = misses.find((i) => !reviewed.has(i));
+  const unseen = misses.filter((i) => !reviewed.has(i)).length;
   const line = useMemo(() => {
     if (beat !== null) return score > beat ? `You beat ${beat}.` : score === beat ? `Level with ${beat}.` : score === 0 ? `${beat} still to beat.` : `${beat - score} short of ${beat}.`;
     if (newBest) return previousBest === null ? "First run on the board." : `New best, up from ${previousBest}.`;
@@ -466,33 +510,70 @@ function RushSummary({ game, minutes, seed, attempts, reason, previousBest, beat
       </div>
 
       {attempts.length > 0 && (
-        <ol className="flex flex-wrap gap-1.5" aria-label="Puzzles in this run">
-          {attempts.map((a, i) => (
-            <motion.li
-              key={a.puzzle.id}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: dur.base, ease: ease.spring, delay: Math.min(0.6, 0.2 + i * 0.02) }}
-              className={`flex h-7 items-center gap-1 rounded-full px-2 font-mono text-caption tabular-nums ${a.solved ? "bg-white/[0.06] text-chalk" : "text-ember shadow-[inset_0_0_0_1px_var(--color-ember)]"}`}
-              title={a.solved ? "solved" : "missed"}
-            >
-              <span aria-hidden>{a.solved ? "✓" : "×"}</span>
-              {a.puzzle.rating}
-            </motion.li>
-          ))}
-        </ol>
+        <div className="flex flex-col gap-2">
+          <p className="font-mono text-caption text-ash">tap a puzzle to replay it</p>
+          <ol className="flex flex-wrap gap-1.5" aria-label="Puzzles in this run">
+            {attempts.map((a, i) => {
+              const seen = reviewed.has(i);
+              return (
+                <motion.li
+                  key={a.puzzle.id}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: dur.base, ease: ease.spring, delay: Math.min(0.6, 0.2 + i * 0.02) }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => onOpen(i)}
+                    aria-label={`Replay puzzle ${i + 1}, rated ${a.puzzle.rating}, ${a.solved ? "solved" : "missed"}${seen ? ", reviewed" : ""}`}
+                    className={`flex h-8 items-center gap-1 rounded-full px-2.5 font-mono text-caption tabular-nums transition-[transform,background-color] duration-[var(--dur-fast)] ease-[var(--ease-out)] active:scale-[0.94] ${
+                      a.solved
+                        ? "bg-white/[0.06] text-chalk hover:bg-white/[0.1]"
+                        : seen
+                          ? "text-fog shadow-[inset_0_0_0_1px_rgba(218,92,44,0.4)] hover:bg-white/[0.06]"
+                          : "text-ember shadow-[inset_0_0_0_1px_var(--color-ember)] hover:bg-white/[0.06]"
+                    }`}
+                  >
+                    <span aria-hidden>{a.solved ? "✓" : seen ? "↺" : "×"}</span>
+                    {a.puzzle.rating}
+                  </button>
+                </motion.li>
+              );
+            })}
+          </ol>
+        </div>
       )}
 
       <div className="mt-auto flex flex-col gap-3">
-        <Button onClick={onAgain} className="w-full">
-          rush again
-        </Button>
-        <div className="grid grid-cols-[auto_1fr] gap-3">
-          <Button variant="ghost" arrow={false} onClick={onExit} aria-label="menu">
-            ←
-          </Button>
-          <ShareRun minutes={minutes} seed={seed} score={score} />
-        </div>
+        {firstUnseen !== undefined ? (
+          <>
+            {/* Mistakes first: seeing the line you missed is how the pattern sticks (D-072). */}
+            <Button onClick={() => onOpen(firstUnseen)} className="w-full">
+              {unseen === misses.length ? `review ${misses.length === 1 ? "your mistake" : `${misses.length} mistakes`}` : `review ${unseen} more`}
+            </Button>
+            <div className="grid grid-cols-[auto_1fr_1fr] gap-2">
+              <Button variant="ghost" arrow={false} onClick={onExit} aria-label="menu" className="px-4">
+                ←
+              </Button>
+              <Button variant="ghost" arrow={false} onClick={onAgain} className="px-3">
+                rush again
+              </Button>
+              <ShareRun minutes={minutes} seed={seed} score={score} short />
+            </div>
+          </>
+        ) : (
+          <>
+            <Button onClick={onAgain} className="w-full">
+              rush again
+            </Button>
+            <div className="grid grid-cols-[auto_1fr] gap-3">
+              <Button variant="ghost" arrow={false} onClick={onExit} aria-label="menu">
+                ←
+              </Button>
+              <ShareRun minutes={minutes} seed={seed} score={score} />
+            </div>
+          </>
+        )}
       </div>
     </motion.div>
   );
@@ -508,7 +589,7 @@ function SummaryStat({ label, value }: { label: string; value: string }) {
 }
 
 /** A link to the same run (same puzzles, same order) with your score to beat. */
-function ShareRun({ minutes, seed, score }: { minutes: RushMinutes; seed: string; score: number }) {
+function ShareRun({ minutes, seed, score, short = false }: { minutes: RushMinutes; seed: string; score: number; short?: boolean }) {
   const [copied, setCopied] = useState(false);
   async function share() {
     const url = `${window.location.origin}/play/chess?${new URLSearchParams({ m: "rush", r: String(minutes), s: seed, b: String(score) })}`;
@@ -523,8 +604,8 @@ function ShareRun({ minutes, seed, score }: { minutes: RushMinutes; seed: string
     }
   }
   return (
-    <Button variant="ghost" arrow={false} onClick={share} className="w-full">
-      {copied ? "copied ✓" : "challenge a friend"}
+    <Button variant="ghost" arrow={false} onClick={share} className={`w-full ${short ? "px-3" : ""}`}>
+      {copied ? "copied ✓" : short ? "challenge" : "challenge a friend"}
     </Button>
   );
 }

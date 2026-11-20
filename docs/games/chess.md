@@ -72,6 +72,14 @@ Each step picks among the 24 unused puzzles closest to its target that fit, with
 
 **The end:** the score, why it ended (time's up, three strikes, run ended), a line against your best or the score to beat, best, missed and hardest solved, every puzzle as a chip with its rating, "rush again" (new seed, same length) and "challenge a friend".
 
+**Review** (D-072): every puzzle on the end screen is a button ("tap a puzzle to replay it"). When the run had misses, the primary action is "review 3 mistakes"; rush again and challenge sit below it. A review replays the puzzle from its setup move, off the clock and unrecorded:
+
+- Above the board: "review · mistake 1 of 3", the puzzle number and rating, and the hint button (piece, then the move as an arrow, 1.5 s cooldown).
+- Below: what you played in the run ("in the run you played Ng5"). A wrong move shakes and steps back, and you try again as often as you like.
+- **solution** plays the rest of the line from where you are. Once solved or shown, the themes appear and **replay** starts it over.
+- **next mistake** moves through the misses in order (it reads **skip** before you've solved or seen the line), the last one says **results**. ← goes back to the results at any point.
+- Reviewed misses turn from an ember × to a muted ↺ chip, and the button counts down ("review 1 more"). With nothing left to review, rush again is primary again. Solved puzzles open the same way, with "you solved this one in the run".
+
 **Sharing:** `/play/chess?m=rush&r=<3|5>&s=<seed>&b=<score>` opens the start card on rush with the length locked and "beat 21" under it. The friend's seed is used once; "rush again" starts a fresh one.
 
 **Records:** one per run, `mode: "rush"`, tier medium, seed `rush<minutes>-<seed>`, `score` = puzzles solved. Kept out of the puzzle rating, solve rate, bests and the daily (`gameSummary`, `puzzleBests`, `solvesAt`); `rushBests` gives the best per length.
@@ -112,7 +120,6 @@ After a puzzle, chips show the puzzle rating, the speed bonus, the hint cost and
 ## Not yet
 
 - Puzzle Streak (no clock, one life, ramps the same way).
-- Reviewing a rush puzzle from the end screen.
 - A daily rush, the same run for everyone.
 - Choosing themes to practise (forks only, mates only).
 - Sound for moves and captures (Phase 6 sound pass).

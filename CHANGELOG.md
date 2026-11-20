@@ -3,6 +3,7 @@
 ## Unreleased
 
 - **chess: Puzzle Rush** (D-071). A third mode on the chess start card: 3 or 5 minutes to solve as many puzzles as you can, and the third wrong move ends the run. The first five are mates in one from the bottom of the set (back rank mates among them), the next five mates in one or two, then any tactic, climbing about 50 points a puzzle to 1450, 40 to 2060, then 30 to 2800, with short lines first. Lives, a live score, a strip of ✓ and × tiles and the clock (ember in the last 10 seconds) sit above the board; the end screen shows the score, your best, misses, the hardest puzzle solved and every puzzle's rating. No hints and no rating at stake. Bests per length on the start card and in recent games.
+- **Rush review** (D-072): tap any puzzle on the end screen to replay it, or "review 3 mistakes" to walk through every miss. Off the clock: retry as often as you like, hints (piece, then move), the solution played out, what you played in the run, then next mistake. Reviewed misses are marked.
 - **Rush challenge links**: `/play/chess?m=rush&r=3&s=<seed>&b=<score>` replays the same puzzles in the same order with a score to beat. The sequence depends only on the seed and the puzzle number.
 - History: rush runs are one record each (`mode: "rush"`, `score`), kept out of the puzzle rating, solves, bests and the daily. GA `points` carries the score.
 
