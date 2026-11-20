@@ -253,12 +253,6 @@ h4,
   50% { transform: translateY(-4px) rotate(var(--r, 0deg)); }
 }
 
-/* Home hero board field: a slow bob. Rotation sits on the independent rotate property. */
-@keyframes drift {
-  0%, 100% { transform: translate3d(0, 0, 0); }
-  50% { transform: translate3d(0, -12px, 0); }
-}
-
 ::selection {
   background: var(--color-ember);
   color: var(--color-void);

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Hero: the deck** (D-074). The board field, the daily set card and the week ramp are replaced by today's set as a deck of game cards in their deep colours. It tilts toward the pointer, fans open as you move, spreads as you scroll, and switches through the set on its own, on a swipe, or from the segments under it; tapping the top card opens the game. Sans headline, a quiet date and tier line, and one line of progress replace the terminal prompt and the week ramp.
+
 - **Game colours** (D-073): every home game card is filled with a muted, deep take on its hue, a vertical gradient with a soft light in the top right corner and white text that passes 5:1 or better everywhere. The start screen picks up the same colour: a wash from the top of the page and a band across the top of the card that fades out before the controls and when a board opens.
 - **Opening a card** (D-073): the card's colour grows from the tile to the whole screen and settles into the start screen. New-tab clicks and reduced motion keep the plain link.
 

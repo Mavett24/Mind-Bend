@@ -1,196 +1,58 @@
 "use client";
 
 /**
- * Home hero (D-042): a field of tilted mini boards from every game drifts behind a big mono
- * headline, follows the pointer with depth, and answers the daily set in front of it. Hovering
- * or focusing a game in the set pulls that game's boards forward; by default the next unplayed
- * game is the one lit up. Motion is transform and opacity only, and parallax and drift switch
- * off under prefers-reduced-motion.
+ * Home hero (D-074): the headline on the left, today's set as a deck of game cards on the right
+ * (above it on phones). The deck tilts toward the pointer, fans open as it moves, and spreads as the
+ * hero scrolls away. The top card is today's next game; the deck switches through the set on its
+ * own every few seconds, on a swipe, or from the segments under it, and tapping the top card opens
+ * that game. Motion is transform and opacity only; under reduced motion the deck holds still and
+ * cards swap without travel.
  */
 import Link from "next/link";
-import { useRef, useState, type PointerEvent } from "react";
-import { motion, useMotionValue, useReducedMotion, useScroll, useSpring, useTransform, type MotionValue } from "motion/react";
-import { GAMES, type GameId } from "@/games/registry";
-import { dailyBoard, utcDateKey, utcIsoWeekday } from "@/engine/seed";
-import { dailyTier, TIERS } from "@/engine/difficulty";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useScroll,
+  useSpring,
+  useTransform,
+  type MotionValue,
+  type PanInfo,
+} from "motion/react";
+import { GAMES, type GameId, type GameMeta } from "@/games/registry";
+import { dailyBoard, utcDateKey } from "@/engine/seed";
 import type { Profile } from "@/lib/profile";
 import { useToday } from "@/lib/useToday";
 import { untilMidnightUtc, useNow } from "@/lib/useNow";
 import { dur, ease } from "@/lib/motion";
-import { GameIcon, hue } from "./GameIcon";
-import { BoardPanel } from "./GameArt";
+import { openCard } from "@/lib/cardOpen";
+import { GameIcon, gameColours } from "./GameIcon";
+import { MiniBoard } from "./GameArt";
 
-/* ---------- board field ---------- */
+const MotionLink = motion.create(Link);
+const N = GAMES.length;
 
-/** px a depth-1 board travels upward, on top of the page scroll, as the hero scrolls out */
-const SCROLL_DRIFT = 140;
+/** Seconds on each card before the deck moves on by itself. */
+const AUTO_MS = 4800;
+/** After you touch the deck, it waits this long before moving on by itself again. */
+const IDLE_AFTER_TOUCH_MS = 9000;
+/** A swipe past this distance, or this fast, switches cards (px, px/s). */
+const SWIPE_PX = 64;
+const SWIPE_VELOCITY = 450;
 
-type Spot = {
-  id: GameId;
-  v: 0 | 1;
-  /** left / top in % of the hero */
-  x: number;
-  y: number;
-  w: number;
-  r: number;
-  /** parallax depth: higher moves more */
-  d: number;
-  /** also shown on small screens */
-  m?: boolean;
-};
-
-const FIELD: Spot[] = [
-  { id: "path", v: 0, x: 47, y: 2, w: 196, r: -8, d: 0.7, m: true },
-  { id: "balance", v: 0, x: 80, y: 3, w: 176, r: 10, d: 1, m: true },
-  { id: "blocks", v: 0, x: 62, y: 62, w: 196, r: 7, d: 0.85 },
-  { id: "sudoku", v: 0, x: 89, y: 44, w: 168, r: -12, d: 1.25, m: true },
-  { id: "weave", v: 0, x: 36, y: 72, w: 160, r: -5, d: 0.55 },
-  { id: "recall", v: 0, x: 4, y: 78, w: 164, r: 9, d: 0.9 },
-  { id: "trivia", v: 0, x: 86, y: 80, w: 156, r: 14, d: 1.15 },
-  { id: "path", v: 1, x: -5, y: 6, w: 140, r: 12, d: 0.4, m: true },
-  { id: "sudoku", v: 1, x: 24, y: -7, w: 128, r: -10, d: 0.3, m: true },
-  { id: "weave", v: 1, x: 68, y: -9, w: 132, r: 6, d: 0.5, m: true },
-  { id: "blocks", v: 1, x: 20, y: 90, w: 128, r: 12, d: 0.35 },
-  { id: "balance", v: 1, x: 99, y: 22, w: 140, r: -6, d: 0.75 },
-  { id: "trivia", v: 1, x: 52, y: 88, w: 124, r: 4, d: 0.3 },
-  { id: "recall", v: 1, x: 60, y: 30, w: 118, r: -14, d: 0.25, m: true },
-  { id: "chess", v: 0, x: 49, y: 58, w: 150, r: -7, d: 0.95 },
-  { id: "chess", v: 1, x: 36, y: 6, w: 120, r: 11, d: 0.45, m: true },
-];
-
-function FieldBoard({
-  spot,
-  i,
-  focus,
-  mx,
-  my,
-  scroll,
-}: {
-  spot: Spot;
-  i: number;
-  focus: GameId | null;
-  mx: MotionValue<number>;
-  my: MotionValue<number>;
-  /** 0 with the hero at the top of the page, 1 once it has scrolled out (0 under reduced motion) */
-  scroll: MotionValue<number>;
-}) {
-  const x = useTransform(mx, (v) => v * spot.d * -28);
-  // Pointer parallax plus scroll drift (D-052): deeper boards leave faster than the headline does.
-  const y = useTransform(() => my.get() * spot.d * -20 - scroll.get() * spot.d * SCROLL_DRIFT);
-  const active = focus === spot.id;
-  const dim = focus !== null && !active;
-
-  return (
-    <motion.div
-      className={`absolute ${spot.m ? "" : "max-md:hidden"}`}
-      style={{
-        left: `${spot.x}%`,
-        top: `${spot.y}%`,
-        x,
-        y,
-        zIndex: Math.round(spot.d * 10),
-      }}
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{
-          duration: dur.slow * 1.6,
-          ease: ease.spring,
-          delay: 0.1 + i * 0.045,
-        }}
-        className="max-md:scale-[0.62] max-md:origin-top-left"
-      >
-        <div
-          className="animate-[drift_var(--t)_ease-in-out_infinite]"
-          style={
-            {
-              "--t": `${7 + (i % 5) * 1.3}s`,
-              animationDelay: `${-i * 0.9}s`,
-              rotate: `${spot.r}deg`,
-            } as React.CSSProperties
-          }
-        >
-          <div
-            className="relative transition-[transform,opacity] duration-[var(--dur-slow)] ease-[var(--ease-spring)]"
-            style={{
-              opacity: active ? 1 : dim ? 0.22 : 0.5,
-              transform: active ? "scale(1.1) translateY(-6px)" : "scale(1)",
-            }}
-          >
-            <div
-              aria-hidden
-              className="absolute -inset-[18%] rounded-full blur-3xl transition-opacity duration-[var(--dur-slow)] ease-[var(--ease-out)]"
-              style={{ background: hue(spot.id), opacity: active ? 0.28 : 0 }}
-            />
-            <div className="relative">
-              <BoardPanel id={spot.id} v={spot.v} width={spot.w} />
-            </div>
-          </div>
-        </div>
-      </motion.div>
-    </motion.div>
-  );
-}
-
-/* ---------- small pieces ---------- */
+/** Where a card sits by its place in the deck (0 = top): fanned back to the left and down. */
+const slot = (s: number) => ({ x: -s * 15, y: s * 9, rotate: -s * 2.1, scale: 1 - s * 0.018 });
+/** Where the top card goes as it leaves: out to the left and up, tipping over. */
+const OUT = { x: -260, y: -24, rotate: -16, scale: 0.96 };
+/** Card motion: a quick, settled spring (no bounce, this is a deck of cards, not a toy). */
+const DEAL = { type: "spring", duration: 0.55, bounce: 0.08 } as const;
+const FLY = { type: "spring", duration: 0.34, bounce: 0 } as const;
 
 function formatDay(date: Date): string {
-  return date
-    .toLocaleDateString("en-GB", {
-      weekday: "short",
-      day: "numeric",
-      month: "short",
-      timeZone: "UTC",
-    })
-    .replace(",", "")
-    .toLowerCase();
+  return date.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }).replace(",", "").toLowerCase();
 }
-
-const DAY_LETTERS = ["m", "t", "w", "t", "f", "s", "s"];
-
-/** The week's difficulty ramp: one bar per weekday, height by tier, today in ember. */
-function WeekRamp({ today }: { today: Date | null }) {
-  const wd = today ? utcIsoWeekday(today) : 0;
-  return (
-    <div className="flex items-end gap-4">
-      <div className="flex items-end gap-1.5" aria-hidden>
-        {DAY_LETTERS.map((l, i) => {
-          const level = TIERS.indexOf(dailyTier(i + 1)) + 1;
-          const isToday = wd === i + 1;
-          return (
-            <div key={i} className="flex flex-col items-center gap-1.5">
-              <div className="flex h-8 w-3 items-end">
-                <motion.span
-                  className="block w-full origin-bottom rounded-[3px]"
-                  style={{
-                    height: `${level * 25}%`,
-                    background: isToday ? "var(--color-ember)" : i + 1 < wd ? "var(--color-slate)" : "rgba(255,255,255,0.12)",
-                  }}
-                  initial={{ scaleY: 0 }}
-                  animate={{ scaleY: 1 }}
-                  transition={{
-                    duration: dur.slow,
-                    ease: ease.spring,
-                    delay: 0.5 + i * 0.05,
-                  }}
-                />
-              </div>
-              <span className={`font-mono text-[11px] leading-none ${isToday ? "text-paper" : "text-steel"}`}>{l}</span>
-            </div>
-          );
-        })}
-      </div>
-      <p className="pb-0.5 text-caption text-ash">
-        easy monday,
-        <br />
-        expert sunday
-      </p>
-    </div>
-  );
-}
-
-/* ---------- hero ---------- */
 
 function headline(p: Profile | null, left: number): [string, string] {
   if (!p?.returning) return ["Eight games.", "Fresh daily."];
@@ -204,36 +66,30 @@ function headline(p: Profile | null, left: number): [string, string] {
 export function Hero({ profile }: { profile: Profile | null }) {
   const today = useToday();
   const now = useNow();
-  const reduce = useReducedMotion();
+  const reduced = useReducedMotion();
   const tier = today ? dailyBoard("path", today).tier : null;
   const todayKey = today ? utcDateKey(today) : null;
   const done = new Set(todayKey && profile ? GAMES.filter((g) => profile.games[g.id].dailyDone.has(todayKey)).map((g) => g.id) : []);
   const next = GAMES.find((g) => !done.has(g.id)) ?? null;
-  const left = GAMES.length - done.size;
+  const left = N - done.size;
+  const [line1, line2] = headline(profile, left);
 
-  const [hover, setHover] = useState<GameId | null>(null);
-  const focus = hover ?? next?.id ?? null;
-
+  // Pointer across the hero, -1..1, on a soft spring. Mouse only.
   const rawX = useMotionValue(0);
   const rawY = useMotionValue(0);
-  const mx = useSpring(rawX, { stiffness: 60, damping: 18, mass: 0.6 });
-  const my = useSpring(rawY, { stiffness: 60, damping: 18, mass: 0.6 });
+  const mx = useSpring(rawX, { stiffness: 70, damping: 20, mass: 0.7 });
+  const my = useSpring(rawY, { stiffness: 70, damping: 20, mass: 0.7 });
   const ref = useRef<HTMLElement>(null);
-
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
   const still = useMotionValue(0);
-  const scroll = reduce ? still : scrollYProgress;
-  // The field fades out as you leave the hero (opacity only, so it stays on under reduced motion).
-  const fieldOpacity = useTransform(scrollYProgress, [0, 0.85], [1, 0.15]);
+  const scroll = reduced ? still : scrollYProgress;
 
-  function onMove(e: PointerEvent<HTMLElement>) {
-    if (reduce || e.pointerType !== "mouse" || !ref.current) return;
+  function onMove(e: React.PointerEvent<HTMLElement>) {
+    if (reduced || e.pointerType !== "mouse" || !ref.current) return;
     const r = ref.current.getBoundingClientRect();
     rawX.set(((e.clientX - r.left) / r.width) * 2 - 1);
     rawY.set(((e.clientY - r.top) / r.height) * 2 - 1);
   }
-
-  const [line1, line2] = headline(profile, left);
 
   return (
     <section
@@ -246,91 +102,59 @@ export function Hero({ profile }: { profile: Profile | null }) {
       aria-labelledby="hero-title"
       className="relative isolate overflow-hidden"
     >
-      {/* the board field */}
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-full max-md:h-[420px]">
-        <motion.div className="absolute inset-0" style={{ opacity: fieldOpacity }}>
-          {FIELD.map((spot, i) => (
-            <FieldBoard key={`${spot.id}-${spot.v}`} spot={spot} i={i} focus={focus} mx={mx} my={my} scroll={scroll} />
-          ))}
-        </motion.div>
-        {/* keep the headline readable and melt the field into the page */}
-        <div className="absolute inset-0 z-20 bg-[radial-gradient(70%_75%_at_22%_48%,var(--color-void)_30%,transparent_75%)] max-md:bg-[radial-gradient(110%_55%_at_20%_95%,var(--color-void)_40%,transparent_85%)]" />
-        <div className="absolute inset-x-0 bottom-0 z-20 h-40 bg-gradient-to-b from-transparent to-void" />
-      </div>
-
-      <div className="mx-auto grid w-full max-w-[1200px] items-center gap-10 px-4 pb-16 pt-44 md:pt-36 lg:min-h-[min(820px,calc(100svh-56px))] lg:grid-cols-[1.25fr_1fr] lg:gap-16 lg:py-20">
-        {/* left: the pitch */}
-        <div className="flex flex-col gap-7">
+      <div className="mx-auto grid w-full max-w-[1200px] items-center gap-6 px-4 pb-16 pt-6 md:px-8 lg:min-h-[min(820px,calc(100svh-56px))] lg:grid-cols-[1fr_540px] lg:gap-10 lg:py-16">
+        {/* the pitch (below the deck on phones) */}
+        <div className="order-2 flex flex-col gap-7 lg:order-1">
           <motion.p
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: dur.slow, ease: ease.out }}
-            className="flex items-center gap-2 text-caption text-steel"
+            className="flex items-center gap-2 font-mono text-caption uppercase tracking-[0.12em] text-ash"
+            suppressHydrationWarning
           >
-            ~/mind-bend $ daily {today ? `--${formatDay(today).replace(/ /g, "-")}` : ""}
-            <span aria-hidden className="inline-block h-[1.1em] w-[0.5em] animate-blink bg-ember" />
+            <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-ember" />
+            {today ? `${formatDay(today)} · ${tier}` : " "}
           </motion.p>
 
-          <h1 id="hero-title" className="font-medium">
-            <motion.span
-              key={line1}
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                duration: dur.slow * 1.4,
-                ease: ease.springStrong,
-                delay: 0.05,
-              }}
-              className="block whitespace-nowrap text-[clamp(44px,5.4vw,84px)] leading-none tracking-[-0.04em]"
-            >
-              {line1}
-            </motion.span>
-            <motion.span
-              key={line2}
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                duration: dur.slow * 1.4,
-                ease: ease.springStrong,
-                delay: 0.14,
-              }}
-              className="block whitespace-nowrap text-[clamp(44px,5.4vw,84px)] leading-none tracking-[-0.04em] text-steel"
-            >
-              {line2}
-            </motion.span>
+          <h1 id="hero-title" className="!font-sans font-semibold">
+            {[line1, line2].map((line, i) => (
+              <motion.span
+                key={`${i}-${line}`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: dur.slow * 1.2, ease: ease.out, delay: 0.05 + i * 0.08 }}
+                className={`block whitespace-nowrap text-[clamp(46px,6vw,84px)] leading-[0.98] tracking-[-0.045em] ${i ? "text-steel" : ""}`}
+              >
+                {line}
+              </motion.span>
+            ))}
           </h1>
 
           {!profile?.returning && (
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: dur.slow, ease: ease.out, delay: 0.3 }}
-              className="max-w-md text-[15px] leading-relaxed text-fog"
+              transition={{ duration: dur.slow, ease: ease.out, delay: 0.25 }}
+              className="max-w-[420px] text-[17px] leading-relaxed text-fog"
             >
-              Logic, memory, trivia and chess, a fresh set every midnight. Play the set, then train any game on endless boards that
-              learn your level.
+              Logic, memory, trivia and chess. A new set at midnight, and endless boards that learn your level.
             </motion.p>
           )}
 
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: dur.slow, ease: ease.out, delay: 0.35 }}
+            transition={{ duration: dur.slow, ease: ease.out, delay: 0.3 }}
             className="flex flex-wrap items-center gap-3"
           >
             {next ? (
               <Link
                 href={`/play/${next.id}?m=daily`}
-                className="group inline-flex h-12 items-center gap-2.5 rounded-full bg-paper pl-2 pr-5 font-mono text-[15px] font-medium text-void transition-[transform,background-color] duration-[var(--dur-fast)] ease-[var(--ease-spring)] hover:bg-white active:scale-[0.97]"
-                onMouseEnter={() => setHover(next.id)}
-                onMouseLeave={() => setHover(null)}
+                className="group inline-flex h-12 items-center gap-2.5 rounded-full bg-paper pl-2 pr-5 font-mono text-[15px] font-medium text-void transition-[transform,background-color] duration-[var(--dur-fast)] ease-[var(--ease-out)] hover:bg-white active:scale-[0.97]"
               >
                 <GameIcon id={next.id} size={34} />
                 {done.size === 0 ? `start with ${next.name}` : `continue with ${next.name}`}
-                <span
-                  aria-hidden
-                  className="transition-transform duration-[var(--dur-base)] ease-[var(--ease-spring)] group-hover:translate-x-1"
-                >
+                <span aria-hidden className="transition-transform duration-[var(--dur-base)] ease-[var(--ease-out)] group-hover:translate-x-1">
                   →
                 </span>
               </Link>
@@ -341,149 +165,284 @@ export function Hero({ profile }: { profile: Profile | null }) {
             )}
             <Link
               href="/#games"
-              className="inline-flex h-12 items-center rounded-full bg-white/[0.06] px-5 font-mono text-[15px] text-paper shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)] transition-[transform,background-color] duration-[var(--dur-fast)] hover:bg-white/[0.1] active:scale-[0.97]"
+              className="inline-flex h-12 items-center rounded-full px-5 font-mono text-[15px] text-fog shadow-[inset_0_0_0_1px_rgba(255,255,255,0.14)] transition-[transform,color] duration-[var(--dur-fast)] ease-[var(--ease-out)] hover:text-paper active:scale-[0.97]"
             >
               practice
             </Link>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: dur.slow, delay: 0.45 }} className="pt-2">
-            <WeekRamp today={today} />
-          </motion.div>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: dur.slow, delay: 0.4 }}
+            className="font-mono text-caption text-ash"
+            suppressHydrationWarning
+          >
+            <span className="text-paper">{done.size}</span> of {N} today · new set in{" "}
+            <span className="tabular-nums text-fog">{now ? untilMidnightUtc(now) : "--:--:--"}</span>
+          </motion.p>
         </div>
 
-        {/* right: the daily set */}
-        <DailySet done={done} tier={tier} today={today} now={now} next={next?.id ?? null} onHover={setHover} />
+        <Deck done={done} next={next?.id ?? null} mx={mx} my={my} scroll={scroll} reduced={!!reduced} />
       </div>
     </section>
   );
 }
 
-/* ---------- daily set ---------- */
+/* ---------- the deck ---------- */
 
-function DailySet({
-  done,
-  tier,
-  today,
-  now,
-  next,
-  onHover,
-}: {
+interface DeckProps {
   done: Set<GameId>;
-  tier: string | null;
-  today: Date | null;
-  now: Date | null;
   next: GameId | null;
-  onHover: (id: GameId | null) => void;
-}) {
+  mx: MotionValue<number>;
+  my: MotionValue<number>;
+  scroll: MotionValue<number>;
+  reduced: boolean;
+}
+
+function Deck({ done, next, mx, my, scroll, reduced }: DeckProps) {
+  const router = useRouter();
+  const nextIndex = next ? GAMES.findIndex((g) => g.id === next) : 0;
+  const [top, setTop] = useState(nextIndex);
+  /** A card on its way out (dir 1: the top card leaving; dir -1: a back card coming round to the front). */
+  const [moving, setMoving] = useState<{ index: number; dir: 1 | -1; to: number } | null>(null);
+  const [dealt, setDealt] = useState(false);
+  const lastTouch = useRef(0);
+  const hovering = useRef(false);
+  const [touched, setTouched] = useState(false);
+
+  // Once history loads, open on today's next game (until you've touched the deck).
+  const [syncedTo, setSyncedTo] = useState(nextIndex);
+  if (syncedTo !== nextIndex && !touched && !moving) {
+    setSyncedTo(nextIndex);
+    setTop(nextIndex);
+  }
+
+  /** Bring card `to` to the top. Forward: the top card leaves to the back. Backward: `to` comes round from the back. */
+  const go = useCallback(
+    (to: number, dir: 1 | -1) => {
+      if (moving || to === top) return;
+      if (reduced) return setTop(to);
+      setMoving(dir === 1 ? { index: top, dir, to } : { index: to, dir, to });
+    },
+    [moving, top, reduced],
+  );
+  const step = useCallback((dir: 1 | -1) => go((top + dir + N) % N, dir), [go, top]);
+  const touch = useCallback(() => {
+    lastTouch.current = performance.now();
+    setTouched(true);
+  }, []);
+
+  // Moves on by itself: not while you're on it, not soon after you've used it, not in a hidden tab.
+  useEffect(() => {
+    if (reduced) return;
+    const id = window.setInterval(() => {
+      if (document.hidden || hovering.current || (lastTouch.current && performance.now() - lastTouch.current < IDLE_AFTER_TOUCH_MS)) return;
+      step(1);
+    }, AUTO_MS);
+    return () => clearInterval(id);
+  }, [reduced, step]);
+
+  // Tilt toward the pointer; the whole deck rises a little as the hero scrolls away.
+  const rotateY = useTransform(mx, (v) => v * 9 - 4);
+  const rotateX = useTransform(my, (v) => v * -7 + 4);
+  const deckY = useTransform(scroll, (v) => v * -60);
+
+  const status = (id: GameId) => (done.has(id) ? "done today" : id === next ? "up next" : "in today's set");
+
   return (
-    <motion.section
+    <section
       id="daily"
-      aria-labelledby="daily-title"
-      initial={{ opacity: 0, y: 28, rotate: 1.5 }}
-      animate={{ opacity: 1, y: 0, rotate: 0 }}
-      transition={{
-        duration: dur.slow * 1.5,
-        ease: ease.springStrong,
-        delay: 0.2,
-      }}
-      className="surface relative flex scroll-mt-20 flex-col gap-6 rounded-card p-6 md:p-7"
-      onMouseLeave={() => onHover(null)}
+      aria-label="Today's set"
+      className="order-1 flex scroll-mt-20 flex-col items-center gap-5 lg:order-2"
+      onMouseEnter={() => (hovering.current = true)}
+      onMouseLeave={() => (hovering.current = false)}
+      onFocusCapture={() => (hovering.current = true)}
+      onBlurCapture={() => (hovering.current = false)}
     >
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <h2 id="daily-title" className="flex items-center gap-2 text-caption uppercase text-ash">
-            <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-ember" />
-            daily set
-          </h2>
-          <p className="font-num leading-none">
-            <span className="text-number">{done.size}</span>
-            <span className="text-number text-steel">/{GAMES.length}</span>
-          </p>
-        </div>
-        <div className="flex flex-col items-end gap-1.5 pt-0.5 text-right">
-          <span className="rounded-full bg-white/[0.06] px-2.5 py-1 font-mono text-caption text-paper shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]">
-            {tier ?? " "}
-          </span>
-          <span className="text-caption text-ash">{today ? formatDay(today) : " "}</span>
-        </div>
+      <div className="flex h-[360px] w-full items-center justify-center pl-12 pt-2 [perspective:1400px] sm:h-[420px] lg:h-[540px] lg:pl-20">
+        <motion.div
+          className="relative h-[270px] w-[204px] sm:h-[330px] sm:w-[248px] lg:h-[400px] lg:w-[300px]"
+          style={{ rotateX, rotateY, y: deckY, transformStyle: "preserve-3d" }}
+        >
+          {GAMES.map((g, i) => {
+            const s = (i - top + N) % N;
+            const isMoving = moving?.index === i;
+            return (
+              <DeckCard
+                key={g.id}
+                game={g}
+                s={s}
+                // While a card flies out, it stays above the deck (leaving) or below it (coming round).
+                z={isMoving ? (moving.dir === 1 ? N + 1 : 0) : N - s}
+                out={isMoving}
+                dealt={dealt}
+                dealDelay={(N - 1 - s) * 0.045}
+                status={status(g.id)}
+                done={done.has(g.id)}
+                mx={mx}
+                scroll={scroll}
+                reduced={reduced}
+                onOut={() => {
+                  if (!moving || moving.index !== i) return;
+                  setTop(moving.to);
+                  setMoving(null);
+                }}
+                onDealt={() => setDealt(true)}
+                onSwipe={(dir) => {
+                  touch();
+                  step(dir);
+                }}
+                onOpen={(el) => {
+                  touch();
+                  if (s !== 0) return go(i, s <= N / 2 ? 1 : -1);
+                  const href = done.has(g.id) ? `/play/${g.id}` : `/play/${g.id}?m=daily`;
+                  if (reduced) return router.push(href);
+                  openCard(el, g.id, () => router.push(href));
+                }}
+              />
+            );
+          })}
+        </motion.div>
       </div>
 
-      <div className="flex gap-1" aria-hidden>
-        {GAMES.map((g, i) => (
-          <motion.span
-            key={g.id}
-            initial={{ scaleX: 0, opacity: 0 }}
-            animate={{ scaleX: 1, opacity: 1 }}
-            transition={{
-              duration: dur.slow,
-              ease: ease.spring,
-              delay: 0.35 + i * 0.04,
-            }}
-            className="h-1.5 flex-1 origin-left rounded-full"
-            style={{
-              background: done.has(g.id) ? hue(g.id) : "rgba(255,255,255,0.08)",
-            }}
-          />
-        ))}
-      </div>
-
-      <ol className="-mx-2 flex flex-col">
-        {GAMES.map((game, i) => {
-          const isDone = done.has(game.id);
-          const isNext = next === game.id;
-          return (
-            <motion.li
-              key={game.id}
-              initial={{ opacity: 0, x: 10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{
-                duration: dur.slow,
-                ease: ease.out,
-                delay: 0.3 + i * 0.04,
+      {/* the set: one segment per game, done in its colour, the card on top in white */}
+      <div className="flex w-full max-w-[300px] flex-col lg:pl-20">
+        <div className="grid grid-cols-8 gap-1">
+          {GAMES.map((g, i) => (
+            <button
+              key={g.id}
+              type="button"
+              aria-label={`Show ${g.name}, ${status(g.id)}`}
+              aria-current={i === top || undefined}
+              onClick={() => {
+                touch();
+                const s = (i - top + N) % N;
+                go(i, s <= N / 2 ? 1 : -1);
               }}
+              className="group flex h-6 items-center"
             >
-              <Link
-                href={`/play/${game.id}?m=daily`}
-                onMouseEnter={() => onHover(game.id)}
-                onFocus={() => onHover(game.id)}
-                onBlur={() => onHover(null)}
-                className="group flex h-12 items-center gap-3 rounded-control px-2 transition-colors duration-[var(--dur-fast)] hover:bg-white/[0.05] focus-visible:bg-white/[0.05]"
+              <span
+                className="relative h-1.5 w-full overflow-hidden rounded-full transition-transform duration-[var(--dur-fast)] ease-[var(--ease-out)] group-hover:scale-y-[1.6]"
+                style={{ ...gameColours(g.id), background: done.has(g.id) ? "var(--deep)" : "var(--color-iron)" }}
               >
-                <span className="w-5 font-mono text-caption text-steel">{String(i + 1).padStart(2, "0")}</span>
-                <span className="transition-transform duration-[var(--dur-base)] ease-[var(--ease-spring)] group-hover:scale-110 group-hover:-rotate-6">
-                  <GameIcon id={game.id} size={28} />
-                </span>
-                <span className={`flex-1 font-mono ${isDone ? "text-ash line-through decoration-steel" : "text-paper"}`}>{game.name}</span>
-                {isNext && <span className="font-mono text-caption text-fog max-sm:hidden">up next</span>}
-                {isDone ? (
-                  <span
-                    className="flex h-5 w-5 items-center justify-center rounded-full bg-paper text-[11px] font-bold text-void"
-                    aria-label="done today"
-                  >
-                    ✓
-                  </span>
-                ) : (
-                  <span className="h-5 w-5 rounded-full shadow-[inset_0_0_0_1.5px_var(--color-slate)]" aria-label="not played today" />
-                )}
-                <span
-                  aria-hidden
-                  className="text-steel transition-transform duration-[var(--dur-base)] ease-[var(--ease-spring)] group-hover:translate-x-1 group-hover:text-paper"
-                >
-                  →
-                </span>
-              </Link>
-            </motion.li>
-          );
-        })}
-      </ol>
-
-      <div className="flex items-center justify-between border-t border-white/[0.06] pt-4 text-caption">
-        <span className="uppercase text-ash">new set in</span>
-        <span className="font-mono text-[15px] text-paper" suppressHydrationWarning>
-          {now ? untilMidnightUtc(now) : "--:--:--"}
-        </span>
+                <motion.span
+                  className="absolute inset-0 rounded-full bg-paper"
+                  initial={false}
+                  animate={{ opacity: i === top ? 1 : 0, scaleX: i === top ? 1 : 0.4 }}
+                  transition={{ duration: dur.base, ease: ease.out }}
+                />
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
-    </motion.section>
+    </section>
+  );
+}
+
+interface DeckCardProps {
+  game: GameMeta;
+  /** Place in the deck, 0 on top. */
+  s: number;
+  z: number;
+  out: boolean;
+  dealt: boolean;
+  dealDelay: number;
+  status: string;
+  done: boolean;
+  mx: MotionValue<number>;
+  scroll: MotionValue<number>;
+  reduced: boolean;
+  onOut: () => void;
+  onDealt: () => void;
+  onSwipe: (dir: 1 | -1) => void;
+  onOpen: (el: HTMLElement) => void;
+}
+
+function DeckCard({ game, s, z, out, dealt, dealDelay, status, done, mx, scroll, reduced, onOut, onDealt, onSwipe, onOpen }: DeckCardProps) {
+  const ref = useRef<HTMLAnchorElement>(null);
+  const dragged = useRef(false);
+  const isTop = s === 0 && !out;
+  const depth = 1 - s / N;
+
+  // Pointer and scroll on their own layer, so they never fight the deal and the swipe.
+  // Moving right fans the deck open; scrolling spreads it, the top card leaving fastest.
+  const px = useTransform(() => mx.get() * s * -6 + scroll.get() * s * -10);
+  const py = useTransform(() => -scroll.get() * depth * 140);
+
+  const target = out ? OUT : slot(s);
+
+  return (
+    <motion.div className="absolute inset-0" style={{ x: px, y: py, zIndex: z }}>
+      <motion.div
+        className="absolute inset-0"
+        initial={reduced ? false : { opacity: 0, x: target.x, y: target.y + 60, rotate: target.rotate - 6, scale: target.scale }}
+        animate={{ opacity: 1, ...target }}
+        transition={reduced ? { duration: 0 } : out ? FLY : dealt ? DEAL : { ...DEAL, delay: dealDelay }}
+        onAnimationComplete={() => {
+          if (out) onOut();
+          else if (!dealt && s === 0) onDealt();
+        }}
+      >
+        <MotionLink
+          ref={ref}
+          href={done ? `/play/${game.id}` : `/play/${game.id}?m=daily`}
+          tabIndex={isTop ? 0 : -1}
+          aria-hidden={!isTop || undefined}
+          aria-label={`${game.name}, ${status}. Open`}
+          draggable={false}
+          drag={isTop && !reduced ? "x" : false}
+          dragSnapToOrigin
+          dragElastic={0.5}
+          dragTransition={{ bounceStiffness: 400, bounceDamping: 32 }}
+          onDragStart={() => (dragged.current = true)}
+          onDragEnd={(_: unknown, info: PanInfo) => {
+            if (info.offset.x < -SWIPE_PX || info.velocity.x < -SWIPE_VELOCITY) onSwipe(1);
+            else if (info.offset.x > SWIPE_PX || info.velocity.x > SWIPE_VELOCITY) onSwipe(-1);
+            // Let the click that ends a drag pass without opening the card.
+            window.setTimeout(() => (dragged.current = false), 0);
+          }}
+          onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
+            if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+            e.preventDefault();
+            if (dragged.current || !ref.current) return;
+            onOpen(ref.current);
+          }}
+          whileTap={isTop ? { scale: 0.98 } : undefined}
+          style={gameColours(game.id)}
+          className={`game-surface absolute inset-0 flex cursor-pointer touch-pan-y select-none flex-col overflow-hidden rounded-[22px] lg:rounded-[28px] ${
+            isTop ? "" : "pointer-events-auto"
+          }`}
+        >
+          <div className="flex items-start justify-between gap-3 p-4 lg:p-6">
+            <span className="flex min-w-0 flex-col gap-1">
+              <span className="font-mono text-[18px] font-medium leading-none tracking-[-0.03em] text-white lg:text-[24px]">{game.name}</span>
+              <span className="on-colour-soft truncate text-caption">{game.skill}</span>
+            </span>
+            <span
+              className={`shrink-0 rounded-full px-2 py-0.5 font-mono text-caption ${
+                done ? "bg-black/25 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.14)]" : "on-colour-soft"
+              }`}
+            >
+              {done ? "done ✓" : status === "up next" ? "up next" : ""}
+            </span>
+          </div>
+          <div className="mt-auto flex items-end justify-between p-4 pt-0 lg:p-6 lg:pt-0">
+            <div className="w-[62%] rounded-[16px] bg-[#151515] p-2 shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_14px_30px_rgba(0,0,0,0.45)] lg:rounded-[20px] lg:p-2.5 [&>svg]:h-auto [&>svg]:w-full">
+              <MiniBoard id={game.id} size={160} />
+            </div>
+            <span
+              aria-hidden
+              className={`flex h-9 w-9 items-center justify-center rounded-full bg-paper text-void transition-opacity duration-[var(--dur-base)] lg:h-11 lg:w-11 ${
+                isTop ? "opacity-100" : "opacity-0"
+              }`}
+            >
+              →
+            </span>
+          </div>
+        </MotionLink>
+      </motion.div>
+    </motion.div>
   );
 }
