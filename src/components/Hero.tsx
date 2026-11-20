@@ -30,6 +30,7 @@ import { dur, ease } from "@/lib/motion";
 import { openCard } from "@/lib/cardOpen";
 import { GameIcon, gameColours } from "./GameIcon";
 import { MiniBoard } from "./GameArt";
+import { HeroShader } from "./HeroShader";
 
 const MotionLink = motion.create(Link);
 const N = GAMES.length;
@@ -83,6 +84,10 @@ export function Hero({ profile }: { profile: Profile | null }) {
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
   const still = useMotionValue(0);
   const scroll = reduced ? still : scrollYProgress;
+  // The backdrop follows the card on top of the deck, and fades as the hero scrolls away (opacity only).
+  const [topGame, setTopGame] = useState<GameId>(next?.id ?? "path");
+  const deckRef = useRef<HTMLDivElement>(null);
+  const backdropOpacity = useTransform(scrollYProgress, [0, 0.9], [1, 0]);
 
   function onMove(e: React.PointerEvent<HTMLElement>) {
     if (reduced || e.pointerType !== "mouse" || !ref.current) return;
@@ -102,6 +107,13 @@ export function Hero({ profile }: { profile: Profile | null }) {
       aria-labelledby="hero-title"
       className="relative isolate overflow-hidden"
     >
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-10 [mask-image:linear-gradient(transparent,black_18%,black_72%,transparent)]"
+        style={{ opacity: backdropOpacity }}
+      >
+        <HeroShader game={topGame} anchor={deckRef} mx={mx} my={my} reduced={!!reduced} />
+      </motion.div>
       <div className="mx-auto grid w-full max-w-[1200px] items-center gap-6 px-4 pb-16 pt-6 md:px-8 lg:min-h-[min(820px,calc(100svh-56px))] lg:grid-cols-[1fr_540px] lg:gap-10 lg:py-16">
         {/* the pitch (below the deck on phones) */}
         <div className="order-2 flex flex-col gap-7 lg:order-1">
@@ -183,7 +195,7 @@ export function Hero({ profile }: { profile: Profile | null }) {
           </motion.p>
         </div>
 
-        <Deck done={done} next={next?.id ?? null} mx={mx} my={my} scroll={scroll} reduced={!!reduced} />
+        <Deck done={done} next={next?.id ?? null} mx={mx} my={my} scroll={scroll} reduced={!!reduced} stageRef={deckRef} onTop={setTopGame} />
       </div>
     </section>
   );
@@ -198,9 +210,13 @@ interface DeckProps {
   my: MotionValue<number>;
   scroll: MotionValue<number>;
   reduced: boolean;
+  /** The deck's stage, for the backdrop to pool around. */
+  stageRef: React.RefObject<HTMLDivElement | null>;
+  /** Tells the backdrop which card is on top. */
+  onTop: (id: GameId) => void;
 }
 
-function Deck({ done, next, mx, my, scroll, reduced }: DeckProps) {
+function Deck({ done, next, mx, my, scroll, reduced, stageRef, onTop }: DeckProps) {
   const router = useRouter();
   const nextIndex = next ? GAMES.findIndex((g) => g.id === next) : 0;
   const [top, setTop] = useState(nextIndex);
@@ -228,6 +244,9 @@ function Deck({ done, next, mx, my, scroll, reduced }: DeckProps) {
     [moving, top, reduced],
   );
   const step = useCallback((dir: 1 | -1) => go((top + dir + N) % N, dir), [go, top]);
+  // The backdrop starts shifting colour as soon as a card begins to leave, not when it lands.
+  const showing = moving ? moving.to : top;
+  useEffect(() => onTop(GAMES[showing].id), [showing, onTop]);
   const touch = useCallback(() => {
     lastTouch.current = performance.now();
     setTouched(true);
@@ -260,7 +279,7 @@ function Deck({ done, next, mx, my, scroll, reduced }: DeckProps) {
       onFocusCapture={() => (hovering.current = true)}
       onBlurCapture={() => (hovering.current = false)}
     >
-      <div className="flex h-[360px] w-full items-center justify-center pl-12 pt-2 [perspective:1400px] sm:h-[420px] lg:h-[540px] lg:pl-20">
+      <div ref={stageRef} className="flex h-[360px] w-full items-center justify-center pl-12 pt-2 [perspective:1400px] sm:h-[420px] lg:h-[540px] lg:pl-20">
         <motion.div
           className="relative h-[270px] w-[204px] sm:h-[330px] sm:w-[248px] lg:h-[400px] lg:w-[300px]"
           style={{ rotateX, rotateY, y: deckY, transformStyle: "preserve-3d" }}

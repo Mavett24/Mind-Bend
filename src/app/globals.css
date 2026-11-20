@@ -196,6 +196,13 @@ h4,
   color: rgb(255 255 255 / 0.86);
 }
 
+/* The home "you" card (D-075): the next game's colour rises from the right, behind its panel. */
+.you-tint {
+  background-image:
+    radial-gradient(55% 140% at 100% 50%, color-mix(in oklab, var(--deep) 55%, transparent), transparent 70%),
+    linear-gradient(var(--color-surface-top) 0%, var(--color-surface-bottom) 100%);
+}
+
 /* The start card's colour band (D-073): full colour behind the title, gone by the controls. */
 .card-tint {
   background-image:
