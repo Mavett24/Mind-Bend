@@ -38,6 +38,26 @@
   --color-hue-trivia: #38bdf8;
   --color-hue-chess: #c084fc;
 
+  /* Deep game colours (D-073): muted, darker takes on each hue for card and start screen fills.
+     Each pair is the top and bottom of a vertical gradient. White text passes 6:1 on every top
+     stop and white at 86% passes 5:1, so text always sits on the top of the gradient. */
+  --color-deep-path: #954c27;
+  --color-deeper-path: #401905;
+  --color-deep-balance: #006a61;
+  --color-deeper-balance: #002e2a;
+  --color-deep-blocks: #924666;
+  --color-deeper-blocks: #3f1628;
+  --color-deep-sudoku: #585aa0;
+  --color-deeper-sudoku: #212147;
+  --color-deep-weave: #266a3d;
+  --color-deeper-weave: #082f16;
+  --color-deep-recall: #815b17;
+  --color-deeper-recall: #362200;
+  --color-deep-trivia: #00668c;
+  --color-deeper-trivia: #002b3f;
+  --color-deep-chess: #725195;
+  --color-deeper-chess: #2f1c41;
+
   /* Chess board tiles: the app's own neutrals, so the board reads like every other board (D-050). */
   --color-square-light: var(--color-slate);
   --color-square-dark: var(--color-iron);
@@ -154,6 +174,50 @@ h4,
 .surface {
   background-image: linear-gradient(var(--color-surface-top) 0%, var(--color-surface-bottom) 100%);
   box-shadow: var(--shadow-card);
+}
+
+/* A surface in a game's colour (D-073). Set --deep and --deeper (gameColours() in GameIcon.tsx).
+   The light sits in the top right corner, away from the text on the left, so contrast holds;
+   the inset top edge catches it like a raised card. */
+.game-surface {
+  background-image:
+    radial-gradient(110% 65% at 100% 0%, rgb(255 255 255 / 0.09), transparent 62%),
+    linear-gradient(180deg, var(--deep) 0%, var(--deeper) 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.16),
+    rgba(0, 0, 0, 0.35) 0 0 0 1px,
+    rgba(0, 0, 0, 0.3) 0 1px 3px 0,
+    rgba(0, 0, 0, 0.4) 0 10px 24px 0;
+}
+
+/* Text on a game colour: two levels only. Hierarchy comes from size and weight, not from fading
+   the text below 4.5:1. */
+.on-colour-soft {
+  color: rgb(255 255 255 / 0.86);
+}
+
+/* The start card's colour band (D-073): full colour behind the title, gone by the controls. */
+.card-tint {
+  background-image:
+    radial-gradient(110% 55% at 100% 0%, rgb(255 255 255 / 0.09), transparent 62%),
+    linear-gradient(180deg, var(--deep) 0%, var(--deep) 30%, color-mix(in oklab, var(--deeper) 70%, transparent) 62%, transparent 100%);
+}
+
+/* The start page's wash: the card's colour, held at the top of the screen and fading to black. */
+.page-wash {
+  background-image: linear-gradient(180deg, color-mix(in oklab, var(--deep) 75%, var(--color-void)) 0%, color-mix(in oklab, var(--deeper) 60%, var(--color-void)) 35%, var(--color-void) 75%);
+}
+
+/* Opening a game card (D-073): the card's colour grows from the tile to the whole screen, then
+   hands off to the start screen's wash. Imperative, see src/lib/cardOpen.ts. */
+.card-open-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  background-image:
+    radial-gradient(110% 65% at 100% 0%, rgb(255 255 255 / 0.09), transparent 62%),
+    linear-gradient(180deg, var(--deep) 0%, var(--deeper) 70%, var(--color-void) 100%);
 }
 
 /* Flat inset well inside a surface, for stats and pickers. */
