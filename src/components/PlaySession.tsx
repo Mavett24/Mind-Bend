@@ -11,7 +11,6 @@ import { createRng } from "@/engine/rng";
 import { outcomeScore } from "@/engine/rating";
 import { pointsBand, pointsOutcome, timeBand, type Band } from "@/engine/stats";
 import { dayKey, gameSummary, insightFor, overall, ratingOutcome, tierProgress, type GameRecord, type GameSummary, type ResultInsight } from "@/engine/history";
-import { useHideDock } from "@/lib/dock";
 import { newRecordId } from "@/lib/history";
 import { sendEvents } from "@/lib/analytics";
 import { gameStart, type PlayContext } from "@/lib/events";
@@ -95,8 +94,6 @@ export function PlaySession<P>({ game, module, board, mode, nextDailyHref, onExi
   const [stoppedAt, setStoppedAt] = useState<number | null>(null);
   const [finished, setFinished] = useState<Finished | null>(null);
   const [showResult, setShowResult] = useState(false);
-  // The board gets the whole screen; the dock comes back with the result (D-068).
-  useHideDock(!showResult);
 
   const handleSolved = useCallback(
     (detail: SolveDetail) => {

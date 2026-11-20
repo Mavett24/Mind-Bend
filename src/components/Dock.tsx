@@ -2,34 +2,137 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { dayKey } from "@/engine/history";
-import { GAMES } from "@/games/registry";
-import { useProfile } from "@/lib/profile";
-import { GameIcon } from "./GameIcon";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { animate, motion, useMotionValue, useReducedMotion, useTransform, type MotionValue } from "motion/react";
+
+type TabId = "today" | "games" | "stats";
+
+/** Width of each rounded end of the blob: half the 52px tab height, so the ends are true semicircles. */
+const CAP = 26;
+/** The middle strip is drawn at this width and scaled, so it never animates layout (DESIGN.md §6). */
+const MID_BASE = 100;
+/** Springs for the two edges (D-070): the leading edge snaps, the trailing one catches up, so the blob stretches toward the new tab and settles. */
+const LEAD = { type: "spring", stiffness: 640, damping: 46, mass: 0.9 } as const;
+const TRAIL = { type: "spring", stiffness: 260, damping: 26, mass: 1 } as const;
+/** On the home page, games is active once its section's top passes this share of the viewport. */
+const GAMES_LINE = 0.45;
 
 /**
- * Floating dock (D-068), phones only: today (with the daily set as a ring), games, stats, and a
- * white pill to the next unplayed daily. Hidden while a board is in play (`useHideDock`).
+ * Floating dock on phones (D-068, D-070): three tabs and nothing else. Navigation only, so the page's
+ * own primary action (play, next daily) never competes with it. It slides away on game pages, which
+ * are focused screens with their own close button and primary action, and comes back on home and stats.
  *
- * Alignment: every tab is the same 52px-tall column with a 20px glyph box and an 11px label on a
- * 12px line, so icons and labels share one centre line and one baseline across the dock. The pill is
- * the same 52px tall and sits on the same centre line.
+ * The active tab sits on a blob that morphs between tabs: its two edges move on separate springs,
+ * built from two semicircle caps and a scaled middle strip so only transforms animate.
  */
 export function Dock() {
   const pathname = usePathname();
-  const profile = useProfile();
-  const today = profile ? dayKey(profile.now) : null;
-  const doneIds = new Set(profile && today ? GAMES.filter((g) => profile.games[g.id].dailyDone.has(today)).map((g) => g.id) : []);
-  const next = profile ? (GAMES.find((g) => !doneIds.has(g.id)) ?? null) : GAMES[0];
-  const active = pathname === "/" ? "today" : pathname.startsWith("/stats") ? "stats" : pathname.startsWith("/play") ? "games" : null;
+  const reduced = useReducedMotion();
+  const onHome = pathname === "/";
+  const homeSection = useHomeSection(onHome);
+  const away = pathname.startsWith("/play");
+  const active: TabId | null = onHome ? homeSection.section : pathname.startsWith("/stats") ? "stats" : away ? "games" : null;
+
+  const trackRef = useRef<HTMLDivElement>(null);
+  const tabRefs = useRef<Partial<Record<TabId, HTMLAnchorElement | null>>>({});
+  const left = useMotionValue(0);
+  const right = useMotionValue(0);
+  const [ready, setReady] = useState(false);
+
+  const register = useCallback((id: TabId, el: HTMLAnchorElement | null) => {
+    tabRefs.current[id] = el;
+  }, []);
+
+  const edgesOf = useCallback((id: TabId) => {
+    const el = tabRefs.current[id];
+    return el ? { l: el.offsetLeft, r: el.offsetLeft + el.offsetWidth } : null;
+  }, []);
+
+  // First placement: no animation, straight onto the active tab.
+  useLayoutEffect(() => {
+    if (ready || !active) return;
+    const e = edgesOf(active);
+    if (!e) return;
+    left.jump(e.l);
+    right.jump(e.r);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the blob can only be placed after the tabs are measured
+    setReady(true);
+  }, [active, ready, edgesOf, left, right]);
+
+  // Later changes: the edge on the side you're heading leads, the other trails.
+  useEffect(() => {
+    if (!ready || !active) return;
+    const e = edgesOf(active);
+    if (!e) return;
+    if (reduced) {
+      left.jump(e.l);
+      right.jump(e.r);
+      return;
+    }
+    const goingRight = e.l > left.get();
+    const a = animate(left, e.l, goingRight ? TRAIL : LEAD);
+    const b = animate(right, e.r, goingRight ? LEAD : TRAIL);
+    return () => {
+      a.stop();
+      b.stop();
+    };
+  }, [active, ready, reduced, edgesOf, left, right]);
+
+  // Keep the blob on its tab if the dock resizes (rotation, font load). Reads the active tab from a
+  // ref so the observer isn't re-attached on every switch: attaching fires it, which would snap the blob.
+  const activeRef = useRef(active);
+  useEffect(() => {
+    activeRef.current = active;
+  }, [active]);
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track || typeof ResizeObserver === "undefined") return;
+    let width = track.offsetWidth;
+    const ro = new ResizeObserver(() => {
+      if (track.offsetWidth === width) return;
+      width = track.offsetWidth;
+      const e = activeRef.current ? edgesOf(activeRef.current) : null;
+      if (!e) return;
+      left.jump(e.l);
+      right.jump(e.r);
+    });
+    ro.observe(track);
+    return () => ro.disconnect();
+  }, [edgesOf, left, right]);
+
+  /** On the home page, today and games scroll instead of navigating, and the blob moves on tap. */
+  function onTab(id: TabId, event: React.MouseEvent<HTMLAnchorElement>) {
+    if (!onHome || id === "stats") return;
+    event.preventDefault();
+    const behavior: ScrollBehavior = reduced ? "auto" : "smooth";
+    homeSection.pin(id);
+    if (id === "today") {
+      window.scrollTo({ top: 0, behavior });
+      history.replaceState(history.state, "", "/");
+    } else {
+      document.getElementById("games")?.scrollIntoView({ behavior, block: "start" });
+      history.replaceState(history.state, "", "/#games");
+    }
+  }
 
   return (
-    <nav aria-label="Main" className="dock fixed inset-x-3 bottom-[max(12px,env(safe-area-inset-bottom))] z-30 mx-auto max-w-[440px] sm:hidden">
-      <div className="grid h-16 grid-cols-[1fr_1fr_1fr_auto] items-center gap-1 rounded-full bg-[linear-gradient(var(--color-surface-top),var(--color-surface-bottom))] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_0_1px_rgba(255,255,255,0.05),0_12px_32px_rgba(0,0,0,0.6)]">
-        <Tab href="/" label="today" on={active === "today"}>
-          <Ring done={doneIds.size} total={GAMES.length} />
+    <nav aria-label="Main" data-away={away || undefined} aria-hidden={away || undefined} inert={away} className="dock fixed inset-x-0 bottom-[max(12px,env(safe-area-inset-bottom))] z-30 mx-auto w-fit sm:hidden">
+      <div
+        ref={trackRef}
+        className="relative grid h-16 grid-cols-3 items-center gap-1 rounded-full bg-[linear-gradient(var(--color-surface-top),var(--color-surface-bottom))] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_0_1px_rgba(255,255,255,0.05),0_12px_32px_rgba(0,0,0,0.6)]"
+      >
+        <Blob left={left} right={right} visible={ready && active !== null} />
+
+        <Tab id="today" label="today" on={active === "today"} fallback={!ready} register={register} href="/" onClick={onTab}>
+          <svg viewBox="0 0 20 20" width="20" height="20" aria-hidden>
+            <g fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round">
+              <rect x="3" y="4.5" width="14" height="12.5" rx="2.6" />
+              <path d="M6.8 2.6v3.2M13.2 2.6v3.2" />
+            </g>
+            <rect x="8.4" y="10" width="3.2" height="3.2" rx="0.9" fill="currentColor" />
+          </svg>
         </Tab>
-        <Tab href="/#games" label="games" on={active === "games"}>
+        <Tab id="games" label="games" on={active === "games"} fallback={!ready} register={register} href="/#games" onClick={onTab}>
           <svg viewBox="0 0 20 20" width="20" height="20" aria-hidden>
             <g fill="currentColor">
               <rect x="3" y="3" width="6" height="6" rx="1.6" />
@@ -39,7 +142,7 @@ export function Dock() {
             </g>
           </svg>
         </Tab>
-        <Tab href="/stats" label="stats" on={active === "stats"}>
+        <Tab id="stats" label="stats" on={active === "stats"} fallback={!ready} register={register} href="/stats" onClick={onTab}>
           <svg viewBox="0 0 20 20" width="20" height="20" aria-hidden>
             <g fill="currentColor">
               <rect x="3" y="10" width="3.2" height="7" rx="1" />
@@ -48,61 +151,101 @@ export function Dock() {
             </g>
           </svg>
         </Tab>
-
-        {next ? (
-          <Link
-            href={`/play/${next.id}?m=daily`}
-            aria-label={`Play today's ${next.name}`}
-            className="flex h-[52px] items-center gap-2.5 whitespace-nowrap rounded-full bg-paper pl-2 pr-4 text-void transition-transform duration-150 ease-[var(--ease-out)] active:scale-[0.96]"
-            suppressHydrationWarning
-          >
-            <GameIcon id={next.id} size={36} />
-            <span className="flex flex-col justify-center font-mono">
-              <span className="text-[10px] leading-3 text-steel">next</span>
-              <span className="text-[13px] font-medium leading-4">{next.name} →</span>
-            </span>
-          </Link>
-        ) : (
-          <Link
-            href="/#games"
-            className="flex h-[52px] items-center whitespace-nowrap rounded-full bg-paper px-5 font-mono text-[13px] font-medium leading-4 text-void transition-transform duration-150 ease-[var(--ease-out)] active:scale-[0.96]"
-          >
-            practice →
-          </Link>
-        )}
       </div>
     </nav>
   );
 }
 
-function Tab({ href, label, on, children }: { href: string; label: string; on: boolean; children: React.ReactNode }) {
+/** Two semicircle caps and a middle strip, all on one vertical gradient so the joins never show. */
+function Blob({ left, right, visible }: { left: MotionValue<number>; right: MotionValue<number>; visible: boolean }) {
+  const capRightX = useTransform(right, (r) => r - CAP);
+  // The strip overlaps each cap by 1px so no seam opens on subpixel positions.
+  const midX = useTransform(left, (l) => l + CAP - 1);
+  const midScale = useTransform([left, right], ([l, r]: number[]) => Math.max(0, r - l - 2 * CAP + 2) / MID_BASE);
+  const part = "dock-blob absolute left-0 top-1.5 h-[52px]";
+
+  return (
+    <motion.div aria-hidden className="pointer-events-none absolute inset-0" initial={false} animate={{ opacity: visible ? 1 : 0 }} transition={{ duration: 0.2 }}>
+      <motion.span className={`${part} rounded-l-full`} style={{ x: left, width: CAP }} />
+      <motion.span className={part} style={{ x: midX, scaleX: midScale, width: MID_BASE, originX: 0 }} />
+      <motion.span className={`${part} rounded-r-full`} style={{ x: capRightX, width: CAP }} />
+    </motion.div>
+  );
+}
+
+interface TabProps {
+  id: TabId;
+  href: string;
+  label: string;
+  on: boolean;
+  /** Before the blob is measured (server render, first paint), the active tab carries a plain chip. */
+  fallback: boolean;
+  register: (id: TabId, el: HTMLAnchorElement | null) => void;
+  onClick: (id: TabId, event: React.MouseEvent<HTMLAnchorElement>) => void;
+  children: React.ReactNode;
+}
+
+function Tab({ id, href, label, on, fallback, register, onClick, children }: TabProps) {
   return (
     <Link
+      ref={(el) => register(id, el)}
       href={href}
+      onClick={(e) => onClick(id, e)}
       aria-current={on ? "page" : undefined}
-      className={`flex h-[52px] flex-col items-center justify-center gap-1 rounded-full font-mono text-[11px] font-medium leading-3 transition-[transform,color,background-color] duration-150 ease-[var(--ease-out)] active:scale-[0.96] ${
-        on ? "bg-white/[0.07] text-paper" : "text-ash"
-      }`}
+      className={`relative flex h-[52px] w-[76px] flex-col items-center justify-center gap-1 rounded-full font-mono text-[11px] font-medium leading-3 transition-[transform,color] duration-[var(--dur-base)] ease-[var(--ease-out)] active:scale-[0.94] ${
+        on ? "text-paper" : "text-ash"
+      } ${on && fallback ? "dock-blob" : ""}`}
     >
-      <span className="flex h-5 w-5 items-center justify-center">{children}</span>
+      {/* The icon springs up a touch when its tab becomes active. */}
+      <motion.span
+        className="flex h-5 w-5 items-center justify-center"
+        initial={false}
+        animate={{ scale: on ? 1 : 0.92, y: on ? -1 : 0 }}
+        transition={{ type: "spring", stiffness: 520, damping: 18 }}
+      >
+        {children}
+      </motion.span>
       {label}
     </Link>
   );
 }
 
-/** The daily set as a ring: ember arc for games done, the count in the middle. */
-function Ring({ done, total }: { done: number; total: number }) {
-  const r = 8.5;
-  const c = 2 * Math.PI * r;
-  return (
-    <span className="relative flex h-5 w-5 items-center justify-center" suppressHydrationWarning>
-      <svg viewBox="0 0 20 20" width="20" height="20" className="absolute inset-0 -rotate-90" aria-hidden>
-        <circle cx="10" cy="10" r={r} fill="none" stroke="var(--color-slate)" strokeWidth="1.8" />
-        {done > 0 && (
-          <circle cx="10" cy="10" r={r} fill="none" stroke="var(--color-ember)" strokeWidth="1.8" strokeLinecap="round" strokeDasharray={`${(done / total) * c} ${c}`} />
-        )}
-      </svg>
-      <span className="font-num text-[9px] font-semibold leading-none text-paper">{done}</span>
-    </span>
-  );
+/**
+ * Which part of the home page you're looking at: today (the hero and your card) or the games grid.
+ * A tap pins the target for the length of the smooth scroll, so the blob moves at once instead of
+ * following the scroll past the line.
+ */
+function useHomeSection(enabled: boolean) {
+  const [section, setSection] = useState<"today" | "games">("today");
+  const pinnedUntil = useRef(0);
+
+  useEffect(() => {
+    if (!enabled) return;
+    let frame = 0;
+    const read = () => {
+      frame = 0;
+      if (performance.now() < pinnedUntil.current) return;
+      const el = document.getElementById("games");
+      if (!el) return;
+      setSection(el.getBoundingClientRect().top < window.innerHeight * GAMES_LINE ? "games" : "today");
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(read);
+    };
+    read();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [enabled]);
+
+  const pin = useCallback((id: "today" | "games") => {
+    pinnedUntil.current = performance.now() + 900;
+    setSection(id);
+  }, []);
+
+  return { section, pin };
 }

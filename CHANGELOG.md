@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- **Dock is navigation only** (D-070): today, games, stats. The white "next" pill is gone, so it no longer points at path while you're about to play balance, and the daily ring is gone from the today tab. The dock now slides away on every game page (start screen, board and result), where the card has its own close button and primary action, and comes back on home and stats. Page content keeps clear of it (`--dock-space`).
+- **Morphing tab indicator** (D-070): the active tab sits on a blob whose edges move on separate springs, so it stretches toward the tab you tap and settles. Transforms only, and it jumps with reduced motion. On the home page the active tab follows the scroll between today and the games grid, and tapping either scrolls there.
+- Removed `src/lib/dock.ts` (`useHideDock`); the route decides when the dock shows.
+
 ## 1.0.0 · 2026-11-18 · Launch
 
 The first public release: eight games, daily sets, practice, challenge links, local-first stats and game analytics.

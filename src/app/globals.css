@@ -339,21 +339,42 @@ html[data-splash="off"] #splash {
 .page-fill {
   min-height: 100vh;
   min-height: 100lvh;
+  padding-bottom: var(--dock-space);
 }
 
-/* Floating dock (D-068): slides away while a board is in play, back with the result. */
+/* Room the floating dock takes at the bottom of a phone screen (D-070): its 64px height, its
+   offset from the edge and a 16px gap. Page content and the start card stop above it, so the dock
+   never covers a primary action. Zero where the dock isn't shown. */
+:root {
+  --dock-space: 0px;
+}
+@media (max-width: 639.98px) {
+  :root {
+    --dock-space: calc(64px + max(12px, env(safe-area-inset-bottom)) + 16px);
+  }
+}
+
+/* The dock's active blob (D-070): a raised chip, pewter fading to slate, same family as the tier picker. */
+.dock-blob {
+  background-image: linear-gradient(var(--color-pewter), var(--color-slate));
+}
+
+/* Floating dock (D-068, D-070): slides away on game pages, back on home and stats. */
 .dock {
   transition:
     transform 320ms var(--ease-out),
     opacity 200ms ease;
 }
-html[data-playing] .dock {
+.dock[data-away] {
   transform: translateY(calc(100% + 24px));
   opacity: 0;
   pointer-events: none;
 }
+html:has(.dock[data-away]) {
+  --dock-space: 0px;
+}
 @media (prefers-reduced-motion: reduce) {
-  html[data-playing] .dock {
+  .dock[data-away] {
     transform: none;
   }
 }
