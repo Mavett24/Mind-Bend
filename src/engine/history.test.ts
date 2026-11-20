@@ -135,6 +135,12 @@ describe("overall", () => {
     expect(a.map((d) => d.games)).toEqual([1, 0, 2]);
     expect(a[2].day).toBe("2026-10-30");
   });
+
+  it("splits each day by game", () => {
+    const a = activity(data([rec({ at: NOW, gameId: "path" }), rec({ at: NOW, gameId: "path" }), rec({ at: NOW, gameId: "chess" })]), NOW, 2);
+    expect(a[1].byGame).toEqual({ path: 2, chess: 1 });
+    expect(a[0].byGame).toEqual({});
+  });
 });
 
 describe("skills and focus", () => {

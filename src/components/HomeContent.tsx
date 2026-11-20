@@ -7,7 +7,7 @@ import { useProfile, type Profile } from "@/lib/profile";
 import { Reveal } from "./Reveal";
 import { Hero } from "./Hero";
 import { GameTile } from "./GameTile";
-import { GameIcon } from "./GameIcon";
+import { GameIcon, gameColours } from "./GameIcon";
 import { ActivityBars, TierBar } from "./charts";
 
 export function HomeContent() {
@@ -52,10 +52,12 @@ function YouCard({ profile }: { profile: Profile | null }) {
   const tp = summary && game ? levelProgress(game.id, summary.rating) : null;
   const days = profile ? activity(profile.data, profile.now, 14) : null;
 
+  // The card picks up the next game's colour from the right, where its panel sits (D-075).
   return (
     <section
       aria-labelledby="you-title"
-      className="surface grid gap-6 rounded-card p-6 md:p-8 lg:grid-cols-[1.1fr_1fr_1.1fr] lg:items-stretch lg:gap-8"
+      style={game ? gameColours(game.id) : undefined}
+      className={`surface relative grid gap-6 overflow-hidden rounded-card p-6 md:p-8 lg:grid-cols-[1.1fr_1fr_1.1fr] lg:items-stretch lg:gap-8 ${game ? "you-tint" : ""}`}
     >
       <div className="flex flex-col gap-5">
         <div className="flex items-baseline justify-between">
@@ -68,7 +70,7 @@ function YouCard({ profile }: { profile: Profile | null }) {
         </div>
 
         <dl className="grid grid-cols-3 gap-2">
-          <Stat label="streak" value={profile ? `${profile.overall.streak}d` : "--"} />
+          <Stat label="streak" value={profile ? `${profile.overall.streak}d` : "--"} accent={!!profile && profile.overall.streak > 0} />
           <Stat label="played" value={profile ? String(profile.overall.games) : "--"} />
           <Stat label="best run" value={profile ? `${profile.overall.longestStreak}d` : "--"} />
         </dl>
@@ -82,26 +84,28 @@ function YouCard({ profile }: { profile: Profile | null }) {
       {game && f && tp && (
         <Link
           href={`/play/${game.id}`}
-          className="well group flex flex-col gap-3 rounded-[18px] p-4 transition-colors duration-[var(--dur-fast)] hover:bg-white/[0.06]"
+          className="game-surface group relative flex flex-col gap-3 rounded-[18px] p-4 transition-transform duration-[var(--dur-fast)] ease-[var(--ease-out)] active:scale-[0.98]"
         >
           <div className="flex items-center gap-3">
-            <GameIcon id={game.id} size={36} />
+            <span className="rounded-[11px] shadow-[0_0_0_1px_rgba(0,0,0,0.28),0_4px_12px_rgba(0,0,0,0.25)]">
+              <GameIcon id={game.id} size={36} />
+            </span>
             <div className="flex flex-1 flex-col">
-              <span className="text-caption uppercase text-ash">next up</span>
-              <span className="font-mono text-heading-sm">{game.name}</span>
+              <span className="on-colour-soft text-caption uppercase">next up</span>
+              <span className="font-mono text-heading-sm text-white">{game.name}</span>
             </div>
             <span
               aria-hidden
-              className="text-fog transition-transform duration-[var(--dur-base)] ease-[var(--ease-spring)] group-hover:translate-x-1"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-paper text-void transition-transform duration-[var(--dur-base)] ease-[var(--ease-out)] group-hover:translate-x-0.5"
             >
               →
             </span>
           </div>
-          <p className="text-fog">{f.reason}</p>
+          <p className="on-colour-soft">{f.reason}</p>
           {tp.caption && (
             <div className="flex flex-col gap-1.5">
-              <TierBar progress={tp.progress} color={`var(--color-hue-${game.id})`} />
-              <span className="font-mono text-caption text-ash">
+              <TierBar progress={tp.progress} color="var(--color-paper)" />
+              <span className="on-colour-soft font-mono text-caption">
                 {summary!.rating} · {tp.caption}
               </span>
             </div>
@@ -112,11 +116,12 @@ function YouCard({ profile }: { profile: Profile | null }) {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
   return (
     <div className="well flex flex-col gap-1 rounded-[14px] px-3 py-2.5">
       <dt className="text-caption uppercase text-ash">{label}</dt>
-      <dd className="font-num text-heading-lg">{value}</dd>
+      {/* A live streak is the one number in ember, the streak colour everywhere else (DESIGN.md). */}
+      <dd className={`font-num text-heading-lg ${accent ? "text-ember" : ""}`}>{value}</dd>
     </div>
   );
 }

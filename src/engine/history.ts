@@ -301,6 +301,8 @@ export function levelProgress(gameId: string, rating: number): { progress: numbe
 export interface DayActivity {
   day: string;
   games: number;
+  /** Games per game that day, from records (legacy days count only in `games`). */
+  byGame: Record<string, number>;
 }
 
 export interface Overall {
@@ -355,12 +357,19 @@ export function overall(data: HistoryData, now: number): Overall {
   };
 }
 
-/** Games per day for the last `days` days, oldest first. */
+/** Games per day for the last `days` days, oldest first, with the split by game. */
 export function activity(data: HistoryData, now: number, days: number): DayActivity[] {
   const counts = overall(data, now).activeDays;
+  const split = new Map<string, Record<string, number>>();
+  for (const r of data.records) {
+    const k = dayKey(r.at);
+    const day = split.get(k) ?? {};
+    day[r.gameId] = (day[r.gameId] ?? 0) + 1;
+    split.set(k, day);
+  }
   return Array.from({ length: days }, (_, i) => {
     const day = dayKey(now - (days - 1 - i) * DAY);
-    return { day, games: counts.get(day) ?? 0 };
+    return { day, games: counts.get(day) ?? 0, byGame: split.get(day) ?? {} };
   });
 }
 

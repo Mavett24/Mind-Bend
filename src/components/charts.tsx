@@ -210,30 +210,51 @@ export function ActivityCalendar({ days }: { days: { day: string; games: number 
 
 // ---------------------------------------------------------------- small bars
 
-export function ActivityBars({ days, height = 40 }: { days: { day: string; games: number }[]; height?: number }) {
+/**
+ * Games per day as bars (D-075). Each bar is stacked by game in its deep colour, so a week of
+ * sudoku looks different from a week of chess; today carries an ember mark underneath.
+ */
+export function ActivityBars({ days, height = 40 }: { days: { day: string; games: number; byGame?: Record<string, number> }[]; height?: number }) {
   const max = Math.max(1, ...days.map((d) => d.games));
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.5 });
   return (
-    <div ref={ref} className="flex items-end gap-[3px]" style={{ height }} role="img" aria-label={`Games per day, last ${days.length} days`}>
-      {days.map((d, i) => (
-        <motion.span
-          key={d.day}
-          title={`${d.day}: ${d.games}`}
-          className="flex-1 origin-bottom rounded-t-[3px] rounded-b-[1px]"
-          // The bars grow up from the baseline, left to right, the first time they are on screen.
-          initial={{ scaleY: 0 }}
-          animate={{ scaleY: inView ? 1 : 0 }}
-          transition={{ duration: dur.slow, ease: ease.spring, delay: i * 0.02 }}
-          style={{
-            height: `${Math.max(8, (d.games / max) * 100)}%`,
-            background: d.games ? (i === days.length - 1 ? "#da5c2c" : "rgba(238,238,238,0.55)") : "rgba(255,255,255,0.07)",
-          }}
-        />
-      ))}
+    <div className="flex flex-col gap-1.5">
+      <div ref={ref} className="flex items-end gap-[3px]" style={{ height }} role="img" aria-label={`Games per day, last ${days.length} days`}>
+        {days.map((d, i) => {
+          const parts = ORDER.filter((id) => d.byGame?.[id]).map((id) => ({ id, n: d.byGame![id] }));
+          // Days from before per-game records (legacy) still get a plain bar.
+          const rest = d.games - parts.reduce((n, p) => n + p.n, 0);
+          return (
+            <motion.span
+              key={d.day}
+              title={`${d.day}: ${d.games}`}
+              className="flex flex-1 origin-bottom flex-col-reverse gap-px overflow-hidden rounded-t-[3px] rounded-b-[1px]"
+              // The bars grow up from the baseline, left to right, the first time they are on screen.
+              initial={{ scaleY: 0 }}
+              animate={{ scaleY: inView ? 1 : 0 }}
+              transition={{ duration: dur.slow, ease: ease.spring, delay: i * 0.02 }}
+              style={{ height: `${Math.max(8, (d.games / max) * 100)}%`, background: d.games ? undefined : "rgba(255,255,255,0.07)" }}
+            >
+              {parts.map((p) => (
+                <span key={p.id} className="w-full" style={{ flexGrow: p.n, background: `var(--color-deep-${p.id})` }} />
+              ))}
+              {rest > 0 && <span className="w-full bg-[rgba(238,238,238,0.4)]" style={{ flexGrow: rest }} />}
+            </motion.span>
+          );
+        })}
+      </div>
+      <div className="flex gap-[3px]" aria-hidden>
+        {days.map((d, i) => (
+          <span key={d.day} className={`h-[3px] flex-1 rounded-full ${i === days.length - 1 ? "bg-ember" : ""}`} />
+        ))}
+      </div>
     </div>
   );
 }
+
+/** Stacking order for the activity bars: the registry order, so a game always sits at the same height. */
+const ORDER = ["path", "balance", "blocks", "sudoku", "weave", "recall", "trivia", "chess"];
 
 // ---------------------------------------------------------------- tier progress
 
