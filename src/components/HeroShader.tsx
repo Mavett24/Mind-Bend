@@ -14,6 +14,7 @@ import type { GameId } from "@/games/registry";
 const VERT = `attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}`;
 
 const FRAG = `precision mediump float;
+#define INTENSITY 1.35
 uniform vec2 u_res;uniform float u_time;uniform vec3 u_a;uniform vec3 u_b;uniform vec2 u_center;uniform vec2 u_mouse;uniform float u_mobile;
 float hash(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
 float noise(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.-2.*f);
@@ -28,13 +29,13 @@ void main(){
   vec2 r=vec2(fbm(p*1.3+2.*q+vec2(1.7,9.2)+t*.6),fbm(p*1.3+2.*q+vec2(8.3,2.8)-t*.4));
   float f=fbm(p*1.1+2.2*r);
   float d=length(p*vec2(mix(.8,1.1,u_mobile),1.));
-  float pool=smoothstep(mix(1.25,.9,u_mobile),.0,d);
+  float pool=smoothstep(mix(1.45,1.05,u_mobile),.0,d);
   pool*=pool;
   vec3 col=mix(u_b,u_a,smoothstep(.25,.8,f));
   // soft veins where the flow folds, a little lighter than the colour itself
-  float vein=smoothstep(.62,.8,f)*(1.-smoothstep(.8,.95,f));
-  col=col*(.45+1.1*f*f)+u_a*vein*.55;
-  col*=pool*.95;
+  float vein=smoothstep(.6,.78,f)*(1.-smoothstep(.8,.96,f));
+  col=col*(.55+1.3*f*f)+u_a*vein*.8;
+  col*=pool*INTENSITY;
   col*=smoothstep(.0,.3,uv.y);
   col+=(hash(gl_FragCoord.xy+fract(u_time))-.5)*(2./255.);
   gl_FragColor=vec4(max(col,0.),1.);
