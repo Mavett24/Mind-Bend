@@ -1,6 +1,6 @@
 # chess
 
-**Skill:** tactics · **Inspired by:** chess.com puzzles · **Status:** live (v0.8)
+**Skill:** tactics · **Inspired by:** chess.com puzzles · **Status:** live (v0.8), Puzzle Rush (D-071)
 
 Tactics puzzles with a puzzle rating, the way chess.com runs them: you play the side to move, find the best move, and every puzzle moves your rating against the puzzle's own rating. Practice is endless; the daily is a set of three.
 
@@ -43,8 +43,38 @@ Puzzle Elo, separate from the 1000-based ratings of the other games (D-048).
 | Practice | Endless, each near your rating plus the tier offset, ±60 for variety | First attempt at each puzzle |
 | Daily | Three, at about 1300, 1700 and 2100. Same for everyone (seeded by the date) | Yes, first attempt only (D-049) |
 | Challenge | The exact puzzle in the link (`?s=<band>-<id>`), then practice | First attempt |
+| Rush | As many as you can in 3 or 5 minutes, three mistakes and it's over (below) | Never |
 
 The daily set counts as done once all three are played, solved or not. It ends on a summary: 0/3 to 3/3, each puzzle's rating change, the total, and the link to the next daily game.
+
+## Puzzle Rush
+
+Chess.com's Puzzle Rush, on our puzzle set (D-071). Pick 3 or 5 minutes on the start card.
+
+- Puzzles come one after another on the same board. A solve scores a point and moves on at once (260 ms); a wrong move crosses out a life, shakes the board and moves on (620 ms). The third wrong move, or the clock reaching zero, ends the run. "end run" ends it early and still counts.
+- The clock starts when the first puzzle's setup move has played and doesn't stop between puzzles. Setup moves (320 ms) and replies (260 ms) are quicker than in practice. The clock turns ember for the last 10 seconds.
+- No hints and no speed bonus. The run never touches your puzzle rating.
+- Leaving a run after 5 seconds is a quit: in your activity, never a best.
+
+**The ramp** (`rushStep` in `src/games/chess/rush.ts`), by puzzle number:
+
+| Puzzles | Target rating | Longest line | Only |
+|---------|---------------|--------------|------|
+| 1 to 5 | 600 to 740 | 1 move | mate in 1 (back rank mates among them) |
+| 6 to 10 | 760 to 960 | 2 moves | mate in 1 or 2 |
+| 11 to 20 | 1000 to 1450 | 2 moves | |
+| 21 to 35 | 1500 to 2060 | 3 moves | |
+| 36 on | +30 a puzzle, up to 2800 | 4 moves | |
+
+Each step picks among the 24 unused puzzles closest to its target that fit, within 80 points, loosening to 160 points, then any theme, then anything, so a run never stalls. The pick is seeded by the run's seed and the puzzle number, never by how you're doing, so the same seed always gives the same run.
+
+**The run screen:** score (counts up in hue), three lives, the clock, a strip of the last 16 puzzles as ✓ (hue) and × (ember) tiles, the board, the side to move with the puzzle number and rating.
+
+**The end:** the score, why it ended (time's up, three strikes, run ended), a line against your best or the score to beat, best, missed and hardest solved, every puzzle as a chip with its rating, "rush again" (new seed, same length) and "challenge a friend".
+
+**Sharing:** `/play/chess?m=rush&r=<3|5>&s=<seed>&b=<score>` opens the start card on rush with the length locked and "beat 21" under it. The friend's seed is used once; "rush again" starts a fresh one.
+
+**Records:** one per run, `mode: "rush"`, tier medium, seed `rush<minutes>-<seed>`, `score` = puzzles solved. Kept out of the puzzle rating, solve rate, bests and the daily (`gameSummary`, `puzzleBests`, `solvesAt`); `rushBests` gives the best per length.
 
 ## Difficulty
 
@@ -81,7 +111,9 @@ After a puzzle, chips show the puzzle rating, the speed bonus, the hint cost and
 
 ## Not yet
 
-- Puzzle Rush style timed runs and a puzzle streak mode.
+- Puzzle Streak (no clock, one life, ramps the same way).
+- Reviewing a rush puzzle from the end screen.
+- A daily rush, the same run for everyone.
 - Choosing themes to practise (forks only, mates only).
 - Sound for moves and captures (Phase 6 sound pass).
 - Premoves.

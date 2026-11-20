@@ -35,6 +35,8 @@ export interface GameRecord {
   opponent?: number;
   /** Puzzle games: speed bonus earned on this solve, in rating points. */
   bonus?: number;
+  /** Puzzle Rush runs (mode "rush"): puzzles solved in the run. */
+  score?: number;
 }
 
 /** Progress from before history existed (v0.1 to v0.6 stored totals only). */
@@ -102,7 +104,8 @@ export interface GameSummary {
 
 export function gameSummary(data: HistoryData, gameId: string, scoring: Scoring): GameSummary {
   const legacy = data.legacy[gameId];
-  const records = data.records.filter((r) => r.gameId === gameId).sort((a, b) => a.at - b.at);
+  // Puzzle Rush runs have their own bests (rushBests) and never touch rating, solves or the daily (D-071).
+  const records = data.records.filter((r) => r.gameId === gameId && r.mode !== "rush").sort((a, b) => a.at - b.at);
   let rating = legacy?.rating ?? startRating(gameId);
   let peak = rating;
   let ratedPuzzles = 0;
@@ -173,7 +176,7 @@ export function ratingOutcome(base: number, hints = 0): number {
 
 /** Solved results for one game and tier, oldest first. */
 export function solvesAt(data: HistoryData, gameId: string, tier: Tier): GameRecord[] {
-  return data.records.filter((r) => r.gameId === gameId && r.tier === tier && r.solved).sort((a, b) => a.at - b.at);
+  return data.records.filter((r) => r.gameId === gameId && r.tier === tier && r.solved && r.mode !== "rush").sort((a, b) => a.at - b.at);
 }
 
 // ---------------------------------------------------------------- one result in context
@@ -264,7 +267,7 @@ export interface PuzzleBests {
 
 /** Bests for puzzle-rated games, where "fastest per tier" means little. */
 export function puzzleBests(data: HistoryData, gameId: string): PuzzleBests {
-  const records = data.records.filter((r) => r.gameId === gameId && !r.quit).sort((a, b) => a.at - b.at);
+  const records = data.records.filter((r) => r.gameId === gameId && !r.quit && r.mode !== "rush").sort((a, b) => a.at - b.at);
   let run = 0;
   let bestRun = 0;
   let hardest: number | null = null;
@@ -457,6 +460,7 @@ export function sanitize(raw: unknown): HistoryData | null {
     points: typeof x.points === "number" ? Math.min(10, Math.max(0, x.points)) : undefined,
     opponent: typeof x.opponent === "number" && x.opponent > 0 && x.opponent < 4000 ? x.opponent : undefined,
     bonus: typeof x.bonus === "number" ? Math.min(10, Math.max(0, Math.round(x.bonus))) : undefined,
+    score: typeof x.score === "number" ? Math.min(999, Math.max(0, Math.round(x.score))) : undefined,
   }));
   const legacy: Record<string, Legacy> = {};
   if (r.legacy && typeof r.legacy === "object") {

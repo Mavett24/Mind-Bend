@@ -8,6 +8,9 @@ import { GAMES, type GameMeta } from "@/games/registry";
 import { MODULES, OWN_SESSION, playable } from "@/games/modules";
 import { ChessSession } from "@/games/chess/Session";
 import { DAILY_TARGETS } from "@/games/chess/engine";
+import { RushSession } from "@/games/chess/RushSession";
+import { isRushMinutes, RUSH_MINUTES, rushBests, type RushMinutes } from "@/games/chess/rush";
+import { useHistory } from "@/lib/history";
 import { isTier, suggestTier, TIERS, TIER_LABEL, type Tier } from "@/engine/difficulty";
 import { boardSeed, dailyBoard, isValidSeed, randomSeed, type BoardKey, type Mode } from "@/engine/seed";
 import { levelProgress, PUZZLE_RATED, startRating } from "@/engine/history";
@@ -35,7 +38,29 @@ export function GameStart({ game }: { game: GameMeta }) {
     return isTier(t) && isValidSeed(s) ? { tier: t, seed: s } : null;
   }, [params]);
 
-  const [mode, setMode] = useState<Mode>(challenge ? "challenge" : params.get("m") === "daily" ? "daily" : "practice");
+  // Puzzle Rush is chess only (D-071). A shared run is /play/chess?m=rush&r=3&s=<seed>&b=<score to beat>.
+  const hasRush = game.id === "chess";
+  const rushLink = useMemo(() => {
+    if (!hasRush || params.get("m") !== "rush") return null;
+    const r = params.get("r");
+    const s = params.get("s");
+    const b = Number(params.get("b"));
+    return {
+      minutes: (isRushMinutes(r) ? Number(r) : 3) as RushMinutes,
+      seed: isValidSeed(s) ? s : null,
+      beat: Number.isInteger(b) && b > 0 && b < 1000 ? b : null,
+    };
+  }, [hasRush, params]);
+  /** The friend's run waits for the first rush; after that, every run gets a fresh seed. */
+  const [friendRun, setFriendRun] = useState(rushLink?.seed ? { seed: rushLink.seed, beat: rushLink.beat } : null);
+  const [minutes, setMinutes] = useState<RushMinutes>(rushLink?.minutes ?? 3);
+  const [beat, setBeat] = useState<number | null>(null);
+  const history = useHistory();
+  const rush = useMemo(() => (history && hasRush ? rushBests(history) : null), [history, hasRush]);
+
+  const [mode, setMode] = useState<Mode>(
+    challenge ? "challenge" : params.get("m") === "daily" ? "daily" : rushLink ? "rush" : "practice",
+  );
   const profile = useProfile();
   const summary = profile?.games[game.id] ?? null;
   const puzzleRated = PUZZLE_RATED.has(game.id);
@@ -93,7 +118,21 @@ export function GameStart({ game }: { game: GameMeta }) {
     setBoard({ gameId: game.id, tier: nextTier, seed: randomSeed() });
   }
 
+  function startRush(forceIntro = false) {
+    const key: BoardKey = { gameId: game.id, tier: "medium", seed: friendRun?.seed ?? randomSeed() };
+    setBeat(friendRun?.beat ?? null);
+    setFriendRun(null);
+    if (forceIntro || !introSkipped(game.id)) setPending(key);
+    else setBoard(key);
+  }
+
+  function rushAgain() {
+    setBeat(null);
+    setBoard({ gameId: game.id, tier: "medium", seed: randomSeed() });
+  }
+
   function start(forceIntro = false) {
+    if (mode === "rush") return startRush(forceIntro);
     const key: BoardKey | null =
       mode === "daily" ? daily : mode === "challenge" && challenge ? { gameId: game.id, ...challenge } : { gameId: game.id, tier, seed: randomSeed() };
     if (!key) return;
@@ -104,6 +143,7 @@ export function GameStart({ game }: { game: GameMeta }) {
   const modeOptions = [
     { value: "daily" as const, label: "daily" },
     { value: "practice" as const, label: "practice" },
+    ...(hasRush ? [{ value: "rush" as const, label: "rush" }] : []),
     ...(challenge ? [{ value: "challenge" as const, label: "challenge" }] : []),
   ];
 
@@ -141,7 +181,9 @@ export function GameStart({ game }: { game: GameMeta }) {
         </header>
 
         <AnimatePresence mode="wait" initial={false}>
-          {board && OWN_SESSION.has(game.id) ? (
+          {board && mode === "rush" && hasRush ? (
+            <RushSession key={`rush-${minutes}-${board.seed}`} game={game} minutes={minutes} seed={board.seed} beat={beat} onExit={backToMenu} onAgain={rushAgain} />
+          ) : board && OWN_SESSION.has(game.id) ? (
             <ChessSession key={boardSeed(board)} game={game} mode={mode} tier={board.tier} seed={board.seed} onExit={backToMenu} />
           ) : board && gameModule ? (
             <PlaySession
@@ -160,6 +202,7 @@ export function GameStart({ game }: { game: GameMeta }) {
               game={game}
               tier={pending.tier}
               mode={mode}
+              override={mode === "rush" ? { steps: RUSH_STEPS, label: `puzzle rush · ${minutes} min`, note: `as many puzzles as you can in ${minutes} minutes` } : undefined}
               onBack={() => setPending(null)}
               onStart={() => {
                 setBoard(pending);
@@ -200,7 +243,13 @@ export function GameStart({ game }: { game: GameMeta }) {
               <div className="well flex flex-col gap-3 rounded-[18px] p-4">
                 <dl className="grid grid-cols-4 gap-3">
                   <Stat label="rating" value={summary ? String(rating) : "--"} />
-                  {puzzleRated ? (
+                  {mode === "rush" ? (
+                    <>
+                      <Stat label="best 3m" value={rush?.best[3] == null ? "--" : String(rush.best[3])} />
+                      <Stat label="best 5m" value={rush?.best[5] == null ? "--" : String(rush.best[5])} />
+                      <Stat label="runs" value={String(rush?.runs ?? 0)} />
+                    </>
+                  ) : puzzleRated ? (
                     <Stat label="peak" value={summary?.played ? String(summary.peak) : "--"} />
                   ) : (
                     <Stat
@@ -209,8 +258,12 @@ export function GameStart({ game }: { game: GameMeta }) {
                       value={best === undefined ? "--" : gameModule?.scoring === "points" ? <PointsDisplay points={best} /> : <TimeDisplay ms={best} />}
                     />
                   )}
-                  <Stat label="played" value={summary ? String(summary.played) : "0"} />
-                  <Stat label="solved" value={solveRate === null ? "--" : `${solveRate}%`} />
+                  {mode !== "rush" && (
+                    <>
+                      <Stat label="played" value={summary ? String(summary.played) : "0"} />
+                      <Stat label="solved" value={solveRate === null ? "--" : `${solveRate}%`} />
+                    </>
+                  )}
                 </dl>
                 <div className="flex items-center gap-3">
                   <div className="flex-1">
@@ -237,51 +290,77 @@ export function GameStart({ game }: { game: GameMeta }) {
                   <Segmented id="mode" label="Mode" options={modeOptions} value={mode} onChange={setMode} />
                 </section>
 
-                <section className="flex flex-col gap-2" aria-labelledby="start-tier">
-                  <Eyebrow
-                    id="start-tier"
-                    step="02"
-                    note={mode === "daily" ? (puzzleRated ? "three puzzles, ramping up" : "fixed today") : mode === "challenge" ? "set by the link" : undefined}
-                  >
-                    difficulty
-                  </Eyebrow>
-                  <Segmented
-                    id="tier"
-                    label="Difficulty"
-                    options={TIERS.map((t) => ({ value: t, label: TIER_LABEL[t], marked: mode === "practice" && t === suggested }))}
-                    value={effectiveTier}
-                    onChange={setTier}
-                    disabled={mode !== "practice"}
-                  />
-                  <div className="flex min-h-[44px] flex-col gap-0.5 pt-1">
-                    <p className="text-body text-paper">
-                      {puzzleRated && mode === "daily"
-                        ? `three puzzles at about ${DAILY_TARGETS.join(", ").replace(/, (\d+)$/, " and $1")}`
-                        : puzzleRated && mode === "challenge"
-                          ? "the exact puzzle your friend played"
-                          : INTRO[game.id].tiers[effectiveTier]}
-                    </p>
-                    <p className="text-caption text-ash">
-                      {mode === "daily" &&
-                        (puzzleRated
-                          ? dailyDoneToday
-                            ? "done today. replays don't change your rating."
-                            : "the same three for everyone, rated against each puzzle."
-                          : "everyone plays this board today.")}
-                      {mode === "practice" &&
-                        (effectiveTier === suggested ? (
-                          <>
-                            <span className="text-ember">•</span> suggested for your rating
-                          </>
-                        ) : (
-                          <>
-                            <span className="text-ember">•</span> suggested for your rating: {suggested}
-                          </>
-                        ))}
-                      {mode === "challenge" && `a friend's board · seed ${challenge?.seed}`}
-                    </p>
-                  </div>
-                </section>
+{mode === "rush" ? (
+                  <section className="flex flex-col gap-2" aria-labelledby="start-time">
+                    <Eyebrow id="start-time" step="02" note={friendRun ? "set by the link" : undefined}>
+                      time
+                    </Eyebrow>
+                    <Segmented
+                      id="rush-minutes"
+                      label="Time"
+                      options={RUSH_MINUTES.map((m) => ({ value: String(m) as `${RushMinutes}`, label: `${m} min` }))}
+                      value={String(minutes) as `${RushMinutes}`}
+                      onChange={(v) => setMinutes(Number(v) as RushMinutes)}
+                      disabled={!!friendRun}
+                    />
+                    <div className="flex min-h-[44px] flex-col gap-0.5 pt-1">
+                      <p className="text-body text-paper">as many puzzles as you can in {minutes} minutes. three mistakes and the run ends.</p>
+                      <p className="text-caption text-ash">
+                        {friendRun?.beat
+                          ? `a friend's run · same puzzles · beat ${friendRun.beat}`
+                          : friendRun
+                            ? "a friend's run · same puzzles, same order"
+                            : "mates in one first, then it climbs. no hints, no rating at stake."}
+                      </p>
+                    </div>
+                  </section>
+                ) : (
+                                  <section className="flex flex-col gap-2" aria-labelledby="start-tier">
+                    <Eyebrow
+                      id="start-tier"
+                      step="02"
+                      note={mode === "daily" ? (puzzleRated ? "three puzzles, ramping up" : "fixed today") : mode === "challenge" ? "set by the link" : undefined}
+                    >
+                      difficulty
+                    </Eyebrow>
+                    <Segmented
+                      id="tier"
+                      label="Difficulty"
+                      options={TIERS.map((t) => ({ value: t, label: TIER_LABEL[t], marked: mode === "practice" && t === suggested }))}
+                      value={effectiveTier}
+                      onChange={setTier}
+                      disabled={mode !== "practice"}
+                    />
+                    <div className="flex min-h-[44px] flex-col gap-0.5 pt-1">
+                      <p className="text-body text-paper">
+                        {puzzleRated && mode === "daily"
+                          ? `three puzzles at about ${DAILY_TARGETS.join(", ").replace(/, (\d+)$/, " and $1")}`
+                          : puzzleRated && mode === "challenge"
+                            ? "the exact puzzle your friend played"
+                            : INTRO[game.id].tiers[effectiveTier]}
+                      </p>
+                      <p className="text-caption text-ash">
+                        {mode === "daily" &&
+                          (puzzleRated
+                            ? dailyDoneToday
+                              ? "done today. replays don't change your rating."
+                              : "the same three for everyone, rated against each puzzle."
+                            : "everyone plays this board today.")}
+                        {mode === "practice" &&
+                          (effectiveTier === suggested ? (
+                            <>
+                              <span className="text-ember">•</span> suggested for your rating
+                            </>
+                          ) : (
+                            <>
+                              <span className="text-ember">•</span> suggested for your rating: {suggested}
+                            </>
+                          ))}
+                        {mode === "challenge" && `a friend's board · seed ${challenge?.seed}`}
+                      </p>
+                    </div>
+                  </section>
+                )}
 
                 {/* Play is the one primary action. On narrow phones the two stack, play on top. */}
                 <div className="flex flex-col-reverse gap-3 min-[420px]:grid min-[420px]:grid-cols-[auto_1fr]">
@@ -289,7 +368,7 @@ export function GameStart({ game }: { game: GameMeta }) {
                     how to play
                   </Button>
                   <Button onClick={() => start()} className="w-full" disabled={mode === "daily" && !daily}>
-                    play {game.name}
+                    {mode === "rush" ? "start rush" : `play ${game.name}`}
                   </Button>
                 </div>
               </div>
@@ -320,3 +399,10 @@ function Eyebrow({ id, step, note, children }: { id: string; step: string; note?
     </h2>
   );
 }
+
+/** How to play, for a rush (D-071). */
+const RUSH_STEPS = [
+  "Puzzles come one after another on the same board. The first few are mates in one.",
+  "Every solve scores a point, and each puzzle is a little harder than the last.",
+  "Three wrong moves, or the clock hitting zero, ends the run. No hints, and your puzzle rating is never at stake.",
+] as const;

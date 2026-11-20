@@ -1,6 +1,7 @@
 import { dailyTier, type Tier } from "./difficulty";
 
-export type Mode = "daily" | "practice" | "challenge";
+/** rush is chess only: a timed run of puzzles (D-071). */
+export type Mode = "daily" | "practice" | "challenge" | "rush";
 
 /** A board is fully described by these three values. */
 export interface BoardKey {
