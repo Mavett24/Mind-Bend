@@ -15,7 +15,6 @@ import type { Tier } from "@/engine/difficulty";
 import { createRng } from "@/engine/rng";
 import { challengeQuery, type Mode } from "@/engine/seed";
 import { dayKey, gameSummary, overall, type GameRecord } from "@/engine/history";
-import { useHideDock } from "@/lib/dock";
 import { getHistory, newRecordId, useHistory } from "@/lib/history";
 import { sendEvents } from "@/lib/analytics";
 import { gameStart, unrecordedComplete, type PlayContext } from "@/lib/events";
@@ -115,8 +114,6 @@ export function ChessSession({ game, mode, tier, seed, onExit }: ChessSessionPro
   const timers = useRef<number[]>([]);
 
   const dailyDone = mode === "daily" && index >= DAILY_TARGETS.length;
-  // Puzzle after puzzle on one board: the dock stays away until the run ends (D-068).
-  useHideDock(!dailyDone);
   /** The board for analytics: daily puzzles carry their own tier (D-062). */
   const ctx = useMemo<PlayContext>(() => ({ game: "chess", tier: mode === "daily" ? (DAILY_TIERS[index] ?? tier) : tier, mode }), [mode, index, tier]);
   /** Bumped on retry, so a result only shows for the attempt it belongs to. */
